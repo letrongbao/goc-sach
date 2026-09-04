@@ -1,0 +1,13 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <div class="shop-toolbar"><div><p class="eyebrow">KHÔNG GIAN CỬA HÀNG</p><h1>Cửa hàng của tôi</h1></div>
+    <a class="btn btn-forest" th:href="@{/account/shops}">Đăng ký cửa hàng</a></div>
+  <p class="muted" th:if="${#lists.isEmpty(shops)}">Bạn chưa được cấp quyền tại cửa hàng nào. Nếu đã đăng ký, hãy kiểm tra tình trạng xét duyệt.</p>
+  <div class="shop-grid">
+    <article class="form-card shop-data" th:each="shop : ${shops}">
+      <h2 th:text="${shop.name}"></h2><p class="muted" th:text="${shop.address}"></p>
+      <p th:text="${shop.status == 'ACTIVE' ? 'Đang hoạt động' : 'Tạm khóa'}"></p>
+      <p>Vai trò: <span th:text="${shop.role == 'ADMIN' ? 'Quản trị hệ thống' : (shop.role == 'MANAGER' ? 'Quản lý cửa hàng' : 'Người bán')}"></span></p>
+      <a class="btn btn-outline-dark" th:href="@{/seller/shop(id=${shop.id})}">Mở cửa hàng</a>
+    </article>
+  </div>
+</section>

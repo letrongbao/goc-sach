@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm" version="3.1">
+  <entity class="vn.edu.utex.bookstore.shop.Shop" access="FIELD"><table name="shops"/><attributes>
+    <id name="id"><generated-value strategy="IDENTITY"/></id>
+    <basic name="ownerId"><column name="owner_id" nullable="false"/></basic>
+    <basic name="name"><column name="name" length="150" nullable="false"/></basic>
+    <basic name="address"><column name="address" length="300" nullable="false"/></basic>
+    <basic name="status"><column name="status" length="20" nullable="false"/></basic>
+    <basic name="createdAt"><column name="created_at" nullable="false"/></basic>
+    <version name="version"><column name="version" nullable="false"/></version>
+  </attributes></entity>
+  <entity class="vn.edu.utex.bookstore.shop.ShopApplication" access="FIELD"><table name="shop_applications"/><attributes>
+    <id name="id"><generated-value strategy="IDENTITY"/></id>
+    <basic name="applicantId"><column name="applicant_id" nullable="false"/></basic>
+    <basic name="shopId"><column name="shop_id"/></basic>
+    <basic name="name"><column name="name" length="150" nullable="false"/></basic>
+    <basic name="address"><column name="address" length="300" nullable="false"/></basic>
+    <basic name="status"><column name="status" length="20" nullable="false"/></basic>
+    <basic name="reviewNote"><column name="review_note" length="500" nullable="false"/></basic>
+    <basic name="reviewedBy"><column name="reviewed_by"/></basic>
+    <basic name="createdAt"><column name="created_at" nullable="false"/></basic>
+    <basic name="reviewedAt"><column name="reviewed_at"/></basic>
+  </attributes></entity>
+  <entity class="vn.edu.utex.bookstore.shop.ShopMembership" access="FIELD"><table name="shop_memberships"/><attributes>
+    <id name="id"><generated-value strategy="IDENTITY"/></id>
+    <basic name="shopId"><column name="shop_id" nullable="false"/></basic>
+    <basic name="userId"><column name="user_id" nullable="false"/></basic>
+    <basic name="role"><column name="role" length="20" nullable="false"/></basic>
+    <basic name="active"><column name="active" nullable="false"/></basic>
+    <basic name="updatedAt"><column name="updated_at" nullable="false"/></basic>
+  </attributes></entity>
+  <entity class="vn.edu.utex.bookstore.shop.ShopAuditEvent" access="FIELD"><table name="shop_audit_events"/><attributes>
+    <id name="id"><generated-value strategy="IDENTITY"/></id>
+    <basic name="shopId"><column name="shop_id"/></basic>
+    <basic name="applicationId"><column name="application_id"/></basic>
+    <basic name="actorId"><column name="actor_id" nullable="false"/></basic>
+    <basic name="action"><column name="action" length="40" nullable="false"/></basic>
+    <basic name="note"><column name="note" length="500" nullable="false"/></basic>
+    <basic name="createdAt"><column name="created_at" nullable="false"/></basic>
+  </attributes></entity>
+</entity-mappings>

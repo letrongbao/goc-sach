@@ -1,0 +1,23 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <p class="eyebrow">ĐỒNG HÀNH CÙNG GÓC SÁCH</p><h1>Đăng ký cửa hàng</h1>
+  <p class="muted">Gửi thông tin cửa hàng của bạn. Cửa hàng chỉ hoạt động sau khi được quản trị viên duyệt.</p>
+  <div class="shop-grid">
+    <form class="form-card" method="post" th:action="@{/account/shop/apply}">
+      <input type="hidden" name="_csrf" th:value="${csrf}">
+      <label class="form-label" for="shop-name">Tên cửa hàng</label>
+      <input class="form-control mb-3" id="shop-name" name="name" minlength="3" maxlength="150" required th:value="${shopForm.name}">
+      <label class="form-label" for="shop-address">Địa chỉ kinh doanh</label>
+      <input class="form-control mb-3" id="shop-address" name="address" minlength="10" maxlength="300" required th:value="${shopForm.address}">
+      <button class="btn btn-forest">Gửi yêu cầu xét duyệt</button>
+    </form>
+    <div><h2>Yêu cầu của bạn</h2>
+      <p class="muted" th:if="${#lists.isEmpty(applications)}">Bạn chưa gửi yêu cầu nào.</p>
+      <article class="form-card mb-3 shop-data" th:each="a : ${applications}">
+        <h3 th:text="${a.name}"></h3><p th:text="${a.address}"></p>
+        <p><span class="badge bg-secondary" th:text="${a.status == 'PENDING' ? 'Chờ duyệt' : (a.status == 'APPROVED' ? 'Đã duyệt' : 'Từ chối')}"></span></p>
+        <p th:if="${!#strings.isEmpty(a.reviewNote)}">Lý do: <span th:text="${a.reviewNote}"></span></p>
+        <a th:if="${a.shopId != null}" th:href="@{/seller/shop(id=${a.shopId})}">Đến cửa hàng →</a>
+      </article>
+    </div>
+  </div>
+</section>
