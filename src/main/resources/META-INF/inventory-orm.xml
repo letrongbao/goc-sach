@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm" version="3.1">
+  <entity class="vn.edu.utex.bookstore.inventory.BookCopy" access="FIELD"><table name="book_copies"/><attributes>
+    <id name="id"><generated-value strategy="IDENTITY"/></id>
+    <basic name="shopId"><column name="shop_id" nullable="false"/></basic>
+    <basic name="productId"><column name="product_id" nullable="false"/></basic>
+    <basic name="code"><column name="code" length="39" nullable="false" unique="true"/></basic>
+    <basic name="condition"><column name="book_condition" length="20" nullable="false"/></basic>
+    <basic name="defects"><column name="defects" length="2000" nullable="false"/></basic>
+    <basic name="price"><column name="price" precision="12" scale="2" nullable="false"/></basic>
+    <basic name="status"><column name="status" length="20" nullable="false"/></basic>
+    <basic name="createdAt"><column name="created_at" nullable="false"/></basic>
+    <basic name="updatedAt"><column name="updated_at" nullable="false"/></basic>
+    <version name="version"><column name="version" nullable="false"/></version>
+  </attributes></entity>
+  <entity class="vn.edu.utex.bookstore.inventory.InventoryMovement" access="FIELD"><table name="inventory_movements"/><attributes>
+    <id name="id"><generated-value strategy="IDENTITY"/></id>
+    <basic name="copyId"><column name="copy_id" nullable="false"/></basic>
+    <basic name="actorId"><column name="actor_id" nullable="false"/></basic>
+    <basic name="action"><column name="action" length="20" nullable="false"/></basic>
+    <basic name="oldStatus"><column name="old_status" length="20"/></basic>
+    <basic name="newStatus"><column name="new_status" length="20" nullable="false"/></basic>
+    <basic name="oldCondition"><column name="old_condition" length="20"/></basic>
+    <basic name="newCondition"><column name="new_condition" length="20" nullable="false"/></basic>
+    <basic name="oldPrice"><column name="old_price" precision="12" scale="2"/></basic>
+    <basic name="newPrice"><column name="new_price" precision="12" scale="2" nullable="false"/></basic>
+    <basic name="reason"><column name="reason" length="500" nullable="false"/></basic>
+    <basic name="createdAt"><column name="created_at" nullable="false"/></basic>
+  </attributes></entity>
+</entity-mappings>
