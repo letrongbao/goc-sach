@@ -1,43 +1,23 @@
-# Kết quả xác minh — cập nhật 04/09/2026
+# Kết quả kiểm tra
 
-## Bản sửa submission-03-r1
+Ngày kiểm tra: 04/09/2026.
 
-`mvnw.cmd -B -ntp -o verify`: **61/61 PASS**, BUILD SUCCESS sau sửa. CoreTest 14; ImageTest 7; JpaTransactionTest 3; OtpTest 11; ProductTest 14; SmtpTest 2; WebTest 10. Không failures/errors/skipped. [Chi tiết thay đổi và giới hạn](FIXES.md).
+- `mvnw.cmd -B -ntp clean verify`: đạt **121 kiểm thử**, không lỗi hoặc bỏ qua; build sạch thành công lúc 16:51 ngày 04/09/2026.
+- JWT được thử qua HTTP thật: cấp token bằng session/remember + CSRF, gọi API, sai chữ ký/issuer/audience/nbf, hết hạn, đổi quyền, logout/reset/khóa user, cấp lại và giới hạn tần suất. Khóa PEM sai/thiếu/yếu/không khớp bị từ chối.
+- Spring quản lý quyền/CSRF, service và transaction; test wiring một factory, commit/rollback lồng nhau và lỗi upload 413 đạt. Bộ lọc không còn chạy trước firewall; URL bất thường bị chặn bằng redirect hoặc 400.
+- Đã kiểm tra đăng nhập, OTP, quyền quản trị, danh mục, sách, phân trang, upload và dữ liệu sai. Catalog mới lấy tối đa 20 đầu sách có hàng ở trang chủ, danh sách 20 đầu sách/trang; 21 đầu sách chia 20–1. Danh sách quản trị vẫn 6/trang, không phải danh sách công khai.
+- File `target/goc-sach.jar` chứa Thymeleaf và tài nguyên cần thiết; không chứa JSP/JSTL/Jasper, fixture test, local.properties, PEM hoặc hai class cấu hình Security cũ đã bỏ. Quét giá trị secret đã cấu hình trong các file Git/có thể thêm Git không thấy trùng; local.properties được Git bỏ qua.
+- Cửa hàng: 11 test nghiệp vụ và 2 test HTTP kiểm tra xét duyệt/từ chối, quyền theo shop, cấp/thu hồi thành viên, tạm khóa/mở lại, yêu cầu trùng, CSRF và escape dữ liệu.
+- Kho: thêm 12 test nghiệp vụ và 1 test HTTP cho nhập/sửa, lịch sử, giá/tình trạng sai, version cũ, shop khác, khóa/thu hồi quyền, phân trang 20–1, chặn xóa đầu sách có bản trong kho. Giá dạng số mũ cực lớn bị từ chối trước khi chuyển đổi; giờ lịch sử được test theo Việt Nam. Mapping 11 entity xây dựng được mà không mở database hoặc tạo bảng.
+- Chrome trên bản preview mới: đăng nhập reader → gửi yêu cầu → đăng nhập admin → duyệt → mở trang quản lý và thành viên. Đã xem bố cục desktop, 390 px và 320 px, gồm form thành viên. Kết thúc đã dừng preview và trả lại kích thước Chrome. Chưa kiểm tra hết mọi màn hình bằng mắt.
+- Chrome lượt kho: kho rỗng → nhập một bản → phân loại/mở bán → tải lại còn trạng thái và lịch sử. Đã xem form desktop/390px/320px bằng dữ liệu giả trong bộ nhớ. Sau đó sửa định dạng giờ (được unit/HTTP test lại, chưa xem lại bằng Chrome); đã đóng tab và dừng preview.
+- Nối kho vào tủ sách: thêm 11 test nghiệp vụ, 1 test parse bốn JPQL thật và 1 test HTTP. Kiểm tra giá thấp nhất/số bản giữa nhiều shop, shop tạm khóa, danh mục ẩn, hết hàng, bản ngừng bán/giữ/đã bán/chưa phân loại, từ khóa và phân trang bản sách 20–1. Form đầu sách bỏ giá/tồn; gửi thêm hai tham số này cũng không sửa kho. Test JPQL không mở kết nối hoặc thực thi SQL.
+- Chrome lượt catalog: 13 đầu sách → tìm “Lập trình” còn 1 → mở chi tiết đúng bản giá 85.000 đồng, cửa hàng và tình trạng. Đã xem desktop, 390px/320px và tìm kiếm rỗng ở 320px; không thấy tràn ngang trong các vùng đã xem. Đã trả kích thước Chrome, đóng tab thử và dừng preview. Đây là dữ liệu giả.
 
-Chrome xác nhận catalog ở desktop (914px nội dung), viewport 320×740 và 390×844: không tràn ngang; sáu khung bìa đều có scrollHeight bằng clientHeight. Tên dài trên phần bìa trang trí được giới hạn, tên đầy đủ bên dưới vẫn giữ nguyên. Trang 403 mới chặn đúng USER và có nút điều hướng; xem [minh chứng bản sửa](evidence/fixes/README.md).
+Kiểm tra cấu hình riêng đã sao chép: SMTP kết nối/xác thực thành công, không gửi thư; cặp khóa JWT hợp lệ và ở ngoài repo. PostgreSQL trên cổng 5434 hiện có `bookstore_03`, chưa có `goc_sach`; kiểm tra kết nối đồ án trả SQLState 3D000. Database và thư mục ảnh bài tập không bị dùng để ghi dữ liệu đồ án.
 
-Chạy lại ngày 04/09/2026 lúc 10:04 (UTC+7): 61/61 PASS, BUILD SUCCESS. Các kết quả trong bảng dưới là **snapshot cũ**, không đại diện cho source đã sửa. Tag/folder export cũ vẫn được giữ nguyên; chưa kiểm thử PostgreSQL/Gmail thật.
+Chạy thử JAR thật lúc 16:03: đọc được persistence unit, nhưng dừng khởi động vì PostgreSQL báo database `goc_sach` không tồn tại. Không chạy DDL, không để server thử tiếp tục chạy. Đây là bước xác nhận lỗi môi trường, không phải ứng dụng đã chạy thành công trên DB thật.
 
-## Các snapshot đã chốt trước lượt sửa
+Giới hạn: 121 test dùng dữ liệu trong bộ nhớ, mock, parser Hibernate và SMTP loopback. MemoryStore tuần tự hóa và không mô phỏng rollback, không chứng minh khóa/rollback trên PostgreSQL. Chưa kiểm tra JPA trên PostgreSQL thật, độ bền sau restart, nhận OTP thật hoặc giao diện đầy đủ. SQL nền, `users.blocked`, `m2-shops.sql`, `m2-inventory.sql` chỉ được chuẩn bị, chưa chạy vì giới hạn tạo bảng vẫn còn hiệu lực. M1 còn chờ nghiệm thu; M2 đã nối kho vào catalog nhưng chưa chuyển tồn cũ/metadata mở rộng; M3 mới có tìm kiếm cơ bản; M4–M8 chưa triển khai. Repo bài tập vẫn sạch, không thay đổi trong mốc này. Kiểm thử áp dụng cho bản tích hợp cuối của chuỗi commit, không phải từng commit trung gian.
 
-| Bản giao | Build WAR | Test tự động | Phạm vi |
-|---|---|---|---|
-| submission-01-r1 | PASS | 24/24 | JDBC services, mock transaction, JSP/HTTP/auth/CSRF |
-| submission-02-r1 | PASS | 25/25 | Hồi quy, JPA metadata offline, mock transaction |
-| submission-03 | PASS | 56/56 | OTP, SMTP loopback, sản phẩm, upload, bảo mật, JSP/HTTP |
-
-Bài 03: CoreTest 14; ImageTest 7; JpaTransactionTest 3; OtpTest 10; ProductTest 14; SmtpTest 2; WebTest 6. Không có failures/errors/skipped trong lần verify cuối.
-
-## Đã xác minh
-
-- Java 21, Maven 3.9.11 build WAR; dependency được cố định.
-- Render thực tế các JSP bằng Tomcat nhúng 10.1.44 (Servlet 6). Phân trang 13 sản phẩm → 6/6/1, trang chủ 10, trang chi tiết và admin forms.
-- Đăng ký/activation/reset qua HTTP bằng fake repository + email capture; kiểm tra OTP hết hạn, dùng lại, sai 5 lần, resend, lỗi SMTP và thu hồi session/cookie.
-- Gửi email qua protocol SMTP thực bằng GreenMail loopback 127.0.0.1, chỉ địa chỉ example.test, không gửi Gmail.
-- Transaction commit/rollback/close được kiểm tra bằng mock. Mapping JPA 5 entity được Hibernate đọc offline; không mở kết nối DB.
-- Chặn URL admin dạng thường, path parameter và percent-encoding. Tag gốc 01/02 được thay thế cho mục đích nộp bằng r1, không di chuyển tag cũ.
-- Chrome kiểm tra desktop/mobile 390x844, không tràn ngang; sửa lỗi font tách dấu tiếng Việt. Ảnh ở evidence/ dùng dữ liệu giả, có banner phân biệt.
-
-## Chưa thể xác minh — cần bạn chuẩn bị
-
-1. PostgreSQL thật: chưa có database/schema được người dùng chuẩn bị và cấu hình cấp cho ứng dụng. Do đó chưa xác minh CRUD/SQL/FK/locking/rollback/restart persistence trên PostgreSQL.
-2. Gmail thật: chưa có App Password và mailbox cấu hình. Chưa xác minh inbox/spam, khả năng gửi, kích hoạt/reset qua Gmail.
-3. GitHub/UTEx: đã tạo hai repository Private (xem REPOSITORIES.md); việc tạo repo không chứng minh source đã được push. Kiểm tra SHA remote và quyền người chấm trước khi nộp. Chưa nộp bài lên UTEx.
-
-Không có file SQL, DDL, migration hay chế độ tự tạo bảng nào được chạy. Các tag là snapshot source đã build/test trong phạm vi nêu trên, chưa phải nghiệm thu end-to-end bằng PostgreSQL/Gmail.
-
-## Lưu ý vận hành
-
-- Chỉ triển khai học tập một node; rate limit bổ sung còn ở RAM. SMTP gửi đồng bộ có thể lộ khác biệt thời gian phản hồi; cần queue/biện pháp chống timing enumeration trước production.
-- Chưa audit CVE đầy đủ/toàn bộ tải hoặc môi trường triển khai thật.
-- Không tự xóa ảnh cũ. Backup dữ liệu/media trước khi vận hành chính thức.
+Trước khi chốt đồ án: cấu hình riêng theo [SETUP.md](SETUP.md), kiểm tra lưu dữ liệu sau khởi động lại, nhận OTP qua email thật và hoàn thành các phần còn thiếu trong [ROADMAP.md](ROADMAP.md).

@@ -1,25 +1,17 @@
-# Phạm vi đồ án Góc Sách
+# Phạm vi đồ án
 
-## Nguồn gốc
+Đề tài 14: website quản lý chuỗi cửa hàng sách cũ bằng Spring Boot, Thymeleaf, Bootstrap, JPA, PostgreSQL, JWT, WebSocket và Cloudinary.
 
-Kế thừa repository https://github.com/letrongbao/goc-sach-exercises tại commit 8a47d12 (revision submission-03-r1). Lịch sử commit được giữ nguyên, không đổi tác giả hoặc thời gian; các commit trước khi tách là quá trình làm bài tập, không phải đóng góp mới của nhóm đồ án.
+## Giai đoạn hiện tại
 
-Repo này không chứa các folder submissions sao chép, cấu hình bí mật, target hoặc database cá nhân. SQL chỉ để chủ project xem và thực thi thủ công; không chạy tạo bảng/migration tự động.
+Đã chuyển nền sang Spring Boot/Thymeleaf, bổ sung bảo mật và JWT. Có cửa hàng, Seller/Manager, kho từng bản sách và tủ sách lấy giá/tồn từ kho. Tìm kiếm tên/tác giả và chi tiết các bản đang bán đã có màn hình, test nghiệp vụ và HTTP. Chưa nghiệm thu database thật hoặc có mua hàng. Tiến độ từng mốc ở [MILESTONES.md](MILESTONES.md).
 
-## Định hướng, chưa phải đăng ký đã duyệt
+Chương trình đóng gói JAR, có máy chủ web tích hợp. Không cần cài Tomcat riêng. Database phải được chuẩn bị thủ công; chương trình không tạo hoặc sửa bảng khi chạy.
 
-Đề tài 15: quản lý chuỗi cửa hàng sách cũ, hướng Spring Boot + JSP/JSTL + Bootstrap + JPA + PostgreSQL + JWT + WebSocket + Cloudinary. Cần xác nhận đề tài, thành viên, rubric và hạn nộp chính thức với giảng viên. Chưa có căn cứ coi việc tạo repo là đăng ký đề tài.
+## Còn thiếu
 
-## Các mốc cần triển khai
+Kiểm thử database/email thật; chuyển tồn cũ, metadata và bộ lọc sách; WebSocket, Cloudinary; nối JWT vào giao diện giỏ/yêu thích; hồ sơ/địa chỉ, giỏ hàng, đơn hàng, thanh toán, yêu thích/đã xem, đánh giá ảnh/video, khuyến mãi, vận chuyển và doanh thu.
 
-1. Nghiệm thu nền tảng trên PostgreSQL và Gmail thật; xử lý các giới hạn trong VERIFICATION.md.
-2. Chuyển Servlet controller/config sang Spring Boot, MVC và Security; giữ WAR/JSP và nghiệp vụ đã kiểm thử.
-3. Bổ sung đặc trưng sách cũ, hồ sơ người mua, tìm kiếm, giỏ hàng và đặt hàng/tồn kho.
-4. Thêm cửa hàng, Seller/Manager/Admin, phân quyền theo cửa hàng, thanh toán và quản lý đơn.
-5. Triển khai các công nghệ/chức năng còn lại theo rubric đã xác nhận; test end-to-end, báo cáo, demo và phân công có lịch sử đóng góp thật.
+Xem thứ tự triển khai và điều kiện hoàn thành trong [kế hoạch](ROADMAP.md). Bảng [đối chiếu yêu cầu](REQUIREMENTS.md) đã cập nhật từ trang UTEx ngày 04/09/2026. Đề tài/thành viên, cách áp dụng Seller cho chuỗi cửa hàng, các câu mô tả còn mơ hồ và hạn nộp cần giảng viên xác nhận.
 
-Hiện chỉ có nền tảng Servlet/JPA của bài tập. Bộ 61 test kiểm tra nền tảng bằng fake/mock/SMTP loopback, không chứng minh đồ án hoàn chỉnh hoặc PostgreSQL/Gmail thật hoạt động.
-
-## Nộp và cộng tác
-
-Bài tập nộp qua repo goc-sach-exercises. Đồ án dùng repo goc-sach và mốc nghiệm thu riêng sau này. Mời đúng thành viên/người chấm nếu giữ Private; không tự chuyển Public. Commit mới theo Conventional Commits, không backdate, không sửa tag đã công bố. Bảng phân công chỉ ghi công việc/người làm thực tế.
+Lịch sử phát triển được giữ nguyên; không coi chức năng kế thừa là đóng góp mới.

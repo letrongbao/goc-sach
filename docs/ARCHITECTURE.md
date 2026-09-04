@@ -1,35 +1,28 @@
-# Thiết kế và cách nghiên cứu source
+# Cấu trúc chương trình
 
-## Ba tầng
+- `web/`: Spring MVC controller, kiểm tra phiên/quyền và xử lý form.
+- `auth/`, `category/`, `product/`: nghiệp vụ tài khoản, danh mục, sách.
+- `shop/`: yêu cầu mở cửa hàng, xét duyệt, thành viên và nhật ký thay đổi.
+- `inventory/`: từng bản sách vật lý, trạng thái/giá và lịch sử kho.
+- `persistence/`: truy cập PostgreSQL bằng JPA.
+- `mail/`, `image/`: gửi email và lưu ảnh.
+- `resources/templates/`: giao diện Thymeleaf.
+- `resources/static/assets/`: CSS và tài nguyên giao diện.
 
-`HTTP → SecurityFilter → Servlet → Service → Store.tx(Repository) → PostgreSQL`
+Spring quản lý controller, service, một EntityManagerFactory và JpaTransactionManager. JPA giữ mapping XML; `Store.tx()` dùng TransactionTemplate với propagation REQUIRED và EntityManager gắn theo transaction. Lời gọi lồng nhau cùng commit/rollback, không mở transaction độc lập. Pool Hikari vẫn do Hibernate quản lý theo vòng đời factory. Chỉ validate schema, không tạo bảng; test/preview dùng App riêng và không mở database.
 
-- web/: nhận form, session/cookie, điều hướng và render JSP; không chứa SQL.
-- auth/, category/, product/: nghiệp vụ, validation và interfaces repository.
-- persistence/: EntityManagerFactory dùng chung; EntityManager và transaction riêng từng use case.
-- mail/, image/: thay được adapter SMTP/lưu ảnh mà không đổi nghiệp vụ.
-- config/: cấu hình ngoài Git và lắp ráp dependencies.
-- WEB-INF/views/: JSP chỉ render, escape dữ liệu qua c:out; không có scriptlet SQL/Java.
+Spring Security có hai chain: web dùng session/remember và CSRF, API chỉ nhận Bearer. SecurityFilter nằm trong chain web, chỉ đọc danh tính hiện hành và chuẩn bị form; không tự kiểm tra quyền hoặc CSRF nữa. Không lưu SecurityContext lâu dài: mỗi request đối chiếu user đang hoạt động, không bị khóa và auth_version.
 
-User và Category là POJO ánh xạ bằng orm.xml. Product.category là MANY_TO_ONE LAZY; repository join-fetch category và service tạo ProductView ngay trong transaction. JSP không chạm lazy entity hoặc passwordHash.
+JWT RS256 có issuer/audience, thời hạn, mã user và grant ngẫu nhiên; không chứa ID phiên web. Grant được thu hồi khi đổi đăng nhập, logout, hết phiên hoặc cấp token mới; đổi mật khẩu/khóa user được kiểm tra tại mỗi lần dùng. Cấu hình thiếu một phần khiến khởi động lỗi; chưa cấu hình JWT thì API vẫn từ chối mọi request. Màn hình mua hàng dùng JWT sẽ được bổ sung ở M4.
 
-## Đọc theo bài
+Giới hạn hiện tại: grant ở bộ nhớ một instance, tối đa 10.000, tự loại grant hết hạn khi cấp mới. Restart vô hiệu hóa tất cả JWT cũ; không hỗ trợ nhiều instance hoặc giữ grant qua restart. Đây là bước triển khai có chủ đích khác bản thiết kế lưu grant DB, phải đổi sang kho dùng chung trước khi scale. Khóa tài khoản (`blocked`) tách biệt với chưa kích hoạt (`active=false`), OTP không được gỡ khóa quản trị.
 
-1. Bài 01: Web/SecurityFilter → AuthService → UserRepository/TokenRepository → JdbcStore trong tag submission-01; CategoryService → CRUD JDBC.
-2. Bài 02: so sánh JpaStore với JdbcStore, xem META-INF/persistence.xml và orm.xml; chạy các test commit/rollback/close.
-3. Bài 03: OtpService.register/issue/verify → OtpServlet; ProductService.latest/page → ProductServlet → book-cards.jsp.
+Thymeleaf chỉ nhận dữ liệu cần hiển thị, không truy cập database. Nội dung người dùng được escape; các tên template do controller quyết định.
 
-## Giao ước
+Vai trò Seller/Manager nằm trong `shop_memberships`, không ghi đè `users.role`. Admin xét duyệt và quản lý toàn hệ thống; Manager chỉ quản lý Seller tại shop được giao. Service kiểm tra quyền từ dữ liệu hiện hành; duyệt shop dùng transaction và khóa yêu cầu, thay đổi thành viên khóa shop. `shop_applications` giữ lịch sử và chỉ cho một yêu cầu đang chờ trên mỗi tài khoản. Các bảng mới được chuẩn bị ở `sql/m2-shops.sql`, chưa chạy hoặc nghiệm thu PostgreSQL. Danh sách cửa hàng/yêu cầu hiện chưa phân trang; cần bổ sung khi mở rộng dữ liệu.
 
-- GET chỉ đọc; mutation dùng POST + CSRF; login thay session ID.
-- Session được đối chiếu auth_version mỗi request. Cookie 7 ngày chỉ chứa random token, DB giữ SHA-256.
-- OTP HMAC với secret ngoài source, đồng thời kiểm tra mục đích, hạn, lần sai, delivered/consumed. Lock user để đồng bộ request cạnh tranh.
-- Category đang có sách không bị xóa. Product CRUD là xóa thật trong phạm vi bài tập; khi có đơn hàng phải đổi sang lưu lịch sử/ẩn sản phẩm.
-- Public catalog Bài 03 hiển thị mọi sản phẩm, không lọc trạng thái Category. active ở Category hiện là thuộc tính quản trị.
-- Tệp tối đa 5 MB / 20 megapixel, kiểm tra bytes và decode ảnh; không tin tên file/MIME client, không cho SVG. File nằm ngoài WAR; không tự xóa ảnh cũ vì có thể được tham chiếu.
+`book_copies` giữ shop/đầu sách/mã cố định; nhập mới ở UNAVAILABLE, phân loại rồi mới AVAILABLE. Form kho không được đặt RESERVED/SOLD hoặc sửa bản đang ở hai trạng thái này. Thay đổi khóa shop trước, khóa bản sau và kiểm tra version của form; lịch sử được ghi trong cùng transaction. Danh sách 20 bản/trang; lịch sử chỉ hiển thị 100 dòng gần nhất nhưng không xóa dòng cũ. Không có API xóa bản sách; chặn xóa đầu sách nếu đã có bản trong kho. SQL `m2-inventory.sql` chỉ chuẩn bị, chưa chạy.
 
-## Giới hạn hiện tại
+CatalogService dùng các bản AVAILABLE, đã phân loại, thuộc shop ACTIVE và danh mục đang bật. Danh sách tìm theo tên/tác giả, 20 đầu sách/trang, sắp thời gian tạo và ID giảm dần; tổng số bản và giá thấp nhất được lấy theo nhóm đầu sách, không truy vấn từng dòng. Chi tiết liệt kê 20 bản/trang theo giá rồi ID; hết bản thì không hiển thị giá giả hoặc dùng lại giá cũ. Trang chủ hiện lấy tối đa 20 đầu sách mới có hàng, chưa phải bốn danh sách top 20 cuối kỳ.
 
-Ứng dụng học tập một node. Trước production cần shared rate limiter/queue mail, xử lý timing enumeration, quan sát vận hành, kiểm thử tải, quy trình backup và audit dependency. Chưa có cart, orders, thanh toán, Seller/shop; không giả lập các nút chức năng chưa làm.
-
-Giao diện responsive và test fixtures phục vụ minh họa; không thay thế database thật. Nâng Spring Boot sẽ giữ nghiệp vụ, repository contracts và JSP nhưng thay cấu hình, controller và security adapter.
+Chuyển tiếp: `products.price/stock` được giữ nguyên để xem xét chuyển dữ liệu cũ, không còn là nguồn giá/tồn công khai và không nhận từ form quản trị đầu sách. Không tự chuyển số tồn này thành bản sách hoặc gán vào shop. Mã đầu sách trong form kho hiện nhập bằng ID; bộ chọn tìm kiếm và metadata mở rộng còn phải bổ sung. Chưa có checkout hoặc nghiệm thu catalog trên PostgreSQL.
