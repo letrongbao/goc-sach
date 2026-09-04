@@ -1,50 +1,30 @@
 package vn.edu.utex.bookstore;
 
-import java.nio.file.*;
-import java.time.*;
-import java.util.*;
-import org.apache.catalina.startup.Tomcat;
+import java.nio.file.Path;
+import java.time.Clock;
+import java.util.Properties;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import vn.edu.utex.bookstore.config.*;
 
 public final class PreviewServer {
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args) throws java.io.IOException {
     Properties props = new Properties();
     props.setProperty("uploads.dir", Path.of("target/preview-uploads").toAbsolutePath().toString());
     props.setProperty("cookie.secure", "false");
     props.setProperty("otp.secret", "preview-only-not-production-secret-0123456789");
-    Tomcat tomcat = new Tomcat();
-    tomcat.setBaseDir("target/tomcat-preview");
-    tomcat.setPort(18080);
-    tomcat.getConnector().setProperty("address", "127.0.0.1");
-    var context =
-        tomcat.addWebapp("/bookstore", Path.of("src/main/webapp").toAbsolutePath().toString());
-    context.setParentClassLoader(PreviewServer.class.getClassLoader());
-    context
-        .getServletContext()
-        .setAttribute(
-            "app",
-            new App(
-                new Settings(props),
-                DemoFixtures.store(),
-                Clock.systemUTC(),
-                (to, subject, body) -> {
-                  throw new IllegalStateException("Preview does not deliver email");
-                }));
+    MemoryStore store = DemoFixtures.store();
+    DemoFixtures.catalogStock(store);
+    App app = new App(new Settings(props), store, Clock.systemUTC(),
+        (to, subject, body) -> { throw new IllegalStateException("Preview does not deliver email"); });
+    var context = (ServletWebServerApplicationContext) new SpringApplicationBuilder(GocSachApplication.class)
+        .properties("server.port=18080", "server.address=127.0.0.1")
+        .initializers(ctx -> ((org.springframework.context.support.GenericApplicationContext) ctx)
+            .registerBean("previewApp", App.class, () -> app))
+        .run("--server.port=18080", "--server.address=127.0.0.1");
     context.getServletContext().setAttribute("preview", true);
-    Runtime.getRuntime()
-        .addShutdownHook(
-            new Thread(
-                () -> {
-                  try {
-                    tomcat.stop();
-                    tomcat.destroy();
-                  } catch (Exception ignored) {
-                  }
-                }));
-    tomcat.start();
-    System.out.println(
-        "PREVIEW ONLY — in-memory fixtures, no PostgreSQL, no SMTP."
-            + " http://127.0.0.1:18080/bookstore/");
-    tomcat.getServer().await();
+    System.out.println("PREVIEW ONLY: http://127.0.0.1:18080/ — no PostgreSQL or email.");
+    System.out.println("Press Enter to stop.");
+    try { System.in.read(); } finally { context.close(); }
   }
 }

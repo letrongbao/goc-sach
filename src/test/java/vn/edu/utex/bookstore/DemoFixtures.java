@@ -6,6 +6,22 @@ import vn.edu.utex.bookstore.category.*;
 import vn.edu.utex.bookstore.product.*;
 
 public final class DemoFixtures {
+  /** Opt-in disposable catalog stock; never used by production or automatic schema setup. */
+  public static void catalogStock(MemoryStore store) {
+    var clock = Clock.systemUTC();
+    var shops = new vn.edu.utex.bookstore.shop.ShopService(store, clock);
+    var inventory = new vn.edu.utex.bookstore.inventory.InventoryService(store, clock);
+    var admin = Identity.of(store.findLogin("admin"));
+    var owner = Identity.of(store.findLogin("reader"));
+    long shop = shops.approve(admin, shops.apply(owner, "Góc Sách Demo", "Địa chỉ minh họa cho bản xem thử"));
+    for (Product product : store.products.values()) {
+      long copy = inventory.receive(owner, shop, product.id, "GOOD", "Bản sách minh họa, không phải hàng thật.",
+          product.price.toPlainString(), "Nhập dữ liệu preview");
+      inventory.update(owner, shop, copy, 0, "GOOD", "Bản sách minh họa, không phải hàng thật.",
+          product.price.toPlainString(), "AVAILABLE", "Mở bán dữ liệu preview");
+    }
+  }
+
   public static MemoryStore store() {
     var store = new MemoryStore();
     var passwords = new Passwords();

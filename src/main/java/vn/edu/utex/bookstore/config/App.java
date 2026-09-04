@@ -16,6 +16,9 @@ public final class App implements AutoCloseable {
   public final RateLimiter limits;
   public final OtpService otp;
   public final vn.edu.utex.bookstore.product.ProductService products;
+  public final vn.edu.utex.bookstore.shop.ShopService shops;
+  public final vn.edu.utex.bookstore.inventory.InventoryService inventory;
+  public final vn.edu.utex.bookstore.product.CatalogService catalog;
 
   public App(Settings settings, Store store, Clock clock) {
     this(settings, store, clock, new vn.edu.utex.bookstore.mail.SmtpEmailSender(settings));
@@ -23,28 +26,30 @@ public final class App implements AutoCloseable {
 
   public App(
       Settings settings, Store store, Clock clock, vn.edu.utex.bookstore.mail.EmailSender sender) {
-    this.settings = settings;
-    this.store = store;
-    this.auth = new AuthService(store, new Passwords(), clock);
-    this.categories = new CategoryService(store);
-    this.images = new LocalImageStorage(Path.of(settings.require("uploads.dir")));
-    this.limits = new RateLimiter(clock);
-    this.otp =
-        new OtpService(store, new Passwords(), sender, clock, settings.require("otp.secret"));
-    this.products = new vn.edu.utex.bookstore.product.ProductService(store, clock);
+    this(settings, store, new AuthService(store, new Passwords(), clock),
+        new CategoryService(store), new LocalImageStorage(Path.of(settings.require("uploads.dir"))),
+        new RateLimiter(clock), new OtpService(store, new Passwords(), sender, clock, settings.require("otp.secret")),
+        new vn.edu.utex.bookstore.product.ProductService(store, clock),
+        new vn.edu.utex.bookstore.shop.ShopService(store, clock),
+        new vn.edu.utex.bookstore.inventory.InventoryService(store, clock),
+        new vn.edu.utex.bookstore.product.CatalogService(store));
   }
 
-  public static App create() {
-    Settings s = Settings.load();
-    s.require("uploads.dir");
-    s.require("otp.secret");
-    Store store = new JpaStore(s);
-    try {
-      return new App(s, store, Clock.systemUTC());
-    } catch (RuntimeException e) {
-      store.close();
-      throw e;
-    }
+  public App(Settings settings, Store store, AuthService auth, CategoryService categories,
+      LocalImageStorage images, RateLimiter limits, OtpService otp, vn.edu.utex.bookstore.product.ProductService products,
+      vn.edu.utex.bookstore.shop.ShopService shops, vn.edu.utex.bookstore.inventory.InventoryService inventory,
+      vn.edu.utex.bookstore.product.CatalogService catalog) {
+    this.settings = settings;
+    this.store = store;
+    this.auth = auth;
+    this.categories = categories;
+    this.images = images;
+    this.limits = limits;
+    this.otp = otp;
+    this.products = products;
+    this.shops = shops;
+    this.inventory = inventory;
+    this.catalog = catalog;
   }
 
   public void close() {

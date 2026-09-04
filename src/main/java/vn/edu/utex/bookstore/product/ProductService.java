@@ -114,10 +114,23 @@ public final class ProductService {
         });
   }
 
+  /** Admin edits bibliographic data only; old columns await a reviewed import. */
+  public void saveDetails(Long id, long categoryId, String title, String author, String description, String image) {
+    store.tx(d -> {
+      Product previous = id == null ? null : d.product(id);
+      if (id != null && previous == null) throw Problem.missing();
+      save(id, categoryId, title, author, description,
+          previous == null ? "0" : previous.price.toPlainString(), previous == null ? "0" : Integer.toString(previous.stock), image);
+      return null;
+    });
+  }
+
   public void delete(long id) {
     store.tx(
         d -> {
           if (d.product(id) == null) throw Problem.missing();
+          if (d.copyCountForProduct(id) > 0)
+            throw new Problem(409, "Đầu sách đã có bản sách trong kho. Hãy ngừng bán từng bản, không xóa đầu sách.");
           d.deleteProduct(id);
           return null;
         });

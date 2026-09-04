@@ -1,0 +1,12 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+<section class="container section narrow"><a class="back-link" th:href="@{/admin/products}">← Quản lý sản phẩm</a><h1>[[${#strings.isEmpty(product.id) ? 'Thêm cuốn sách mới' : 'Chỉnh sửa sách'}]]</h1>
+<form class="panel edit-form" method="post" enctype="multipart/form-data" th:action="@{/admin/product/save}">
+<input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${product.id}">
+<label for="title">Tên sách</label><input id="title" name="title" class="form-control" required maxlength="200" th:value="${product.title}">
+<label for="author">Tác giả</label><input id="author" name="author" class="form-control" required maxlength="150" th:value="${product.author}">
+<label for="categoryId">Danh mục</label><select id="categoryId" name="categoryId" class="form-select" required><option value="">Chọn danh mục</option><th:block th:each="category : ${categories}"><option th:value="${category.id}" th:selected="${selectedCategoryId == category.id}">[[${category.name}]]</option></th:block></select>
+<p class="form-note">Đây là thông tin đầu sách dùng chung. Giá bán và số lượng được quản lý qua từng bản sách tại <a th:href="@{/seller/shops}">cửa hàng</a>, không nhập tồn tại đây.</p>
+<label for="description">Mô tả</label><textarea id="description" name="description" class="form-control" rows="5" maxlength="10000">[[${product.description}]]</textarea>
+<label for="image">URL ảnh hoặc đường dẫn ảnh hiện tại</label><input id="image" name="image" class="form-control" maxlength="1000" th:value="${product.image}">
+<label for="upload">Hoặc tải ảnh bìa mới</label><input id="upload" name="upload" class="form-control" type="file" accept="image/jpeg,image/png,image/webp"><p class="form-note">JPEG, PNG, WebP · Tối đa 5 MB / 20 megapixel.</p><button class="btn btn-forest">Lưu sách</button></form></section>
+</th:block>

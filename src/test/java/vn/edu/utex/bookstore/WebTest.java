@@ -7,22 +7,128 @@ import java.net.http.*;
 import java.nio.file.*;
 import java.time.*;
 import java.util.*;
-import org.apache.catalina.startup.Tomcat;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.junit.jupiter.api.*;
 import vn.edu.utex.bookstore.auth.*;
 import vn.edu.utex.bookstore.config.*;
 
 class WebTest {
   @Test
+  void inventoryReceiveEditHistoryAndOwnershipWorkThroughHttp() throws Exception {
+    App app = context.getBean(App.class);
+    Identity admin = app.store.tx(d -> Identity.of(d.findLogin("admin")));
+    Identity reader = app.store.tx(d -> Identity.of(d.findLogin("reader")));
+    long shop = app.shops.approve(admin, app.shops.apply(reader, "Kho sách thử", "123 Book Street City"));
+    long otherShop = app.shops.approve(admin, app.shops.apply(admin, "Kho khác", "456 Book Street City"));
+    assertEquals(302, get("/seller/inventory?shopId=" + shop).statusCode());
+    assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
+        + "&login=reader&password=demo-password-123&mode=session").statusCode());
+    String token = csrf("/seller/copy/add?shopId=" + shop);
+    String input = "shopId=" + shop + "&productId=1&condition=GOOD&defects=%3Cscript%3Ex%3C%2Fscript%3E&price=40000&reason=Received+for+testing";
+    assertEquals(403, post("/seller/copy/add", input).statusCode());
+    var invalid = post("/seller/copy/add", "_csrf=" + token + "&" + input.replace("price=40000", "price=-1"));
+    assertEquals(400, invalid.statusCode(), invalid.body());
+    assertTrue(invalid.body().contains("&lt;script&gt;x&lt;/script&gt;"));
+    assertEquals(302, post("/seller/copy/add", "_csrf=" + token + "&" + input).statusCode());
+    var form = get("/seller/copy/edit?shopId=" + shop + "&id=1");
+    assertEquals(200, form.statusCode(), form.body()); assertTrue(form.body().contains("Lịch sử kho"));
+    assertTrue(form.body().contains("&lt;script&gt;x&lt;/script&gt;"));
+    String update = "_csrf=" + token + "&shopId=" + shop + "&id=1&version=0&condition=GOOD&price=45000&status=AVAILABLE&reason=Checked+for+sale";
+    assertEquals(302, post("/seller/copy/edit", update).statusCode());
+    assertEquals(409, post("/seller/copy/edit", update).statusCode());
+    var list = get("/seller/inventory?shopId=" + shop);
+    assertEquals(200, list.statusCode(), list.body()); assertTrue(list.body().contains("Sẵn bán"));
+    assertEquals(403, get("/seller/copy/edit?shopId=" + otherShop + "&id=1").statusCode());
+    assertEquals(403, post("/seller/copy/edit", update.replace("shopId=" + shop, "shopId=" + otherShop)).statusCode());
+    app.shops.setSuspended(admin, shop, true, "Testing suspension");
+    assertEquals(409, post("/seller/copy/add", "_csrf=" + token + "&" + input).statusCode());
+    var readonly = get("/seller/copy/edit?shopId=" + shop + "&id=1");
+    assertEquals(200, readonly.statusCode(), readonly.body()); assertFalse(readonly.body().contains("id=\"copy-price\""));
+  }
+
+  @Test
+  void shopApplicationApprovalAndMembershipScreensWork() throws Exception {
+    assertEquals(302, get("/account/shops").statusCode());
+    assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
+        + "&login=reader&password=demo-password-123&mode=session").statusCode());
+    String userCsrf = csrf("/account/shops");
+    assertEquals(403, post("/account/shop/apply", "name=Shop&address=Some+business+address").statusCode());
+    var invalid = post("/account/shop/apply", "_csrf=" + userCsrf + "&name=Keep+name&address=short");
+    assertEquals(400, invalid.statusCode(), invalid.body());
+    assertTrue(invalid.body().contains("Keep name"));
+    var submitted = post("/account/shop/apply", "_csrf=" + userCsrf
+        + "&name=%3Cscript%3Ebook%3C%2Fscript%3E&address=123+Book+Street+City");
+    assertEquals(302, submitted.statusCode(), submitted.body());
+    var history = get("/account/shops");
+    assertEquals(200, history.statusCode(), history.body());
+    assertTrue(history.body().contains("&lt;script&gt;book&lt;/script&gt;"));
+    assertEquals(403, post("/admin/shop/approve", "_csrf=" + userCsrf + "&id=1").statusCode());
+    assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
+        + "&login=admin&password=demo-password-123&mode=session").statusCode());
+    String adminCsrf = csrf("/admin/shops");
+    assertEquals(302, post("/admin/shop/approve", "_csrf=" + adminCsrf + "&id=1").statusCode());
+    assertEquals(302, post("/admin/shop/approve", "_csrf=" + adminCsrf + "&id=1").statusCode());
+    var adminShop = get("/seller/shop?id=1");
+    assertEquals(200, adminShop.statusCode(), adminShop.body());
+    assertTrue(adminShop.body().contains("Chủ cửa hàng"));
+    assertEquals(409, post("/seller/shop/member", "_csrf=" + adminCsrf
+        + "&shopId=1&login=reader&role=SELLER").statusCode());
+    assertEquals(302, post("/admin/shop/status", "_csrf=" + adminCsrf
+        + "&shopId=1&status=SUSPENDED&reason=Verify+business+details").statusCode());
+    assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
+        + "&login=reader&password=demo-password-123&mode=session").statusCode());
+    var ownerShop = get("/seller/shop?id=1");
+    assertEquals(200, ownerShop.statusCode(), ownerShop.body());
+    assertTrue(ownerShop.body().contains("Cửa hàng đang tạm khóa"));
+    assertEquals(200, get("/seller/shops").statusCode());
+  }
+
+  @Test
+  void shopRejectionReasonRemainsVisibleToApplicant() throws Exception {
+    assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
+        + "&login=reader&password=demo-password-123&mode=session").statusCode());
+    assertEquals(302, post("/account/shop/apply", "_csrf=" + csrf("/account/shops")
+        + "&name=Book+Corner&address=123+Book+Street+City").statusCode());
+    assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
+        + "&login=admin&password=demo-password-123&mode=session").statusCode());
+    assertEquals(302, post("/admin/shop/reject", "_csrf=" + csrf("/admin/shops")
+        + "&id=1&reason=Please+complete+the+address").statusCode());
+    assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
+        + "&login=reader&password=demo-password-123&mode=session").statusCode());
+    var page = get("/account/shops");
+    assertEquals(200, page.statusCode(), page.body());
+    assertTrue(page.body().contains("Please complete the address"));
+    assertFalse(get("/seller/shops").body().contains("Mở cửa hàng</a>"));
+  }
+
+  @Test
+  void bootRendersThymeleafAndServesAssetsWithoutDatabaseInitialization() throws Exception {
+    assertNotNull(context.getBean(org.thymeleaf.spring6.SpringTemplateEngine.class));
+    assertNotNull(context.getBean(vn.edu.utex.bookstore.web.FrontController.class));
+    assertEquals("never", context.getEnvironment().getProperty("spring.sql.init.mode"));
+    assertEquals("validate", context.getEnvironment().getProperty("spring.jpa.hibernate.ddl-auto"));
+    assertTrue(context.getBeansOfType(javax.sql.DataSource.class).isEmpty());
+    var page = get("/");
+    assertEquals(200, page.statusCode());
+    assertFalse(page.body().contains("th:replace"));
+    assertFalse(page.body().contains("<c:"));
+    assertFalse(page.body().contains("${"));
+    for (String asset : List.of("app.css", "bootstrap.min.css", "typography.css", "responsive.css"))
+      assertEquals(200, get("/assets/" + asset).statusCode(), asset);
+  }
+
+  @Test
   void normalizedAdminPathsCannotBypassAuthorization() throws Exception {
     for (String path :
         List.of("/admin;ignored/categories", "/%61dmin/categories", "/admin;ignored/products")) {
       var response = get(path);
-      assertEquals(302, response.statusCode(), path + response.body());
+      assertTrue(response.statusCode() == 302 || response.statusCode() == 400, path + response.body());
     }
   }
 
-  private Tomcat tomcat;
+  private ServletWebServerApplicationContext context;
   private HttpClient client;
   private String base;
   private OtpTest.Mail mail;
@@ -37,32 +143,23 @@ class WebTest {
     MemoryStore store = DemoFixtures.store();
     mail = new OtpTest.Mail();
     clock = new OtpTest.MutableClock();
-    tomcat = new Tomcat();
-    tomcat.setBaseDir("target/tomcat-test");
-    tomcat.setPort(0);
-    tomcat.getConnector().setProperty("address", "127.0.0.1");
-    var context =
-        tomcat.addWebapp("/bookstore", Path.of("src/main/webapp").toAbsolutePath().toString());
-    context.setParentClassLoader(getClass().getClassLoader());
-    Tomcat.addServlet(
-        context,
-        "testFailure",
-        new jakarta.servlet.http.HttpServlet() {
-          protected void doGet(
-              jakarta.servlet.http.HttpServletRequest req,
-              jakarta.servlet.http.HttpServletResponse res)
-              throws java.io.IOException {
-            if (req.getParameter("status") != null) {
-              res.sendError(Integer.parseInt(req.getParameter("status")), "internal-test-detail");
-            } else throw new IllegalStateException("internal-test-detail");
-          }
-        });
-    context.addServletMappingDecoded("/_test/failure", "testFailure");
-    context
-        .getServletContext()
-        .setAttribute("app", new App(new Settings(props), store, clock, mail));
-    tomcat.start();
-    base = "http://127.0.0.1:" + tomcat.getConnector().getLocalPort() + "/bookstore";
+    App app = new App(new Settings(props), store, clock, mail);
+    context = (ServletWebServerApplicationContext) new SpringApplicationBuilder(GocSachApplication.class)
+        .properties("server.port=0", "server.address=127.0.0.1", "server.servlet.context-path=/bookstore", "logging.level.root=ERROR")
+        .initializers(ctx -> {
+          var registry = (org.springframework.context.support.GenericApplicationContext) ctx;
+          registry.registerBean("fixtureApp", App.class, () -> app);
+          registry.registerBean("testFailure", ServletRegistrationBean.class, () ->
+              new ServletRegistrationBean<>(new jakarta.servlet.http.HttpServlet() {
+                protected void doGet(jakarta.servlet.http.HttpServletRequest req, jakarta.servlet.http.HttpServletResponse res)
+                    throws java.io.IOException {
+                  if (req.getParameter("status") != null)
+                    res.sendError(Integer.parseInt(req.getParameter("status")), "internal-test-detail");
+                  else throw new IllegalStateException("internal-test-detail");
+                }
+              }, "/_test/failure"));
+        }).run("--server.port=0");
+    base = "http://127.0.0.1:" + context.getWebServer().getPort() + "/bookstore";
     client =
         HttpClient.newBuilder()
             .cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL))
@@ -71,10 +168,7 @@ class WebTest {
 
   @AfterEach
   void stop() throws Exception {
-    if (tomcat != null) {
-      tomcat.stop();
-      tomcat.destroy();
-    }
+    if (context != null) context.close();
   }
 
   HttpResponse<String> get(String route) throws Exception {
@@ -121,6 +215,17 @@ class WebTest {
     assertEquals(302, get("/admin/categories").statusCode());
     assertEquals(200, get("/assets/app.css").statusCode());
     assertEquals(404, get("/media/invalid").statusCode());
+  }
+
+  @Test
+  void jwtApiIsNotAvailableBeforeExternalKeysAreConfigured() throws Exception {
+    var response = get("/api/me");
+    assertEquals(401, response.statusCode());
+    assertTrue(response.body().contains("not_authenticated"));
+    var forged = client.send(HttpRequest.newBuilder(URI.create(base + "/api/me"))
+        .header("Authorization", "Bearer forged").build(), HttpResponse.BodyHandlers.ofString());
+    assertEquals(401, forged.statusCode());
+    assertEquals(401, post("/api/future-endpoint", "").statusCode());
   }
 
   String csrf(String route) throws Exception {
@@ -196,7 +301,8 @@ class WebTest {
                 + token
                 + "&categoryId=&title=Keep+title&author=Writer&price=100&stock=1&image="),
         400);
-    assertTrue(get("/product").body().contains("13 cuốn sách"));
+    assertTrue(get("/admin/products").body().contains("13 đầu sách"));
+    assertEquals(0, countCards(get("/product").body()));
   }
 
   @Test
@@ -321,17 +427,19 @@ class WebTest {
     assertSafeError(upload("/admin/product/save", fields, new byte[] {1, 2, 3}), 400);
     var tooLarge = upload("/admin/product/save", fields, new byte[5 * 1024 * 1024 + 1]);
     assertSafeError(tooLarge, 413);
-    assertTrue(tooLarge.body().contains("Về trang chủ"));
+    assertTrue(tooLarge.body().contains("Về trang chủ"), tooLarge.body());
   }
 
   @Test
   void catalogPagesAndDetailsRender() throws Exception {
-    assertEquals(10, countCards(get("/").body()));
-    for (int n = 1; n <= 3; n++) {
-      var page = get("/product?page=" + n);
-      assertEquals(200, page.statusCode(), page.body());
-      assertEquals(n == 3 ? 1 : 6, countCards(page.body()));
-    }
+    DemoFixtures.catalogStock((MemoryStore) context.getBean(App.class).store);
+    assertEquals(13, countCards(get("/").body()));
+    var page = get("/product?page=1");
+    assertEquals(200, page.statusCode(), page.body());
+    assertEquals(13, countCards(page.body()));
+    var search = get("/product?q=" + URLEncoder.encode("Lập trình", java.nio.charset.StandardCharsets.UTF_8));
+    assertEquals(200, search.statusCode(), search.body());
+    assertEquals(1, countCards(search.body()));
     var detail = get("/product/detail?id=13");
     assertEquals(200, detail.statusCode(), detail.body());
     assertTrue(detail.body().contains("Một đời đáng đọc"));
@@ -343,6 +451,34 @@ class WebTest {
       var response = get(route);
       assertEquals(200, response.statusCode(), response.body());
     }
+  }
+
+  @Test
+  void publicCatalogTracksInventoryAndAdminCannotOverwriteStock() throws Exception {
+    App app = context.getBean(App.class);
+    DemoFixtures.catalogStock((MemoryStore) app.store);
+    Identity admin = app.store.tx(d -> Identity.of(d.findLogin("admin")));
+    var detail = get("/product/detail?id=1");
+    assertEquals(200, detail.statusCode(), detail.body());
+    assertTrue(detail.body().contains("data-copy-id=\"1\""));
+    assertTrue(detail.body().contains("Góc Sách Demo"));
+    app.shops.setSuspended(admin, 1, true, "Testing catalog withdrawal");
+    assertEquals(0, countCards(get("/").body()));
+    var withdrawn = get("/product/detail?id=1");
+    assertTrue(withdrawn.body().contains("Chưa có bản sẵn bán"));
+    assertFalse(withdrawn.body().contains("data-copy-id="));
+    assertFalse(withdrawn.body().contains("class=\"detail-price\""));
+    assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
+        + "&login=admin&password=demo-password-123&mode=session").statusCode());
+    var form = get("/admin/product/edit?id=1");
+    assertFalse(form.body().contains("name=\"stock\"")); assertFalse(form.body().contains("name=\"price\""));
+    assertEquals(302, post("/admin/product/save", "_csrf=" + csrf("/admin/product/edit?id=1")
+        + "&id=1&categoryId=1&title=Updated&author=Writer&description=Metadata&price=1&stock=999&image=").statusCode());
+    assertEquals(5, app.store.tx(d -> d.product(1).stock).intValue());
+    assertEquals(new java.math.BigDecimal("75000.00"), app.store.tx(d -> d.product(1).price));
+    app.shops.setSuspended(admin, 1, false, "Catalog reactivated");
+    assertEquals(13, countCards(get("/product").body()));
+    assertTrue(get("/product/detail?id=1").body().contains("75.000"));
   }
 
   @Test
@@ -429,7 +565,7 @@ class WebTest {
         400,
         post(
                 "/admin/product/save",
-                "_csrf=" + token + "&categoryId=1&title=Book&author=Test&price=-1&stock=3")
+                "_csrf=" + token + "&categoryId=1&title=&author=Test")
             .statusCode());
     assertEquals(302, post("/admin/product/delete", "_csrf=" + token + "&id=14").statusCode());
     assertEquals(404, get("/product/detail?id=14").statusCode());

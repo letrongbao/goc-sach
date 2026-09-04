@@ -3,6 +3,8 @@
   <persistence-unit name="bookstore" transaction-type="RESOURCE_LOCAL">
     <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
     <mapping-file>META-INF/orm.xml</mapping-file>
+    <mapping-file>META-INF/shop-orm.xml</mapping-file>
+    <mapping-file>META-INF/inventory-orm.xml</mapping-file>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
       <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>

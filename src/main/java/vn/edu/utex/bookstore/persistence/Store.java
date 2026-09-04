@@ -10,7 +10,10 @@ public interface Store extends AutoCloseable {
           TokenRepository,
           CategoryRepository,
           OtpRepository,
-          vn.edu.utex.bookstore.product.ProductRepository {}
+          vn.edu.utex.bookstore.product.ProductRepository,
+          vn.edu.utex.bookstore.product.CatalogRepository,
+          vn.edu.utex.bookstore.shop.ShopRepository,
+          vn.edu.utex.bookstore.inventory.InventoryRepository {}
 
   <T> T tx(Function<Data, T> action);
 

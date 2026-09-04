@@ -1,0 +1,27 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+<section class="container section"><a class="back-link" th:href="@{/product}">← Khám phá tủ sách</a>
+  <div class="detail-grid"><div class="detail-art">
+    <img th:if="${!#strings.isEmpty(product.image)}" th:src="@{${product.image}}" th:alt="'Bìa sách ' + ${product.title}">
+    <div th:if="${#strings.isEmpty(product.image)}" class="typographic-cover"><small>GÓC SÁCH / TUYỂN CHỌN</small><span th:text="${product.title}"></span><em th:text="${product.author}"></em></div>
+  </div><div class="detail-info"><p class="eyebrow" th:text="${product.categoryName}"></p><h1 th:text="${product.title}"></h1>
+    <p class="muted">Tác giả: [[${product.author}]] · Mã đầu sách: #[[${product.id}]]</p>
+    <div class="detail-price" th:if="${product.price != null}">Từ [[${#numbers.formatDecimal(product.price, 1, 'POINT', 0, 'COMMA')}]] ₫</div>
+    <p class="status stock-label">[[${product.stock > 0 ? 'Còn sách' : 'Chưa có bản sẵn bán'}]] · [[${product.stock}]] cuốn</p>
+    <h3>Về cuốn sách</h3><p class="description" th:text="${product.description}"></p>
+    <p class="form-note">Giá tùy tình trạng từng bản. Chức năng đặt hàng đang được phát triển.</p>
+  </div></div>
+  <div class="section shop-data"><h2>Những bản sách đang sẵn bán</h2>
+    <p th:if="${#lists.isEmpty(offers)}" class="muted">Hiện chưa có bản sách phù hợp để mua. Bạn có thể quay lại sau.</p>
+    <div class="shop-grid"><article class="form-card" th:each="offer : ${offers}" th:data-copy-id="${offer.id}">
+      <h3 th:text="${offer.shopName}"></h3><small th:text="${offer.code}"></small>
+      <p th:text="${offer.condition == 'LIKE_NEW' ? 'Như mới' : offer.condition == 'GOOD' ? 'Tốt' : 'Đọc được'}"></p>
+      <p class="description" th:text="${offer.defects}"></p>
+      <strong>[[${#numbers.formatDecimal(offer.price, 1, 'POINT', 0, 'COMMA')}]] ₫</strong>
+    </article></div>
+    <nav class="shop-toolbar mt-3" aria-label="Phân trang bản sách" th:if="${offerPages > 1}">
+      <a th:if="${offerPage > 1}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage - 1})}">← Trang trước</a>
+      <span>Trang [[${offerPage}]] / [[${offerPages}]]</span>
+      <a th:if="${offerPage < offerPages}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage + 1})}">Trang sau →</a>
+    </nav>
+  </div>
+</section></th:block>

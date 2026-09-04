@@ -1,0 +1,8 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content(products)">
+<div class="book-grid"><th:block th:each="book : ${products}"><article class="book-card" th:data-product-id="${book.id}">
+
+<a class="book-art" th:href="@{/product/detail(id=${book.id})}" th:aria-label="'Xem chi tiết: ' + ${book.title}">
+<th:block th:if="${!#strings.isEmpty(book.image)}"><img th:src="@{${book.image}}" th:alt="'Bìa sách ' + ${book.title}" loading="lazy"></th:block><th:block th:unless="${!#strings.isEmpty(book.image)}"><div class="typographic-cover"><small>GÓC SÁCH / TUYỂN CHỌN</small><span>[[${book.title}]]</span><em>[[${book.author}]]</em></div></th:block></a>
+<p class="book-category">[[${book.categoryName}]]</p><h3><a th:href="@{/product/detail(id=${book.id})}">[[${book.title}]]</a></h3><p class="book-author">[[${book.author}]]</p><p class="book-price">Từ [[${#numbers.formatDecimal(book.price, 1, 'POINT', 0, 'COMMA')}]] ₫</p></article></th:block></div>
+<th:block th:if="${#lists.isEmpty(products)}"><div class="empty-catalog"><h3>Những trang sách đang được chuẩn bị.</h3><p>Không có đầu sách đang sẵn bán phù hợp. Bạn có thể đổi từ khóa hoặc quay lại sau.</p></div></th:block>
+</th:block>
