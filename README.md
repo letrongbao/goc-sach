@@ -1,8 +1,8 @@
-# Bài tập Lập trình Web — Mộc Sách
+# Mộc Sách — đồ án cuối kỳ Lập trình Web
 
-Repository này dành cho **Bài 01–03**, không phải repository đồ án cuối kỳ. [Đồ án Mộc Sách](https://github.com/letrongbao/moc-sach) phát triển riêng từ nền tảng này; xem [cách phân chia](docs/REPOSITORIES.md).
+Repository này dành riêng cho **đồ án cuối kỳ**, định hướng đề tài 15: quản lý chuỗi cửa hàng sách cũ bằng Spring Boot + JSP/JSTL. Chưa xác nhận giảng viên duyệt đề tài/nhóm. Bài 01–03 nộp tại [repository bài tập riêng](https://github.com/letrongbao/utex-web-exercises), không dùng repo này thay thế.
 
-**Bản sửa Bài 03:** `main` và mốc `submission-03-r1` có validation ID, xử lý SMTP lỗi, trang lỗi an toàn và giao diện mobile. Các folder `submissions` cũ trên máy vẫn giữ nguyên, chưa chứa bản sửa này. Đọc [chi tiết](docs/FIXES.md). Chưa nghiệm thu PostgreSQL/email thật, chưa xác nhận đáp ứng toàn bộ tài liệu PDF.
+**Trạng thái: nền tảng kế thừa, chưa hoàn thành đồ án.** Source bắt đầu từ commit `8a47d12` của repo bài tập, giữ nguyên lịch sử thật. Chưa chuyển Spring Boot; chưa có chuỗi cửa hàng, giỏ hàng, đơn hàng, thanh toán, JWT, WebSocket hoặc Cloudinary. Xem [nguồn gốc và phạm vi](docs/FINAL_PROJECT.md). Các tài liệu bài tập còn lại là hồ sơ nền tảng, không phải minh chứng đạt rubric cuối kỳ.
 
 Website bán sách bằng **Java 21 / Servlet 6 / JSP-JSTL / PostgreSQL / JPA EntityManager**, đóng gói WAR. Đây là project phát triển nối tiếp Bài 01 (JDBC), Bài 02 (JPA) và Bài 03 (OTP + sản phẩm), chưa chuyển Spring Boot.
 
@@ -29,7 +29,7 @@ Bản preview có banner cảnh báo, 13 sách giả trong RAM; không gửi ema
 - CRUD sách; Category 1:N Product; chặn xóa danh mục đang có sách.
 - Trang chủ 10 sách mới; /product phân trang 6; chi tiết từ cả trang chủ/danh sách.
 
-## Hồ sơ và bản nộp
+## Hồ sơ nền tảng
 
 - [Đối chiếu yêu cầu](docs/REQUIREMENTS.md)
 - [Kết quả và giới hạn xác minh](docs/VERIFICATION.md)
@@ -44,4 +44,4 @@ Bản preview có banner cảnh báo, 13 sách giả trong RAM; không gửi ema
 | 02 — JPA | [submission-02-r1](https://github.com/letrongbao/utex-web-exercises/tree/submission-02-r1) | Snapshot cũ; còn đối chiếu/bổ sung count, phân trang Category |
 | 03 — OTP/Product | [submission-03-r1](https://github.com/letrongbao/utex-web-exercises/tree/submission-03-r1) | Có bản sửa, 61 tests pass; chưa nghiệm thu DB/email thật |
 
-Tag gốc giữ để đối chiếu, không di chuyển. Không coi tag là chứng nhận hoàn thành bài. Chưa ZIP/nộp UTEx. Repository được tạo Private; người chấm cần quyền truy cập trước khi nộp link.
+Các tag trong bảng thuộc repository bài tập, không phải các bản nộp của repo đồ án. Repo đồ án giữ Private; cấp quyền cho thành viên/người chấm trước khi chia sẻ. Không coi nền tảng này là đồ án đã nghiệm thu.
