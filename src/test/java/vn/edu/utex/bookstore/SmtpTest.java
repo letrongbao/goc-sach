@@ -30,6 +30,19 @@ class SmtpTest {
   }
 
   @Test
+  void connectionCheckDoesNotSendAnyEmail() {
+    var smtp = new GreenMail(new ServerSetup(0, "127.0.0.1", ServerSetup.PROTOCOL_SMTP));
+    smtp.start();
+    try {
+      var values = new Properties();
+      values.setProperty("smtp.host", "127.0.0.1");
+      values.setProperty("smtp.port", Integer.toString(smtp.getSmtp().getPort()));
+      new SmtpEmailSender(new Settings(values)).checkConnection();
+      assertEquals(0, smtp.getReceivedMessages().length);
+    } finally { smtp.stop(); }
+  }
+
+  @Test
   void doesNotPermitPlaintextSmtpAuthentication() {
     Properties p = new Properties();
     p.setProperty("smtp.auth", "true");

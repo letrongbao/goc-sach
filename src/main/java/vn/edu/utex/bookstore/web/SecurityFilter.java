@@ -3,12 +3,13 @@ package vn.edu.utex.bookstore.web;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
 import vn.edu.utex.bookstore.auth.*;
 import vn.edu.utex.bookstore.config.App;
 
+/** Session/remember identity adapter inside Spring Security; it does not authorize routes. */
 public final class SecurityFilter implements Filter {
+  private final App app;
+  public SecurityFilter(App app) { this.app = app; }
   public static String cookie(HttpServletRequest req) {
     if (req.getCookies() != null)
       for (Cookie c : req.getCookies())
@@ -31,29 +32,34 @@ public final class SecurityFilter implements Filter {
       throws IOException, ServletException {
     HttpServletRequest req = (HttpServletRequest) request;
     HttpServletResponse res = (HttpServletResponse) response;
+    if (req.getDispatcherType() == DispatcherType.ERROR) {
+      chain.doFilter(req, res);
+      return;
+    }
     req.setCharacterEncoding("UTF-8");
     res.setCharacterEncoding("UTF-8");
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("X-Frame-Options", "DENY");
-    res.setHeader("Referrer-Policy", "same-origin");
-    res.setHeader(
-        "Content-Security-Policy",
-        "default-src 'self'; style-src 'self'; img-src 'self' https: http: data:; script-src"
-            + " 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'");
     String path = req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
     if (path.startsWith("/assets/") || path.startsWith("/media/")) {
       chain.doFilter(req, res);
       return;
     }
     res.setHeader("Cache-Control", "no-store");
-    App app = (App) req.getServletContext().getAttribute("app");
     HttpSession session = req.getSession();
     session.setMaxInactiveInterval(30 * 60);
     if (session.getAttribute("csrf") == null) session.setAttribute("csrf", Tokens.random());
     Identity previous = (Identity) session.getAttribute("identity");
     Identity identity = app.auth.sessionIdentity(previous);
-    if (previous != null && identity == null) session.removeAttribute("identity");
+    if (previous != null && identity == null) {
+      session.removeAttribute("identity");
+      session.removeAttribute(vn.edu.utex.bookstore.security.SessionGrant.ATTRIBUTE);
+    }
     if (identity == null) identity = app.auth.cookieIdentity(cookie(req));
+    if (identity == null) session.removeAttribute(vn.edu.utex.bookstore.security.SessionGrant.ATTRIBUTE);
+    if (identity != null) {
+      var authentication = org.springframework.security.authentication.UsernamePasswordAuthenticationToken.authenticated(
+          identity, null, java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + identity.role())));
+      org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(authentication);
+    }
     req.setAttribute("identity", identity);
     req.setAttribute("csrf", session.getAttribute("csrf"));
     if (session.getAttribute("notice") != null) {
@@ -61,7 +67,6 @@ public final class SecurityFilter implements Filter {
       session.removeAttribute("notice");
     }
     if (!"GET".equals(req.getMethod()) && !"HEAD".equals(req.getMethod())) {
-      String provided;
       try {
         if (req.getContentType() != null
             && req.getContentType()
@@ -69,29 +74,11 @@ public final class SecurityFilter implements Filter {
                 .startsWith("multipart/form-data")) {
           req.getParts();
         }
-        provided = req.getParameter("_csrf");
       } catch (IllegalStateException e) {
         res.sendError(413, "Tệp tải lên quá lớn.");
         return;
       } catch (ServletException e) {
         res.sendError(400, "Biểu mẫu tải ảnh không hợp lệ.");
-        return;
-      }
-      if (provided == null
-          || !MessageDigest.isEqual(
-              provided.getBytes(StandardCharsets.UTF_8),
-              session.getAttribute("csrf").toString().getBytes(StandardCharsets.UTF_8))) {
-        res.sendError(403, "Phiên biểu mẫu hết hạn. Tải lại trang.");
-        return;
-      }
-    }
-    if (path.startsWith("/admin/")) {
-      if (identity == null) {
-        res.sendRedirect(req.getContextPath() + "/auth/login");
-        return;
-      }
-      if (!identity.isAdmin()) {
-        res.sendError(403);
         return;
       }
     }

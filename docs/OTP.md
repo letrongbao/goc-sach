@@ -1,29 +1,17 @@
-# OTP và email — Bài 03
+# OTP và email
 
-Đăng ký → user pending → SMTP → OTP activation → đăng nhập. Quên mật khẩu → OTP reset → gửi mã và mật khẩu mới cùng form → transaction xác minh rồi đổi mật khẩu; không tự đăng nhập sau reset.
+Đăng ký cần kích hoạt email trước khi đăng nhập. Quên mật khẩu dùng OTP riêng để đặt lại mật khẩu.
 
-OTP 6 chữ số, SecureRandom, hạn 10 phút, 5 lần sai, resend tối thiểu 60 giây. Mã dùng một lần, gắn user và purpose. HMAC-SHA256 dùng otp.secret ngoài source; không lưu/log mã rõ. Challenge pending chỉ được xác minh khi SMTP gửi thành công. SMTP lỗi: giữ user pending, vô hiệu challenge và cho gửi lại sau cooldown.
+Mã gồm 6 chữ số, có hạn 10 phút, dùng một lần; tối đa 5 lần nhập sai, gửi lại cách nhau ít nhất 60 giây. Không lưu hoặc ghi log mã rõ. Đổi mật khẩu làm mất hiệu lực phiên, cookie và JWT cũ. Tài khoản bị quản trị khóa không thể tự mở lại bằng OTP kích hoạt hoặc đặt mật khẩu.
 
-Lock user bằng PESSIMISTIC_WRITE để serialize gửi/xác minh/reset; tăng attempts trong transaction rồi mới báo lỗi bên ngoài, không rollback bộ đếm sai. Reset tăng auth_version (mọi session được kiểm tra lại mỗi request), xóa remember_tokens và xóa cookie trình duyệt hiện tại.
+## Cấu hình
 
-Rate limit 10 lần gửi / IP / 15 phút và 3 lần / email / 15 phút; xác minh 30 lần / IP / 15 phút và 10 lần / email / 15 phút. Bộ giới hạn bổ sung này ở RAM (phù hợp một node local); challenge/cooldown/5 lần sai nằm trong PostgreSQL. Khi triển khai nhiều node phải chuyển rate limit sang shared store. Thông báo quên mật khẩu thống nhất; SMTP đồng bộ có thể khác thời gian phản hồi giữa email tồn tại/không tồn tại, cần queue + chống timing enumeration trước production.
+Dùng Mailpit để thử trên máy hoặc Gmail với App Password. Điền file cấu hình riêng theo mẫu trong `config/`, không đưa mật khẩu thật vào Git.
 
-## Mailpit
+Gmail dùng STARTTLS cổng 587. Khóa `otp.secret` cần ngẫu nhiên ít nhất 32 byte và giữ ổn định khi khởi động lại.
 
-### Phản hồi khi gửi email thất bại
+## Giới hạn
 
-`OtpDeliveryFailure` phân biệt lỗi gửi mã với validation. Đăng ký mới vẫn báo 503 để người dùng biết tài khoản đang chờ kích hoạt. Hai endpoint công khai `/auth/forgot` và `/auth/resend` giữ cùng status/điều hướng/thông báo tổng quát cho email có/không tồn tại, kể cả SMTP lỗi hoặc đang cooldown. Không log email, OTP hoặc exception từ nhà cung cấp; chỉ ghi thông báo vận hành cố định.
+Gửi mail hiện đồng bộ; giới hạn tần suất bổ sung ở bộ nhớ, phù hợp chạy một máy. Khi triển khai nhiều máy cần dùng hàng đợi và bộ đếm chung.
 
-Challenge gửi thất bại vẫn bị vô hiệu hóa, không được kích hoạt/reset; gửi lại sau cooldown tạo mã mới. Thay đổi này sửa khác biệt status/nội dung, **chưa loại bỏ khác biệt thời gian do SMTP đồng bộ**. Cần queue/shared rate limiter trước môi trường production.
-
-Tự chạy Mailpit riêng, SMTP 127.0.0.1:1025, UI 127.0.0.1:8025. config/local.example.properties trỏ vào SMTP này; không gửi ra Gmail. Không tự khởi động Docker/PostgreSQL hoặc tự tạo schema.
-
-## Gmail
-
-Sao chép gmail.example.properties thành file cấu hình riêng, dùng Gmail hỗ trợ App Password + 2-Step Verification. STARTTLS 587 và kiểm tra chứng chỉ/hostname bật. Không dùng mật khẩu Google chính. Không gửi bí mật qua chat; điền trên máy của bạn.
-
-Để tạo otp.secret: dùng password manager tạo chuỗi ngẫu nhiên ít nhất 32 byte; giữ ổn định khi restart. Đổi secret làm OTP đang chờ mất hiệu lực.
-
-Trước nộp: xác minh nhận và dùng OTP activation, rồi reset bằng email thật (cả inbox/spam). Chỉ test SMTP giả không chứng minh Gmail đã hoạt động.
-
-Nguồn: https://support.google.com/accounts/answer/185833 ; https://cheatsheetseries.owasp.org/cheatsheets/Forgot_Password_Cheat_Sheet.html
+Kiểm thử email giả không chứng minh thư đến hộp thư thật. Trước demo cần thử cả kích hoạt và đặt lại mật khẩu, kiểm tra Inbox/Spam.

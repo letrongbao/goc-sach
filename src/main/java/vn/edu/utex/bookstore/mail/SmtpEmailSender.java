@@ -51,4 +51,13 @@ public final class SmtpEmailSender implements EmailSender {
       throw new IllegalStateException("Không gửi được email. Kiểm tra cấu hình SMTP.");
     }
   }
+
+  /** Authenticate and disconnect; no email is sent. */
+  public void checkConnection() {
+    try (Transport transport = session.getTransport("smtp")) {
+      transport.connect();
+    } catch (MessagingException failure) {
+      throw new IllegalStateException("Không kết nối được SMTP; kiểm tra cấu hình riêng.");
+    }
+  }
 }

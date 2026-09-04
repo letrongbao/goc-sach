@@ -6,6 +6,7 @@ public class User {
   public Long id;
   public String username, email, passwordHash, role;
   public boolean active;
+  public boolean blocked;
   public int authVersion;
   public Instant createdAt;
 

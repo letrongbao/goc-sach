@@ -43,7 +43,32 @@ public final class Web {
   public static void view(HttpServletRequest req, HttpServletResponse res, String view)
       throws ServletException, IOException {
     req.setAttribute("view", view);
-    req.getRequestDispatcher("/WEB-INF/views/layout.jsp").forward(req, res);
+
+  }
+
+  public static java.util.Map<String, Object> emptyProduct() {
+    var values = new java.util.HashMap<String, Object>();
+    for (String key : java.util.List.of("id", "categoryId", "title", "author", "description", "price", "stock", "image"))
+      values.put(key, "");
+    return values;
+  }
+
+  public static org.springframework.web.servlet.ModelAndView result(HttpServletRequest req, HttpServletResponse res) {
+    if (req.getAttribute("view") == null || res.isCommitted()) return null;
+    var model = new java.util.HashMap<String, Object>();
+    var names = req.getAttributeNames();
+    while (names.hasMoreElements()) {
+      String name = names.nextElement();
+      if (!name.startsWith("org.springframework")) model.put(name, req.getAttribute(name));
+    }
+    var form = new java.util.HashMap<String, String>();
+    for (String key : java.util.List.of("email", "login", "username", "q"))
+      form.put(key, java.util.Objects.toString(req.getParameter(key), ""));
+    model.put("form", form);
+    model.put("pendingEmail", req.getSession().getAttribute("pendingEmail"));
+    model.put("preview", Boolean.TRUE.equals(req.getServletContext().getAttribute("preview")));
+    model.put("selectedCategoryId", req.getAttribute("selectedCategoryId"));
+    return new org.springframework.web.servlet.ModelAndView("layout", model);
   }
 
   public static void redirect(HttpServletRequest req, HttpServletResponse res, String route)

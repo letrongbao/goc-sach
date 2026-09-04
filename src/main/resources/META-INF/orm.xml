@@ -7,6 +7,7 @@
     <basic name="passwordHash"><column name="password_hash" length="100" nullable="false"/></basic>
     <basic name="role"><column name="role" length="20" nullable="false"/></basic>
     <basic name="active"><column name="active" nullable="false"/></basic>
+    <basic name="blocked"><column name="blocked" nullable="false"/></basic>
     <basic name="authVersion"><column name="auth_version" nullable="false"/></basic>
     <basic name="createdAt"><column name="created_at" nullable="false"/></basic>
   </attributes></entity>

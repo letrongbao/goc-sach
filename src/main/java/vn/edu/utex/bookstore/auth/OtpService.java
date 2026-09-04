@@ -67,6 +67,7 @@ public final class OtpService {
               User found = d.findLogin(address);
               if (found == null || !found.email.equals(address)) return null;
               User user = d.lockUser(found.id);
+              if (user.blocked) return null;
               if ((ACTIVATE.equals(purpose) && user.active)
                   || (RESET.equals(purpose) && !user.active)) return null;
               OtpChallenge old = d.challenge(user.id, purpose);
@@ -143,6 +144,7 @@ public final class OtpService {
               User found = d.findLogin(address);
               if (found == null || !found.email.equals(address)) return false;
               User user = d.lockUser(found.id);
+              if (user.blocked) return false;
               OtpChallenge c = d.challenge(user.id, purpose);
               if (c == null
                   || c.consumed

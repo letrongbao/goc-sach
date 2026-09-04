@@ -8,7 +8,18 @@ import vn.edu.utex.bookstore.auth.*;
 import vn.edu.utex.bookstore.common.Problem;
 import vn.edu.utex.bookstore.config.App;
 
-public final class OtpServlet extends HttpServlet {
+@org.springframework.stereotype.Controller
+public final class OtpController {
+  private final App app;
+  public OtpController(App app) { this.app = app; }
+
+  @org.springframework.web.bind.annotation.RequestMapping(value = {"/auth/register", "/auth/activate", "/auth/forgot", "/auth/reset", "/auth/resend"}, method = {org.springframework.web.bind.annotation.RequestMethod.GET, org.springframework.web.bind.annotation.RequestMethod.POST})
+  public org.springframework.web.servlet.ModelAndView handle(HttpServletRequest req, HttpServletResponse res)
+      throws ServletException, IOException {
+    if ("POST".equals(req.getMethod())) doPost(req, res); else doGet(req, res);
+    return Web.result(req, res);
+  }
+
   protected void doGet(HttpServletRequest req, HttpServletResponse res)
       throws ServletException, IOException {
     String view =
@@ -28,7 +39,6 @@ public final class OtpServlet extends HttpServlet {
 
   protected void doPost(HttpServletRequest req, HttpServletResponse res)
       throws ServletException, IOException {
-    App app = (App) getServletContext().getAttribute("app");
     String path = req.getServletPath();
     String email = req.getParameter("email");
     String view =
@@ -104,7 +114,7 @@ public final class OtpServlet extends HttpServlet {
       app.otp.issue(email, purpose);
     } catch (OtpDeliveryFailure e) {
       // Do not log the recipient, OTP or provider exception.
-      getServletContext().log("OTP delivery failed; inspect SMTP availability/configuration.");
+      org.slf4j.LoggerFactory.getLogger(OtpController.class).warn("OTP delivery failed; inspect SMTP configuration.");
     }
   }
 }

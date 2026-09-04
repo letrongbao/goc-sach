@@ -1,0 +1,12 @@
+<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Thông báo · Góc Sách</title>
+<link rel="stylesheet" th:href="@{/assets/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/assets/app.css}"><link rel="stylesheet" th:href="@{/assets/typography.css}">
+<link rel="stylesheet" th:href="@{/assets/responsive.css}">
+</head><body>
+<th:block th:if="${preview}"><div class="alert alert-warning mb-0 text-center">BẢN XEM GIAO DIỆN · Dữ liệu giả trong bộ nhớ · Chưa kết nối PostgreSQL/Gmail</div></th:block>
+<header class="site-header"><a class="brand" th:href="@{/}">góc<span>sách.</span></a></header>
+<main class="container section auth-narrow"><section class="form-card" aria-labelledby="error-title">
+<p class="eyebrow">GÓC SÁCH / THÔNG BÁO</p><h1 id="error-title">[[${statusCode}]] — Chưa thể tiếp tục</h1>
+<p class="muted">[[${safeMessage}]]</p>
+<div class="d-flex flex-wrap gap-2 mt-4"><a class="btn btn-forest" th:href="@{/}">Về trang chủ</a><a class="btn btn-outline-dark" th:href="@{/auth/login}">Đăng nhập</a></div>
+</section></main></body></html>

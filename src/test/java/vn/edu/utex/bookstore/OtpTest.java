@@ -80,6 +80,29 @@ class OtpTest {
   }
 
   @Test
+  void otpCannotActivateOrResetAnAdministrativelyBlockedAccount() {
+    register();
+    User user = store.findLogin("reader");
+    String code = mail.code();
+    user.blocked = true;
+    assertThrows(Problem.class, () -> otp.activate(user.email, code));
+    clock.now = clock.now.plusSeconds(61);
+    otp.issue(user.email, OtpService.ACTIVATE);
+    assertEquals(1, mail.sends);
+    assertFalse(user.active);
+    user.blocked = false;
+    otp.activate(user.email, code);
+    otp.issue(user.email, OtpService.RESET);
+    String reset = mail.code(), oldHash = user.passwordHash;
+    user.blocked = true;
+    assertThrows(Problem.class, () -> otp.reset(user.email, reset, password, password));
+    assertEquals(oldHash, user.passwordHash);
+    var auth = new AuthService(store, new Passwords(), clock);
+    assertThrows(Problem.class, () -> auth.login(user.username, password));
+    assertNull(auth.sessionIdentity(Identity.of(user)));
+  }
+
+  @Test
   void rejectsExpiredOtp() {
     register();
     String code = mail.code();

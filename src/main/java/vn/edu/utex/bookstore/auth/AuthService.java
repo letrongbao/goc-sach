@@ -21,7 +21,7 @@ public class AuthService {
   public Identity login(String login, String password) {
     User user = store.tx(d -> d.findLogin(normalize(login)));
     boolean valid = passwords.matches(password, user == null ? dummyHash : user.passwordHash);
-    if (user == null || !valid || !user.active)
+    if (user == null || !valid || !user.active || user.blocked)
       throw new Problem(401, "Thông tin đăng nhập không đúng hoặc tài khoản chưa kích hoạt.");
     return Identity.of(user);
   }
@@ -31,7 +31,7 @@ public class AuthService {
     return store.tx(
         d -> {
           User user = d.user(identity.id());
-          return user != null && user.active && user.authVersion == identity.authVersion()
+          return user != null && user.active && !user.blocked && user.authVersion == identity.authVersion()
               ? Identity.of(user)
               : null;
         });
@@ -42,7 +42,7 @@ public class AuthService {
     store.tx(
         d -> {
           User current = d.lockUser(identity.id());
-          if (current == null || !current.active || current.authVersion != identity.authVersion())
+          if (current == null || !current.active || current.blocked || current.authVersion != identity.authVersion())
             throw new Problem(401, "Phiên đăng nhập đã hết hiệu lực.");
           RememberToken t = new RememberToken();
           t.tokenHash = Tokens.digest(raw);
@@ -65,7 +65,7 @@ public class AuthService {
             return null;
           }
           User user = d.user(t.userId);
-          return user != null && user.active ? Identity.of(user) : null;
+          return user != null && user.active && !user.blocked ? Identity.of(user) : null;
         });
   }
 
