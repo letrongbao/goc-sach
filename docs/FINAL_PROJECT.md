@@ -1,8 +1,8 @@
-# Phạm vi đồ án Mộc Sách
+# Phạm vi đồ án Góc Sách
 
 ## Nguồn gốc
 
-Kế thừa repository https://github.com/letrongbao/utex-web-exercises tại commit 8a47d12 (revision submission-03-r1). Lịch sử commit được giữ nguyên, không đổi tác giả hoặc thời gian; các commit trước khi tách là quá trình làm bài tập, không phải đóng góp mới của nhóm đồ án.
+Kế thừa repository https://github.com/letrongbao/goc-sach-exercises tại commit 8a47d12 (revision submission-03-r1). Lịch sử commit được giữ nguyên, không đổi tác giả hoặc thời gian; các commit trước khi tách là quá trình làm bài tập, không phải đóng góp mới của nhóm đồ án.
 
 Repo này không chứa các folder submissions sao chép, cấu hình bí mật, target hoặc database cá nhân. SQL chỉ để chủ project xem và thực thi thủ công; không chạy tạo bảng/migration tự động.
 
@@ -22,4 +22,4 @@ Hiện chỉ có nền tảng Servlet/JPA của bài tập. Bộ 61 test kiểm 
 
 ## Nộp và cộng tác
 
-Bài tập nộp qua repo utex-web-exercises. Đồ án dùng repo moc-sach và mốc nghiệm thu riêng sau này. Mời đúng thành viên/người chấm nếu giữ Private; không tự chuyển Public. Commit mới theo Conventional Commits, không backdate, không sửa tag đã công bố. Bảng phân công chỉ ghi công việc/người làm thực tế.
+Bài tập nộp qua repo goc-sach-exercises. Đồ án dùng repo goc-sach và mốc nghiệm thu riêng sau này. Mời đúng thành viên/người chấm nếu giữ Private; không tự chuyển Public. Commit mới theo Conventional Commits, không backdate, không sửa tag đã công bố. Bảng phân công chỉ ghi công việc/người làm thực tế.

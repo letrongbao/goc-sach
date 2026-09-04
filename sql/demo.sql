@@ -7,7 +7,7 @@ INSERT INTO categories(name,image,active) VALUES
  ('Văn học','',true),('Kỹ năng sống','',true),('Công nghệ','',true),('Thiếu nhi','',true);
 -- 13 fictional sample books to verify latest-10 and pagination 6/6/1.
 INSERT INTO products(category_id,title,author,description,price,stock,image,created_at,updated_at)
-SELECT c.id, books.title, 'Tủ sách Mộc', 'Dữ liệu minh họa cho bài tập Lập trình Web, không phải nội dung sách thương mại.',
+SELECT c.id, books.title, 'Tủ sách Góc', 'Dữ liệu minh họa cho bài tập Lập trình Web, không phải nội dung sách thương mại.',
        75000 + books.n * 5000, 5 + books.n, '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM (VALUES
  (1,'Miền ký ức xanh'),(2,'Những ngày có nắng'),(3,'Lập trình từ trang đầu'),

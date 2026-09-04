@@ -49,7 +49,7 @@ public final class DemoFixtures {
           null,
           i % 4 + 1,
           titles[i],
-          "Tủ sách Mộc",
+          "Tủ sách Góc",
           "Dữ liệu minh họa cho dự án học tập. Cuốn sách mời bạn dành một khoảng thời gian yên"
               + " tĩnh, mở ra góc nhìn mới và tìm lại niềm vui đọc sách.",
           Integer.toString(75000 + i * 5000),

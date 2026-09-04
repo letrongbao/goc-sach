@@ -96,7 +96,7 @@ class WebTest {
   void jspLoginAndAdminFlow() throws Exception {
     var home = get("/");
     assertEquals(200, home.statusCode(), home.body());
-    assertTrue(home.body().contains("mộc"));
+    assertTrue(home.body().contains("góc"));
     var login = get("/auth/login");
     assertEquals(200, login.statusCode(), login.body());
     var matcher =

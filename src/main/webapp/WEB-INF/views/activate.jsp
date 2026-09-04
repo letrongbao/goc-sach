@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" %><%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<section class="container section auth-narrow"><div class="form-card"><p class="eyebrow">MỘC SÁCH / TÀI KHOẢN</p><h1>Kích hoạt tài khoản</h1><p class="muted">Mã xác minh có hiệu lực 10 phút và chỉ dùng một lần.</p>
+<section class="container section auth-narrow"><div class="form-card"><p class="eyebrow">GÓC SÁCH / TÀI KHOẢN</p><h1>Kích hoạt tài khoản</h1><p class="muted">Mã xác minh có hiệu lực 10 phút và chỉ dùng một lần.</p>
 <form method="post" action="<c:url value='/auth/activate'/>"><input type="hidden" name="_csrf" value="<c:out value='${csrf}'/>">
 
 <label for="email">Email</label><input id="email" name="email" class="form-control" type="email" required maxlength="254" autocomplete="email" value="<c:out value='${not empty param.email ? param.email : sessionScope.pendingEmail}'/>">

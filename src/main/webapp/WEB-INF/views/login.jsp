@@ -1,5 +1,5 @@
 <%@ page contentType="text/html; charset=UTF-8" %><%@ taglib prefix="c" uri="jakarta.tags.core" %>
-<section class="auth-layout"><div class="auth-story"><p class="eyebrow">MỘC SÁCH / TÀI KHOẢN</p><h1>Chào bạn,<br>người đọc <em>thân quen.</em></h1><p>Đăng nhập để tiếp tục câu chuyện của bạn.</p><blockquote>“Một trang sách mở ra,<br>một chân trời ở lại.”</blockquote></div>
+<section class="auth-layout"><div class="auth-story"><p class="eyebrow">GÓC SÁCH / TÀI KHOẢN</p><h1>Chào bạn,<br>người đọc <em>thân quen.</em></h1><p>Đăng nhập để tiếp tục câu chuyện của bạn.</p><blockquote>“Một trang sách mở ra,<br>một chân trời ở lại.”</blockquote></div>
 <div class="form-card"><p class="eyebrow">RẤT VUI ĐƯỢC GẶP LẠI BẠN</p><h2>Đăng nhập</h2>
 <form method="post" action="<c:url value='/auth/login'/>">
 <input type="hidden" name="_csrf" value="<c:out value='${csrf}'/>">

@@ -30,7 +30,7 @@ class ProductTest {
 
   void add(int n) {
     for (int i = 1; i <= n; i++)
-      products.save(null, category.id, "Sách " + i, "Mộc", "Nội dung demo", "100000", "10", "");
+      products.save(null, category.id, "Sách " + i, "Góc", "Nội dung demo", "100000", "10", "");
   }
 
   @Test

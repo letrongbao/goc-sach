@@ -2,7 +2,7 @@
 
 ## Cập nhật 04/09 — tách repository
 
-Repository bài tập: https://github.com/letrongbao/utex-web-exercises . Đồ án cuối kỳ phát triển riêng: https://github.com/letrongbao/moc-sach . Xem [phân chia](REPOSITORIES.md).
+Repository bài tập: https://github.com/letrongbao/goc-sach-exercises . Đồ án cuối kỳ phát triển riêng: https://github.com/letrongbao/goc-sach . Xem [phân chia](REPOSITORIES.md).
 
 `submission-03-r1` là mốc source có bản sửa, đã chạy 61 tests pass ngày 04/09; chưa nghiệm thu PostgreSQL/email thật. Bài 01/02 vẫn dùng snapshot cũ và chưa backport sửa form/upload. Các folder submissions trên máy và script export vẫn trỏ mốc cũ, không tự đồng bộ theo source chính. Khi xuất bản sửa cần tag mới/folder mới, không ghi đè.
 

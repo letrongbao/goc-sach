@@ -19,10 +19,10 @@ class SmtpTest {
       p.setProperty("smtp.host", "127.0.0.1");
       p.setProperty("smtp.port", Integer.toString(smtp.getSmtp().getPort()));
       new SmtpEmailSender(new Settings(p))
-          .send("reader@example.test", "Mộc Sách — OTP", "Mã kiểm thử: 123456");
+          .send("reader@example.test", "Góc Sách — OTP", "Mã kiểm thử: 123456");
       assertTrue(smtp.waitForIncomingEmail(3000, 1));
       assertEquals(1, smtp.getReceivedMessages().length);
-      assertTrue(smtp.getReceivedMessages()[0].getSubject().contains("Mộc Sách"));
+      assertTrue(smtp.getReceivedMessages()[0].getSubject().contains("Góc Sách"));
       assertTrue(smtp.getReceivedMessages()[0].getContent().toString().contains("123456"));
     } finally {
       smtp.stop();

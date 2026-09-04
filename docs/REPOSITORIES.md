@@ -4,8 +4,8 @@ Quyết định ngày 04/09/2026 theo yêu cầu chủ project: tách bài tập
 
 | Nội dung | Repository | Thư mục local |
 |---|---|---|
-| Bài 01, 02, 03 | https://github.com/letrongbao/utex-web-exercises | C:/BaoLT/spring_boot |
-| Đồ án số 15, Mộc Sách | https://github.com/letrongbao/moc-sach | C:/BaoLT/moc-sach |
+| Bài 01, 02, 03 | https://github.com/letrongbao/goc-sach-exercises | C:/BaoLT/spring_boot |
+| Đồ án số 15, Góc Sách | https://github.com/letrongbao/goc-sach | C:/BaoLT/goc-sach |
 
 Bài 01→02→03 chung repository vì có quá trình chuyển JDBC→JPA và Bài 03 tiếp tục Bài 02. Các tag là snapshot source để đối chiếu, không chứng nhận đã nghiệm thu database/email thật.
 

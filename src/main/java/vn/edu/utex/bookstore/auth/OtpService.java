@@ -89,7 +89,7 @@ public final class OtpService {
     try {
       sender.send(
           delivery.email,
-          "Mộc Sách — " + (ACTIVATE.equals(purpose) ? "Kích hoạt tài khoản" : "Đặt lại mật khẩu"),
+          "Góc Sách — " + (ACTIVATE.equals(purpose) ? "Kích hoạt tài khoản" : "Đặt lại mật khẩu"),
           "Mã xác minh của bạn: "
               + delivery.code
               + "\n"
