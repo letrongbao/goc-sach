@@ -4,7 +4,7 @@ import java.util.*;
 import vn.edu.utex.bookstore.common.Problem;
 import vn.edu.utex.bookstore.persistence.Store;
 
-/** Public catalog uses only available physical copies in active shops, never legacy stock. */
+/** Public catalog uses only available physical copies in active shops. */
 public final class CatalogService {
   public record Page(List<ProductView> items, int number, int pages, long total, String query) {}
   public record Detail(ProductView product, List<CatalogRepository.Offer> offers, int number, int pages) {}
@@ -42,8 +42,8 @@ public final class CatalogService {
     var stock = d.catalogStock(products.stream().map(p -> p.id).toList());
     return products.stream().map(p -> {
       var current = stock.get(p.id);
-      return new ProductView(p.id, p.category.id, p.category.name, p.title, p.author, p.description,
-          current == null ? null : current.minimumPrice(), current == null ? 0 : Math.toIntExact(current.available()), p.image);
+      return ProductView.from(p, current == null ? null : current.minimumPrice(),
+          current == null ? 0 : Math.toIntExact(current.available()));
     }).toList();
   }
   private static int number(String raw) {

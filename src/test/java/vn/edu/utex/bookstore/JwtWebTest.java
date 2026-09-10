@@ -11,6 +11,7 @@ import java.time.*;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.io.CleanupMode;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
@@ -22,7 +23,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import vn.edu.utex.bookstore.config.*;
 
 class JwtWebTest {
-  @TempDir Path directory;
+  @TempDir(cleanup = CleanupMode.NEVER) Path directory;
   private ServletWebServerApplicationContext context;
   private HttpClient client;
   private CookieManager cookies;
@@ -47,7 +48,6 @@ class JwtWebTest {
     Files.writeString(privateKey, pem("PRIVATE KEY", pair.getPrivate().getEncoded()));
     Files.writeString(publicKey, pem("PUBLIC KEY", pair.getPublic().getEncoded()));
     var properties = new Properties();
-    properties.setProperty("uploads.dir", directory.resolve("uploads").toString());
     properties.setProperty("cookie.secure", "false");
     properties.setProperty("otp.secret", "test-only-secret-not-for-production-0123456789");
     properties.setProperty("jwt.private-key-file", privateKey.toString());
@@ -75,7 +75,10 @@ class JwtWebTest {
         + "\r\n-----END " + label + "-----\r\n";
   }
 
-  @AfterEach void stop() { if (context != null) context.close(); }
+  @AfterEach void stop() {
+    if (context != null) context.close();
+    TempDirectorySupport.deleteEventually(directory);
+  }
   HttpResponse<String> get(String path) throws Exception {
     return client.send(HttpRequest.newBuilder(URI.create(base + path)).build(), HttpResponse.BodyHandlers.ofString());
   }
@@ -117,6 +120,7 @@ class JwtWebTest {
   }
 
   @Test void csrfAndBearerAreSeparateAndLogoutRevokes() throws Exception {
+    assertEquals(200, get("/api/products/1/reviews").statusCode());
     assertEquals(403, post("/auth/api-token", "").statusCode());
     assertEquals(401, post("/auth/api-token", "_csrf=" + csrf()).statusCode());
     login("session");

@@ -21,7 +21,6 @@ class SessionGrantTest {
 
   @Test void requestFromPreviousLoginCannotMintTokenForNewSession() {
     var values = new java.util.Properties();
-    values.setProperty("uploads.dir", "target/test-uploads");
     values.setProperty("otp.secret", "test-only-secret-not-for-production-0123456789");
     var store = DemoFixtures.store();
     var app = new App(new Settings(values), store, java.time.Clock.systemUTC(), (to, subject, body) -> {});

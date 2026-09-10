@@ -5,10 +5,10 @@ INSERT INTO users(username,email,password_hash,role,active,auth_version,created_
  ('reader','reader@example.test','REPLACE_WITH_BCRYPT_HASH','USER',true,0,CURRENT_TIMESTAMP);
 INSERT INTO categories(name,image,active) VALUES
  ('Văn học','',true),('Kỹ năng sống','',true),('Công nghệ','',true),('Thiếu nhi','',true);
--- 13 fictional sample books to verify latest-10 and pagination 6/6/1.
-INSERT INTO products(category_id,title,author,description,price,stock,image,created_at,updated_at)
+-- 13 fictional sample book titles; each physical copy is added through inventory SQL.
+INSERT INTO products(category_id,title,author,description,image,created_at,updated_at)
 SELECT c.id, books.title, 'Tủ sách Góc', 'Dữ liệu minh họa Góc Sách, không phải nội dung sách thương mại.',
-       75000 + books.n * 5000, 5 + books.n, '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
+       '', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP
 FROM (VALUES
  (1,'Miền ký ức xanh'),(2,'Những ngày có nắng'),(3,'Lập trình từ trang đầu'),
  (4,'Một hành trình nhỏ'),(5,'Bên kia mùa hạ'),(6,'Chuyện của những vì sao'),

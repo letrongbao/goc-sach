@@ -1,0 +1,228 @@
+package vn.edu.utex.bookstore.buyer;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.ModelAndView;
+import vn.edu.utex.bookstore.auth.Identity;
+import vn.edu.utex.bookstore.auth.Tokens;
+import vn.edu.utex.bookstore.common.Problem;
+import vn.edu.utex.bookstore.order.OrderService;
+import vn.edu.utex.bookstore.web.Web;
+
+@Controller
+public final class BuyerWebController {
+  private static final String CHECKOUT_KEY = "checkoutIdempotencyKey";
+  private final BuyerService buyer;
+  private final OrderService orders;
+
+  public BuyerWebController(BuyerService buyer, OrderService orders) {
+    this.buyer = buyer;
+    this.orders = orders;
+  }
+
+  @GetMapping("/account/profile")
+  public ModelAndView profile(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    request.setAttribute("profile", buyer.profile(identity.id()));
+    request.setAttribute("view", "buyer-profile");
+    return Web.result(request, response);
+  }
+
+  @PostMapping("/account/profile")
+  public ModelAndView saveProfile(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    try {
+      buyer.saveProfile(identity.id(), request.getParameter("displayName"), request.getParameter("phone"));
+      request.getSession().setAttribute("notice", "Đã lưu thông tin cá nhân.");
+      return redirect(request, response, "/account/profile");
+    } catch (Problem problem) {
+      return showProblem(request, response, problem, () -> profile(request, response));
+    }
+  }
+
+  @GetMapping("/account/addresses")
+  public ModelAndView addresses(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    request.setAttribute("addresses", buyer.addresses(identity.id()));
+    request.setAttribute("view", "buyer-addresses");
+    return Web.result(request, response);
+  }
+
+  @PostMapping("/account/address/save")
+  public ModelAndView saveAddress(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    try {
+      buyer.saveAddress(identity.id(), Web.formId(request.getParameter("id"), false), request.getParameter("label"),
+          request.getParameter("recipientName"), request.getParameter("phone"), request.getParameter("line1"),
+          request.getParameter("ward"), request.getParameter("district"), request.getParameter("city"),
+          "on".equals(request.getParameter("defaultAddress")));
+      request.getSession().setAttribute("notice", "Đã lưu địa chỉ.");
+      return redirect(request, response, "/account/addresses");
+    } catch (Problem problem) {
+      return showProblem(request, response, problem, () -> addresses(request, response));
+    }
+  }
+
+  @PostMapping("/account/address/delete")
+  public ModelAndView deleteAddress(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    try {
+      buyer.deleteAddress(identity.id(), Web.formId(request.getParameter("id"), true));
+      request.getSession().setAttribute("notice", "Đã xóa địa chỉ.");
+      return redirect(request, response, "/account/addresses");
+    } catch (Problem problem) {
+      return showProblem(request, response, problem, () -> addresses(request, response));
+    }
+  }
+
+  @GetMapping("/favorites")
+  public ModelAndView favorites(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    request.setAttribute("favorites", buyer.favoriteBooks(identity.id()));
+    request.setAttribute("view", "buyer-favorites");
+    return Web.result(request, response);
+  }
+
+  @PostMapping("/favorites/remove")
+  public ModelAndView removeFavorite(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    buyer.removeFavorite(identity.id(), Web.formId(request.getParameter("productId"), true));
+    request.getSession().setAttribute("notice", "Đã bỏ sách khỏi danh sách yêu thích.");
+    return redirect(request, response, "/favorites");
+  }
+
+  @GetMapping("/recently-viewed")
+  public ModelAndView recent(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    request.setAttribute("recentlyViewed", buyer.recentlyViewedBooks(identity.id(), 20));
+    request.setAttribute("view", "buyer-recent");
+    return Web.result(request, response);
+  }
+
+  @GetMapping("/cart")
+  public ModelAndView cart(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    var lines = buyer.cart(identity.id());
+    request.setAttribute("cartLines", lines);
+    request.setAttribute("cartSubtotal", lines.stream().map(BuyerService.CartLine::price)
+        .reduce(BigDecimal.ZERO, BigDecimal::add));
+    request.setAttribute("cartReady", !lines.isEmpty() && lines.stream().allMatch(BuyerService.CartLine::sellable));
+    request.setAttribute("view", "buyer-cart");
+    return Web.result(request, response);
+  }
+
+  @PostMapping("/cart/items/add")
+  public ModelAndView addCartItem(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    try {
+      buyer.addToCart(identity.id(), Web.formId(request.getParameter("copyId"), true));
+      request.getSession().setAttribute("notice", "Đã thêm bản sách vào giỏ.");
+      return redirect(request, response, "/cart");
+    } catch (Problem problem) {
+      return showProblem(request, response, problem, () -> cart(request, response));
+    }
+  }
+
+  @PostMapping("/cart/items/remove")
+  public ModelAndView removeCartItem(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    buyer.removeFromCart(identity.id(), Web.formId(request.getParameter("copyId"), true));
+    request.getSession().setAttribute("notice", "Đã bỏ bản sách khỏi giỏ.");
+    return redirect(request, response, "/cart");
+  }
+
+  @GetMapping("/checkout")
+  public ModelAndView checkout(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    var lines = buyer.cart(identity.id());
+    String key = (String) request.getSession().getAttribute(CHECKOUT_KEY);
+    if (key == null && !lines.isEmpty()) {
+      key = Tokens.random();
+      request.getSession().setAttribute(CHECKOUT_KEY, key);
+    }
+    request.setAttribute("cartLines", lines);
+    request.setAttribute("cartSubtotal", lines.stream().map(BuyerService.CartLine::price)
+        .reduce(BigDecimal.ZERO, BigDecimal::add));
+    request.setAttribute("checkoutKey", key == null ? "" : key);
+    request.setAttribute("addresses", buyer.addresses(identity.id()));
+    request.setAttribute("view", "buyer-checkout");
+    return Web.result(request, response);
+  }
+
+  @PostMapping("/checkout")
+  public ModelAndView submitCheckout(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    try {
+      long address = Web.formId(request.getParameter("addressId"), true);
+      String submittedKey = request.getParameter("idempotencyKey");
+      String sessionKey = (String) request.getSession().getAttribute(CHECKOUT_KEY);
+      if (sessionKey == null || !sessionKey.equals(submittedKey))
+        throw Problem.invalid("Phiên đặt hàng đã hết hạn. Vui lòng tải lại trang.");
+      orders.checkout(identity.id(), address, submittedKey);
+      request.getSession().removeAttribute(CHECKOUT_KEY);
+      request.getSession().setAttribute("notice", "Đã tạo đơn COD. Cửa hàng sẽ xác nhận sớm.");
+      return redirect(request, response, "/orders");
+    } catch (Problem problem) {
+      return showProblem(request, response, problem, () -> checkout(request, response));
+    }
+  }
+
+  @PostMapping("/orders/cancel")
+  public ModelAndView cancelOrder(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    try {
+      orders.cancel(identity.id(), Web.formId(request.getParameter("id"), true));
+      request.getSession().setAttribute("notice", "Đã hủy đơn hàng.");
+      return redirect(request, response, "/orders");
+    } catch (Problem problem) {
+      return showProblem(request, response, problem, () -> orders(request, response));
+    }
+  }
+
+  @GetMapping("/orders")
+  public ModelAndView orders(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    request.setAttribute("orders", orders.orders(identity.id()));
+    request.setAttribute("view", "buyer-orders");
+    return Web.result(request, response);
+  }
+
+  private static ModelAndView showProblem(HttpServletRequest request, HttpServletResponse response, Problem problem,
+      java.util.function.Supplier<ModelAndView> renderer) {
+    response.setStatus(problem.status);
+    request.setAttribute("error", problem.getMessage());
+    return renderer.get();
+  }
+
+  private static Identity identity(HttpServletRequest request) {
+    return (Identity) request.getAttribute("identity");
+  }
+
+  private static ModelAndView redirect(HttpServletRequest request, HttpServletResponse response, String path) {
+    try {
+      Web.redirect(request, response, path);
+    } catch (java.io.IOException ignored) {
+      // The container owns the response after a failed redirect.
+    }
+    return null;
+  }
+}

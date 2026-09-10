@@ -1,0 +1,16 @@
+<section class="container section narrow" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <p class="eyebrow">MUA SÁCH</p><h1>Xác nhận đặt hàng</h1>
+  <div class="panel checkout-summary"><h2>Đơn của bạn</h2>
+    <div class="checkout-line" th:each="line : ${cartLines}"><span th:text="${line.title}"></span><strong>[[${#numbers.formatDecimal(line.price,1,'POINT',0,'COMMA')}]] ₫</strong></div>
+    <div class="checkout-line total"><span>Tạm tính</span><strong>[[${#numbers.formatDecimal(cartSubtotal,1,'POINT',0,'COMMA')}]] ₫</strong></div>
+    <p class="form-note">Phí giao hàng 30.000 ₫ cho mỗi cửa hàng sẽ được cộng khi tạo đơn.</p>
+  </div>
+  <div class="panel checkout-form mt-4"><form method="post" th:action="@{/checkout}">
+    <input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="idempotencyKey" th:value="${checkoutKey}">
+    <label for="addressId">Địa chỉ nhận hàng</label><select id="addressId" name="addressId" class="form-select" required>
+      <option value="">Chọn địa chỉ</option><option th:each="address : ${addresses}" th:value="${address.id}" th:text="${address.label + ' — ' + address.recipientName + ', ' + address.line1 + ', ' + address.city}" th:selected="${address.defaultAddress}"></option>
+    </select>
+    <p th:if="${#lists.isEmpty(addresses)}" class="alert alert-warning mt-3">Bạn cần <a th:href="@{/account/addresses}"><u>thêm địa chỉ</u></a> trước khi đặt hàng.</p>
+    <button class="btn btn-forest mt-3" type="submit" th:disabled="${#lists.isEmpty(addresses) or #lists.isEmpty(cartLines)}">Đặt đơn COD</button>
+  </form></div>
+</section>

@@ -3,8 +3,7 @@
 <form class="panel edit-form" method="post" enctype="multipart/form-data" th:action="@{/admin/category/save}">
 <input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${category.id}">
 <label for="name">Tên danh mục</label><input id="name" class="form-control" name="name" required maxlength="100" th:value="${category.name}">
-<label for="image">URL ảnh hoặc đường dẫn ảnh hiện tại</label><input id="image" class="form-control" name="image" maxlength="1000" th:value="${category.image}">
-<label for="upload">Hoặc tải ảnh mới</label><input id="upload" class="form-control" type="file" name="upload" accept="image/jpeg,image/png,image/webp"><small>JPEG, PNG, WebP · Tối đa 5 MB. Ảnh tải lên được ưu tiên hơn URL.</small>
+<label for="upload">Tải ảnh danh mục mới</label><input id="upload" class="form-control" type="file" name="upload" accept="image/jpeg,image/png,image/webp"><small>JPEG, PNG, WebP · Tối đa 5 MB. Ảnh được tải qua máy chủ lên Cloudinary.</small>
 <label class="check-label"><input type="checkbox" name="active" th:checked="${category.active}"> Danh mục đang mở</label>
 <button class="btn btn-forest">Lưu danh mục</button></form></section>
 </th:block>

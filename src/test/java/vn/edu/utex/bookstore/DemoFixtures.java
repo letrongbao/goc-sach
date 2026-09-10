@@ -14,11 +14,13 @@ public final class DemoFixtures {
     var admin = Identity.of(store.findLogin("admin"));
     var owner = Identity.of(store.findLogin("reader"));
     long shop = shops.approve(admin, shops.apply(owner, "Góc Sách Demo", "Địa chỉ minh họa cho bản xem thử"));
+    int index = 0;
     for (Product product : store.products.values()) {
+      String price = Integer.toString(75000 + index++ * 5000);
       long copy = inventory.receive(owner, shop, product.id, "GOOD", "Bản sách minh họa, không phải hàng thật.",
-          product.price.toPlainString(), "Nhập dữ liệu preview");
+          price, "Nhập dữ liệu preview");
       inventory.update(owner, shop, copy, 0, "GOOD", "Bản sách minh họa, không phải hàng thật.",
-          product.price.toPlainString(), "AVAILABLE", "Mở bán dữ liệu preview");
+          price, "AVAILABLE", "Mở bán dữ liệu preview");
     }
   }
 
@@ -68,8 +70,6 @@ public final class DemoFixtures {
           "Tủ sách Góc",
           "Dữ liệu minh họa cho dự án học tập. Cuốn sách mời bạn dành một khoảng thời gian yên"
               + " tĩnh, mở ra góc nhìn mới và tìm lại niềm vui đọc sách.",
-          Integer.toString(75000 + i * 5000),
-          Integer.toString(5 + i),
           "");
     return store;
   }

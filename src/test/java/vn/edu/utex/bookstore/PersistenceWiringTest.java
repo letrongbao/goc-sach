@@ -17,7 +17,11 @@ class PersistenceWiringTest {
     properties.setProperty("db.url", "jdbc:postgresql://unused/goc_sach_test");
     properties.setProperty("db.user", "test");
     properties.setProperty("db.password", "test-only");
-    properties.setProperty("uploads.dir", "target/test-uploads");
+    properties.setProperty("cloudinary.enabled", "true");
+    properties.setProperty("cloudinary.cloud-name", "test-cloud");
+    properties.setProperty("cloudinary.api-key", "test-key");
+    properties.setProperty("cloudinary.api-secret", "test-secret");
+    properties.setProperty("cloudinary.asset-folder", "WEPR");
     properties.setProperty("otp.secret", "test-only-secret-not-for-production-0123456789");
     var factory = mock(EntityManagerFactory.class);
     when(factory.getProperties()).thenReturn(Map.of());

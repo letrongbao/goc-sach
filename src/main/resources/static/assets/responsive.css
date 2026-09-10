@@ -44,3 +44,24 @@
   .detail-art .typographic-cover span { font-size: 34px; }
   .auth-narrow .form-card h1 { font-size: 30px; }
 }
+.cart-title { font-family: Georgia, serif; font-size: 18px; }
+.cart-summary, .checkout-line, .saved-actions { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.cart-summary { margin: 24px 0 0; padding: 20px; border-bottom: 1px solid var(--line); font-size: 18px; }
+.checkout-summary, .checkout-form { padding: 28px; }
+.checkout-summary h2 { margin-top: 0; }
+.checkout-line { padding: 12px 0; border-bottom: 1px solid var(--line); }
+.checkout-line.total { font-size: 18px; border-bottom: 0; padding-top: 22px; }
+.saved-actions { margin-top: 22px; flex-wrap: wrap; }
+.skip-link { position: fixed; left: 12px; top: -80px; z-index: 2000; background: #fff; color: var(--ink); padding: 10px 14px; border: 2px solid var(--ink); }
+.skip-link:focus { top: 12px; }
+@media (max-width: 575px) {
+  .checkout-summary, .checkout-form { padding: 20px; }
+  .checkout-line { align-items: flex-start; }
+  .site-header nav { row-gap: 12px; }
+  .table-responsive .table thead { display: none; }
+  .table-responsive .table, .table-responsive .table tbody, .table-responsive .table tr, .table-responsive .table td { display: block; width: 100%; }
+  .table-responsive .table tr { padding: 14px 18px; border-bottom: 1px solid var(--line); }
+  .table-responsive .table tr:last-child { border-bottom: 0; }
+  .table-responsive .table td { display: grid; grid-template-columns: minmax(84px, .6fr) minmax(0, 1.4fr); gap: 12px; padding: 8px 0; border: 0; }
+  .table-responsive .table td::before { content: attr(data-label); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+}

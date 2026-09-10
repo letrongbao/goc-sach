@@ -11,8 +11,16 @@ public record ProductView(
     String description,
     BigDecimal price,
     int stock,
-    String image) {
+    String image,
+    String isbn,
+    String publisher,
+    Integer publishedYear,
+    String language) {
   public static ProductView from(Product p) {
+    return from(p, null, 0);
+  }
+
+  public static ProductView from(Product p, BigDecimal price, int stock) {
     return new ProductView(
         p.id,
         p.category.id,
@@ -20,9 +28,13 @@ public record ProductView(
         p.title,
         p.author,
         p.description,
-        p.price,
-        p.stock,
-        p.image);
+        price,
+        stock,
+        p.image,
+        p.isbn,
+        p.publisher,
+        p.publishedYear,
+        p.language);
   }
 
   public long getId() {
@@ -60,4 +72,8 @@ public record ProductView(
   public String getImage() {
     return image;
   }
+  public String getIsbn() { return isbn; }
+  public String getPublisher() { return publisher; }
+  public Integer getPublishedYear() { return publishedYear; }
+  public String getLanguage() { return language; }
 }

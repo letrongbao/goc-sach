@@ -137,7 +137,6 @@ class WebTest {
   @BeforeEach
   void start() throws Exception {
     var props = new Properties();
-    props.setProperty("uploads.dir", Path.of("target/test-uploads").toAbsolutePath().toString());
     props.setProperty("cookie.secure", "false");
     props.setProperty("otp.secret", "test-only-secret-not-for-production-0123456789");
     MemoryStore store = DemoFixtures.store();
@@ -419,11 +418,8 @@ class WebTest {
     var created = upload("/admin/product/save", fields, png.toByteArray());
     assertEquals(302, created.statusCode(), created.body());
     var detail = get("/product/detail?id=14");
-    var media =
-        java.util.regex.Pattern.compile("/bookstore(/media/[a-f0-9-]{36}\\.png)")
-            .matcher(detail.body());
-    assertTrue(media.find(), detail.body());
-    assertEquals(200, get(media.group(1)).statusCode());
+    assertTrue(detail.body().contains("data:image/png;base64,"), detail.body());
+    assertFalse(detail.body().contains("/media/"), detail.body());
     assertSafeError(upload("/admin/product/save", fields, new byte[] {1, 2, 3}), 400);
     var tooLarge = upload("/admin/product/save", fields, new byte[5 * 1024 * 1024 + 1]);
     assertSafeError(tooLarge, 413);
@@ -474,8 +470,7 @@ class WebTest {
     assertFalse(form.body().contains("name=\"stock\"")); assertFalse(form.body().contains("name=\"price\""));
     assertEquals(302, post("/admin/product/save", "_csrf=" + csrf("/admin/product/edit?id=1")
         + "&id=1&categoryId=1&title=Updated&author=Writer&description=Metadata&price=1&stock=999&image=").statusCode());
-    assertEquals(5, app.store.tx(d -> d.product(1).stock).intValue());
-    assertEquals(new java.math.BigDecimal("75000.00"), app.store.tx(d -> d.product(1).price));
+    assertNotNull(app.store.tx(d -> d.product(1)));
     app.shops.setSuspended(admin, 1, false, "Catalog reactivated");
     assertEquals(13, countCards(get("/product").body()));
     assertTrue(get("/product/detail?id=1").body().contains("75.000"));
@@ -555,11 +550,12 @@ class WebTest {
             "/admin/product/save",
             "_csrf="
                 + token
-                + "&categoryId=1&title=%3Cscript%3Ealert(1)%3C%2Fscript%3E&author=Test&price=99000&stock=3&description=Demo&image=");
+                + "&categoryId=1&title=%3Cscript%3Ealert(1)%3C%2Fscript%3E&author=Test&price=99000&stock=3&description=Demo&image=https%3A%2F%2Fevil.example%2Fcover.png");
     assertEquals(302, added.statusCode(), added.body());
     var detail = get("/product/detail?id=14");
     assertTrue(detail.body().contains("&lt;script&gt;"));
     assertFalse(detail.body().contains("<script>alert(1)</script>"));
+    assertFalse(detail.body().contains("evil.example"));
     assertEquals(409, post("/admin/category/delete", "_csrf=" + token + "&id=1").statusCode());
     assertEquals(
         400,
@@ -569,5 +565,41 @@ class WebTest {
             .statusCode());
     assertEquals(302, post("/admin/product/delete", "_csrf=" + token + "&id=14").statusCode());
     assertEquals(404, get("/product/detail?id=14").statusCode());
+  }
+
+  @Test
+  void buyerAccountPagesAreProtectedAndPersistPreviewData() throws Exception {
+    assertEquals(302, get("/account/profile").statusCode());
+    assertEquals(302, get("/checkout").statusCode());
+    assertEquals(302, get("/orders").statusCode());
+    assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
+        + "&login=reader&password=demo-password-123&mode=session").statusCode());
+    App app = context.getBean(App.class);
+    MemoryStore memory = (MemoryStore) app.store;
+    DemoFixtures.catalogStock(memory);
+    var profile = get("/account/profile");
+    assertEquals(200, profile.statusCode(), profile.body());
+    assertTrue(profile.body().contains("Thông tin cá nhân"));
+    assertEquals(302, post("/account/profile", "_csrf=" + csrf("/account/profile")
+        + "&displayName=Bạn+đọc&phone=0900000000").statusCode());
+    assertEquals(200, get("/account/addresses").statusCode());
+    String token = csrf("/account/addresses");
+    assertEquals(302, post("/account/address/save", "_csrf=" + token
+        + "&label=Nhà&recipientName=Bạn+đọc&phone=0900000000&line1=1+Đường+Sách&city=TP+HCM&defaultAddress=on").statusCode());
+    var addresses = get("/account/addresses");
+    assertTrue(addresses.body().contains("Mặc định"));
+    long copyId = memory.copies.values().iterator().next().id;
+    assertEquals(302, post("/cart/items/add", "_csrf=" + csrf("/product/detail?id=1") + "&copyId=" + copyId).statusCode());
+    var cart = get("/cart");
+    assertEquals(200, cart.statusCode());
+    assertTrue(cart.body().contains("Tạm tính"));
+    assertFalse(cart.body().contains("Đầu sách</th>"));
+    var checkout = get("/checkout");
+    assertEquals(200, checkout.statusCode(), checkout.body());
+    assertTrue(checkout.body().contains("idempotencyKey"));
+    var key = java.util.regex.Pattern.compile("name=\"idempotencyKey\" value=\"([^\"]+)\"").matcher(checkout.body());
+    assertTrue(key.find(), checkout.body());
+    var secondView = get("/checkout");
+    assertTrue(secondView.body().contains("value=\"" + key.group(1) + "\""));
   }
 }

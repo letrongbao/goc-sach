@@ -3,7 +3,6 @@ package vn.edu.utex.bookstore.web;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import java.io.*;
-import java.nio.file.Files;
 import java.time.Duration;
 import java.util.*;
 import vn.edu.utex.bookstore.auth.*;
@@ -16,7 +15,7 @@ public final class FrontController {
   private final App app;
   public FrontController(App app) { this.app = app; }
 
-  @org.springframework.web.bind.annotation.RequestMapping(value = {"/", "/auth/login", "/auth/logout", "/admin/categories", "/admin/category/add", "/admin/category/edit", "/admin/category/save", "/admin/category/delete", "/media/**"}, method = {org.springframework.web.bind.annotation.RequestMethod.GET, org.springframework.web.bind.annotation.RequestMethod.POST})
+  @org.springframework.web.bind.annotation.RequestMapping(value = {"/", "/auth/login", "/auth/logout", "/admin/categories", "/admin/category/add", "/admin/category/edit", "/admin/category/save", "/admin/category/delete"}, method = {org.springframework.web.bind.annotation.RequestMethod.GET, org.springframework.web.bind.annotation.RequestMethod.POST})
   public org.springframework.web.servlet.ModelAndView handle(HttpServletRequest req, HttpServletResponse res)
       throws ServletException, IOException {
     if ("POST".equals(req.getMethod())) doPost(req, res); else doGet(req, res);
@@ -38,17 +37,6 @@ public final class FrontController {
     String path = req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
     if (path.isEmpty()) path = "/";
     try {
-      if (path.startsWith("/media/")) {
-        if (post) throw new Problem(405, "Phương thức không hợp lệ.");
-        var file = app.images.find(path.substring("/media/".length()));
-        res.setContentType(
-            path.endsWith(".png")
-                ? "image/png"
-                : path.endsWith(".webp") ? "image/webp" : "image/jpeg");
-        res.setContentLengthLong(Files.size(file));
-        Files.copy(file, res.getOutputStream());
-        return;
-      }
       if (path.equals("/auth/login")) {
         if (!post) {
           Web.view(req, res, "login");
@@ -144,6 +132,9 @@ public final class FrontController {
       try (var input = part.getInputStream()) {
         return app.images.store(input, part.getSize());
       }
-    return app.images.validateReference(req.getParameter("image"));
+    Long id = Web.formId(req.getParameter("id"), false);
+    if (id == null) return "";
+    Category current = app.categories.get(id);
+    return current.image == null ? "" : current.image;
   }
 }

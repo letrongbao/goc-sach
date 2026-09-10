@@ -5,6 +5,10 @@
     <mapping-file>META-INF/orm.xml</mapping-file>
     <mapping-file>META-INF/shop-orm.xml</mapping-file>
     <mapping-file>META-INF/inventory-orm.xml</mapping-file>
+    <mapping-file>META-INF/buyer-orm.xml</mapping-file>
+    <mapping-file>META-INF/order-orm.xml</mapping-file>
+    <mapping-file>META-INF/review-orm.xml</mapping-file>
+    <mapping-file>META-INF/media-orm.xml</mapping-file>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
     <properties>
       <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>

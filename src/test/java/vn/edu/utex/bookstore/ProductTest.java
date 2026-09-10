@@ -30,7 +30,7 @@ class ProductTest {
 
   void add(int n) {
     for (int i = 1; i <= n; i++)
-      products.save(null, category.id, "Sách " + i, "Góc", "Nội dung demo", "100000", "10", "");
+      products.save(null, category.id, "Sách " + i, "Góc", "Nội dung demo", "");
   }
 
   @Test
@@ -52,9 +52,8 @@ class ProductTest {
     add(1);
     assertEquals(category.id.longValue(), products.get(1).categoryId());
     assertThrows(Problem.class, () -> new CategoryService(store).delete(category.id));
-    products.save(1L, category.id, "Đã sửa", "Tác giả", "Mô tả", "120000.50", "0", "");
+    products.save(1L, category.id, "Đã sửa", "Tác giả", "Mô tả", "");
     assertEquals("Đã sửa", products.get(1).title());
-    assertEquals(0, products.get(1).stock());
     products.delete(1);
     assertThrows(Problem.class, () -> products.get(1));
     new CategoryService(store).delete(category.id);
@@ -73,21 +72,22 @@ class ProductTest {
     assertThrows(Problem.class, () -> products.page(raw));
   }
 
-  @ParameterizedTest
-  @CsvSource({"-1,1", "1,-1", "1.001,1", "10000000000,1", "x,2", "5,x"})
-  void invalidNumbers(String price, String stock) {
+  @Test
+  void invalidFields() {
+    assertThrows(Problem.class, () -> products.save(null, 999, "Book", "Author", "", ""));
     assertThrows(
-        Problem.class,
-        () -> products.save(null, category.id, "Book", "Author", "", price, stock, ""));
+        Problem.class, () -> products.save(null, category.id, "", "Author", "", ""));
   }
 
   @Test
-  void invalidFields() {
-    assertThrows(Problem.class, () -> products.save(null, 999, "Book", "Author", "", "1", "1", ""));
-    assertThrows(
-        Problem.class, () -> products.save(null, category.id, "", "Author", "", "1", "1", ""));
-    assertThrows(
-        Problem.class,
-        () -> products.save(null, category.id, "Book", "Author", "", null, null, ""));
+  void bibliographicMetadataIsValidatedAndSaved() {
+    add(1);
+    products.saveDetails(1L, category.id, "Đầu sách", "Tác giả", "Mô tả", "", "978-1", "NXB Góc Sách", 2024, "Tiếng Việt");
+    var product = store.product(1);
+    assertEquals("978-1", product.isbn);
+    assertEquals("NXB Góc Sách", product.publisher);
+    assertEquals(2024, product.publishedYear);
+    assertEquals("Tiếng Việt", product.language);
+    assertThrows(Problem.class, () -> products.saveDetails(1L, category.id, "Đầu sách", "Tác giả", "", "", "", "", 999, ""));
   }
 }

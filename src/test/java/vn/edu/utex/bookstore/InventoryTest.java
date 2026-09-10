@@ -24,7 +24,7 @@ class InventoryTest {
     admin = user("admin", "ADMIN"); owner = user("owner", "USER"); other = user("other", "USER"); manager = user("manager", "USER");
     shop = shops.approve(admin, shops.apply(owner, "Góc Sách A", "123 Đường Sách, HCM"));
     otherShop = shops.approve(admin, shops.apply(other, "Góc Sách B", "456 Đường Sách, HCM"));
-    Product p = new Product(); p.title = "Một cuốn sách"; p.createdAt = clock.instant(); p.price = BigDecimal.TEN; p.stock = 7;
+    Product p = new Product(); p.title = "Một cuốn sách"; p.createdAt = clock.instant();
     product = store.saveProduct(p).id;
   }
   Identity user(String name, String role) {
@@ -39,13 +39,12 @@ class InventoryTest {
     assertEquals(expected, assertThrows(Problem.class, action).status);
   }
 
-  @Test void receivingCreatesOneUnavailableCopyAndAuditWithoutChangingLegacyStock() {
+  @Test void receivingCreatesOneUnavailableCopyAndAudit() {
     long id = receive(); var copy = inventory.get(owner, shop, id);
     assertEquals("UNAVAILABLE", copy.status()); assertEquals("UNCLASSIFIED", copy.condition());
     assertTrue(copy.code().startsWith("GS-")); assertEquals(39, copy.code().length());
     assertEquals(1, inventory.history(owner, shop, id).size());
     assertEquals("04/09/2026 07:00", inventory.history(owner, shop, id).getFirst().getDisplayTime());
-    assertEquals(7, store.product(product).stock);
     assertEquals(1, inventory.page(owner, shop, "1").total());
   }
   @Test void copiesHaveDistinctImmutableCodesAndNoCrossShopTransfer() {

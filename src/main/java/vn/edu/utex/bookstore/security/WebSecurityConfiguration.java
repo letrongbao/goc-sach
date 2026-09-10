@@ -4,6 +4,7 @@ import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.*;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -21,7 +22,7 @@ public class WebSecurityConfiguration {
     http.formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable)
         .logout(AbstractHttpConfigurer::disable).requestCache(AbstractHttpConfigurer::disable)
         .headers(headers -> headers.contentSecurityPolicy(csp -> csp.policyDirectives(
-            "default-src 'self'; style-src 'self'; img-src 'self' https: http: data:; "
+            "default-src 'self'; connect-src 'self' ws: wss:; style-src 'self'; img-src 'self' data: https://res.cloudinary.com; "
             + "script-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'"))
             .frameOptions(frame -> frame.deny())
             .referrerPolicy(referrer -> referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)));
@@ -35,7 +36,8 @@ public class WebSecurityConfiguration {
         java.util.List.of(new SimpleGrantedAuthority("ROLE_" + jwt.getClaimAsString("role"))));
     http.securityMatcher("/api", "/api/**").csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth.requestMatchers("/api/admin/**").hasRole("ADMIN").anyRequest().authenticated())
+        .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/api/products/*/reviews").permitAll()
+            .requestMatchers("/api/admin/**").hasRole("ADMIN").anyRequest().authenticated())
         .exceptionHandling(errors -> errors.authenticationEntryPoint((req, res, ex) -> json(res, 401, "not_authenticated"))
             .accessDeniedHandler((req, res, ex) -> json(res, 403, "forbidden")))
         .oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.decoder(decoder).jwtAuthenticationConverter(converter))
@@ -52,7 +54,7 @@ public class WebSecurityConfiguration {
             .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
         .authorizeHttpRequests(auth -> auth.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
             .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-            .requestMatchers("/account/**", "/seller/**", "/manager/**").authenticated()
+            .requestMatchers("/account/**", "/seller/**", "/manager/**", "/favorites", "/favorites/**", "/recently-viewed", "/cart", "/cart/**", "/checkout", "/orders", "/orders/**").authenticated()
             .anyRequest().permitAll())
         .exceptionHandling(errors -> errors.authenticationEntryPoint((req, res, ex) ->
             res.sendRedirect(req.getContextPath() + "/auth/login")));

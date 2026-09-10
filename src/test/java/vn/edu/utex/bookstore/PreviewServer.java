@@ -1,6 +1,5 @@
 package vn.edu.utex.bookstore;
 
-import java.nio.file.Path;
 import java.time.Clock;
 import java.util.Properties;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -10,7 +9,6 @@ import vn.edu.utex.bookstore.config.*;
 public final class PreviewServer {
   public static void main(String[] args) throws java.io.IOException {
     Properties props = new Properties();
-    props.setProperty("uploads.dir", Path.of("target/preview-uploads").toAbsolutePath().toString());
     props.setProperty("cookie.secure", "false");
     props.setProperty("otp.secret", "preview-only-not-production-secret-0123456789");
     MemoryStore store = DemoFixtures.store();

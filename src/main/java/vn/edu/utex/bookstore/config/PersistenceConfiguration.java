@@ -10,7 +10,7 @@ import vn.edu.utex.bookstore.auth.*;
 import vn.edu.utex.bookstore.category.CategoryService;
 import vn.edu.utex.bookstore.product.ProductService;
 import vn.edu.utex.bookstore.mail.*;
-import vn.edu.utex.bookstore.image.LocalImageStorage;
+import vn.edu.utex.bookstore.image.*;
 
 /** Production-only wiring; tests/preview supply an App without opening a database. */
 @Configuration
@@ -55,14 +55,20 @@ public class PersistenceConfiguration {
     return new vn.edu.utex.bookstore.inventory.InventoryService(store, clock);
   }
   @Bean EmailSender emailSender(Settings settings) { return new SmtpEmailSender(settings); }
-  @Bean LocalImageStorage imageStorage(Settings settings) {
-    return new LocalImageStorage(java.nio.file.Path.of(settings.require("uploads.dir")));
+  @Bean ImageStorage imageStorage(Settings settings) {
+    if (!Boolean.parseBoolean(settings.get("cloudinary.enabled", "false")))
+      throw new IllegalStateException("Cloudinary phải được bật trong cấu hình production.");
+    return new CloudinaryImageStorage(
+        settings.require("cloudinary.cloud-name"),
+        settings.require("cloudinary.api-key"),
+        settings.require("cloudinary.api-secret"),
+        settings.get("cloudinary.asset-folder", "WEPR"));
   }
   @Bean OtpService otpService(Store store, Passwords passwords, EmailSender sender, Clock clock, Settings settings) {
     return new OtpService(store, passwords, sender, clock, settings.require("otp.secret"));
   }
   @Bean(destroyMethod = "close")
-  App app(Settings settings, Store store, AuthService auth, CategoryService categories, LocalImageStorage images,
+  App app(Settings settings, Store store, AuthService auth, CategoryService categories, ImageStorage images,
       RateLimiter limits, OtpService otp, ProductService products, vn.edu.utex.bookstore.shop.ShopService shops,
       vn.edu.utex.bookstore.inventory.InventoryService inventory, vn.edu.utex.bookstore.product.CatalogService catalog) {
     return new App(settings, store, auth, categories, images, limits, otp, products, shops, inventory, catalog);

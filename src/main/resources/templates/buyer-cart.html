@@ -1,0 +1,17 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <p class="eyebrow">MUA SÁCH</p><h1>Giỏ hàng</h1>
+  <div class="table-responsive panel" th:if="${!#lists.isEmpty(cartLines)}">
+    <table class="table align-middle"><thead><tr><th>Sách</th><th>Cửa hàng</th><th>Giá</th><th><span class="visually-hidden">Thao tác</span></th></tr></thead>
+      <tbody><tr th:each="line : ${cartLines}" th:classappend="${!line.sellable} ? 'table-warning'">
+        <td data-label="Sách"><a class="cart-title" th:href="@{/product/detail(id=${line.productId})}" th:text="${line.title}"></a><small class="d-block">Mã bản #[[${line.copyId}]]</small><span th:if="${!line.sellable}" class="text-danger small">Bản này không còn sẵn bán</span></td>
+        <td data-label="Cửa hàng" th:text="${line.shopName}"></td><td data-label="Giá">[[${#numbers.formatDecimal(line.price,1,'POINT',0,'COMMA')}]] ₫</td>
+        <td data-label="Thao tác"><form method="post" th:action="@{/cart/items/remove}"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="copyId" th:value="${line.copyId}"><button class="link-button danger" type="submit" th:attr="aria-label=${'Bỏ ' + line.title + ' khỏi giỏ'}">Bỏ</button></form></td>
+      </tr></tbody>
+    </table>
+  </div>
+  <div th:if="${#lists.isEmpty(cartLines)}" class="empty-catalog"><h2>Giỏ hàng đang trống</h2><p>Chọn một bản sách phù hợp trong tủ sách để bắt đầu.</p><a class="btn btn-forest" th:href="@{/product}">Khám phá tủ sách</a></div>
+  <div class="cart-summary" th:if="${!#lists.isEmpty(cartLines)}"><span>Tạm tính</span><strong>[[${#numbers.formatDecimal(cartSubtotal,1,'POINT',0,'COMMA')}]] ₫</strong></div>
+  <p class="form-note" th:if="${!#lists.isEmpty(cartLines)}">Giá và tình trạng được kiểm tra lại khi đặt hàng. Phí giao hàng tính theo từng cửa hàng.</p>
+  <a class="btn btn-forest" th:if="${cartReady}" th:href="@{/checkout}">Tiếp tục đặt hàng</a>
+  <p class="alert alert-warning" th:if="${!#lists.isEmpty(cartLines) and !cartReady}">Hãy bỏ các bản không còn sẵn bán trước khi tiếp tục.</p>
+</section>

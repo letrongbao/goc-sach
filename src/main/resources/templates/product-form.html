@@ -7,6 +7,9 @@
 <label for="categoryId">Danh mục</label><select id="categoryId" name="categoryId" class="form-select" required><option value="">Chọn danh mục</option><th:block th:each="category : ${categories}"><option th:value="${category.id}" th:selected="${selectedCategoryId == category.id}">[[${category.name}]]</option></th:block></select>
 <p class="form-note">Đây là thông tin đầu sách dùng chung. Giá bán và số lượng được quản lý qua từng bản sách tại <a th:href="@{/seller/shops}">cửa hàng</a>, không nhập tồn tại đây.</p>
 <label for="description">Mô tả</label><textarea id="description" name="description" class="form-control" rows="5" maxlength="10000">[[${product.description}]]</textarea>
-<label for="image">URL ảnh hoặc đường dẫn ảnh hiện tại</label><input id="image" name="image" class="form-control" maxlength="1000" th:value="${product.image}">
-<label for="upload">Hoặc tải ảnh bìa mới</label><input id="upload" name="upload" class="form-control" type="file" accept="image/jpeg,image/png,image/webp"><p class="form-note">JPEG, PNG, WebP · Tối đa 5 MB / 20 megapixel.</p><button class="btn btn-forest">Lưu sách</button></form></section>
+<label for="isbn">ISBN (nếu có)</label><input id="isbn" name="isbn" class="form-control" maxlength="20" th:value="${product.isbn}">
+<label for="publisher">Nhà xuất bản</label><input id="publisher" name="publisher" class="form-control" maxlength="200" th:value="${product.publisher}">
+<label for="publishedYear">Năm xuất bản</label><input id="publishedYear" name="publishedYear" class="form-control" type="number" min="1000" max="3000" th:value="${product.publishedYear}">
+<label for="language">Ngôn ngữ</label><input id="language" name="language" class="form-control" maxlength="50" th:value="${product.language}">
+<label for="upload">Tải ảnh bìa mới</label><input id="upload" name="upload" class="form-control" type="file" accept="image/jpeg,image/png,image/webp"><p class="form-note">JPEG, PNG, WebP · Tối đa 5 MB / 20 megapixel. Ảnh được tải qua máy chủ lên Cloudinary.</p><button class="btn btn-forest">Lưu sách</button></form></section>
 </th:block>

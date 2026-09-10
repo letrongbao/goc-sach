@@ -9,6 +9,9 @@ import vn.edu.utex.bookstore.common.Problem;
 import vn.edu.utex.bookstore.product.*;
 import vn.edu.utex.bookstore.shop.*;
 import vn.edu.utex.bookstore.inventory.*;
+import vn.edu.utex.bookstore.buyer.*;
+import vn.edu.utex.bookstore.order.*;
+import vn.edu.utex.bookstore.review.*;
 
 public class JpaStore implements Store {
   private final EntityManagerFactory factory;
@@ -285,5 +288,41 @@ public class JpaStore implements Store {
       Product p = em.find(Product.class, id);
       if (p != null) em.remove(p);
     }
+
+    public CustomerProfile profile(long userId) { return em.find(CustomerProfile.class, userId); }
+    public CustomerProfile saveProfile(CustomerProfile p) { return em.merge(p); }
+    public List<Address> addresses(long userId) { return em.createQuery("select a from Address a where a.userId=:user order by a.defaultAddress desc,a.id", Address.class).setParameter("user", userId).getResultList(); }
+    public Address address(long id) { return em.find(Address.class, id); }
+    public Address saveAddress(Address a) { if (a.id == null) { em.persist(a); return a; } return em.merge(a); }
+    public void clearDefaultAddresses(long userId) { em.createQuery("update Address a set a.defaultAddress=false where a.userId=:user").setParameter("user",userId).executeUpdate(); }
+    public void deleteAddress(long id) { Address a=address(id); if(a!=null) em.remove(a); }
+    public Favorite favorite(long userId, long productId) { return em.createQuery("select f from Favorite f where f.userId=:user and f.productId=:product", Favorite.class).setParameter("user",userId).setParameter("product",productId).getResultStream().findFirst().orElse(null); }
+    public List<Favorite> favorites(long userId) { return em.createQuery("select f from Favorite f where f.userId=:user order by f.createdAt desc,f.id desc",Favorite.class).setParameter("user",userId).getResultList(); }
+    public Favorite saveFavorite(Favorite f) { if(f.id==null){em.persist(f);return f;}return em.merge(f); }
+    public void deleteFavorite(long userId,long productId){em.createQuery("delete from Favorite f where f.userId=:user and f.productId=:product").setParameter("user",userId).setParameter("product",productId).executeUpdate();}
+    public RecentlyViewed viewed(long userId,long productId){return em.createQuery("select v from RecentlyViewed v where v.userId=:user and v.productId=:product",RecentlyViewed.class).setParameter("user",userId).setParameter("product",productId).getResultStream().findFirst().orElse(null);}
+    public List<RecentlyViewed> recentlyViewed(long userId,int limit){return em.createQuery("select v from RecentlyViewed v where v.userId=:user order by v.viewedAt desc,v.id desc",RecentlyViewed.class).setParameter("user",userId).setMaxResults(limit).getResultList();}
+    public RecentlyViewed saveViewed(RecentlyViewed v){if(v.id==null){em.persist(v);return v;}return em.merge(v);}
+    public Cart cart(long userId){return em.createQuery("select c from Cart c where c.userId=:user",Cart.class).setParameter("user",userId).getResultStream().findFirst().orElse(null);}
+    public Cart saveCart(Cart c){if(c.id==null){em.persist(c);return c;}return em.merge(c);}
+    public List<CartItem> cartItems(long cartId){return em.createQuery("select i from CartItem i where i.cartId=:cart order by i.id",CartItem.class).setParameter("cart",cartId).getResultList();}
+    public CartItem cartItem(long cartId,long copyId){return em.createQuery("select i from CartItem i where i.cartId=:cart and i.copyId=:copy",CartItem.class).setParameter("cart",cartId).setParameter("copy",copyId).getResultStream().findFirst().orElse(null);}
+    public CartItem saveCartItem(CartItem i){if(i.id==null){em.persist(i);return i;}return em.merge(i);}
+    public void deleteCartItem(long cartId,long copyId){em.createQuery("delete from CartItem i where i.cartId=:cart and i.copyId=:copy").setParameter("cart",cartId).setParameter("copy",copyId).executeUpdate();}
+    public Order orderByKey(long userId,String key){return em.createQuery("select o from Order o where o.userId=:user and o.idempotencyKey=:key",Order.class).setParameter("user",userId).setParameter("key",key).getResultStream().findFirst().orElse(null);}
+    public Order order(long id, boolean lock){return lock ? em.find(Order.class,id,LockModeType.PESSIMISTIC_WRITE) : em.find(Order.class,id);}
+    public CheckoutGroup saveCheckoutGroup(CheckoutGroup g){if(g.id==null){em.persist(g);return g;}return em.merge(g);}
+    public Order saveOrder(Order o){if(o.id==null){em.persist(o);return o;}return em.merge(o);}
+    public OrderItem saveOrderItem(OrderItem i){if(i.id==null){em.persist(i);return i;}return em.merge(i);}
+    public OrderStatusHistory saveOrderStatus(OrderStatusHistory h){if(h.id==null){em.persist(h);return h;}return em.merge(h);}
+    public InventoryReservation saveReservation(InventoryReservation r){if(r.id==null){em.persist(r);return r;}return em.merge(r);}
+    public List<InventoryReservation> reservationsForOrder(long orderId){return em.createQuery("select r from InventoryReservation r where r.orderId=:order",InventoryReservation.class).setParameter("order",orderId).getResultList();}
+    public List<Order> ordersFor(long userId){return em.createQuery("select o from Order o where o.userId=:user order by o.createdAt desc,o.id desc",Order.class).setParameter("user",userId).getResultList();}
+    public List<OrderItem> orderItems(long orderId){return em.createQuery("select i from OrderItem i where i.orderId=:order order by i.id",OrderItem.class).setParameter("order",orderId).getResultList();}
+    public boolean deliveredPurchase(long userId,long productId){return em.createQuery("select count(i) from OrderItem i, Order o where i.orderId=o.id and o.userId=:user and i.productId=:product and o.status='COMPLETED'",Long.class).setParameter("user",userId).setParameter("product",productId).getSingleResult()>0;}
+    public long completedOrderFor(long userId,long productId){return em.createQuery("select o.id from OrderItem i, Order o where i.orderId=o.id and o.userId=:user and i.productId=:product and o.status='COMPLETED' order by o.createdAt desc,o.id desc",Long.class).setParameter("user",userId).setParameter("product",productId).setMaxResults(1).getResultStream().findFirst().orElse(0L);}
+    public Review review(long userId,long productId){return em.createQuery("select r from Review r where r.userId=:user and r.productId=:product",Review.class).setParameter("user",userId).setParameter("product",productId).getResultStream().findFirst().orElse(null);}
+    public Review saveReview(Review r){if(r.id==null){em.persist(r);return r;}return em.merge(r);}
+    public List<Review> reviews(long productId){return em.createQuery("select r from Review r where r.productId=:product and r.status='PUBLISHED' order by r.createdAt desc,r.id desc",Review.class).setParameter("product",productId).getResultList();}
   }
 }

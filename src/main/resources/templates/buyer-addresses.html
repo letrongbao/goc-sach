@@ -1,0 +1,11 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <p class="eyebrow">TÀI KHOẢN</p><h1>Địa chỉ nhận hàng</h1>
+  <div class="shop-grid mb-4"><article class="form-card" th:each="address : ${addresses}">
+    <h3 th:text="${address.label}"></h3><p th:text="${address.recipientName + ' · ' + address.phone}"></p><p class="muted" th:text="${address.line1 + ', ' + address.ward + ', ' + address.district + ', ' + address.city}"></p>
+    <span class="badge text-bg-success" th:if="${address.defaultAddress}">Mặc định</span>
+    <form method="post" th:action="@{/account/address/delete}" class="mt-3"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${address.id}"><button class="link-button danger">Xóa</button></form>
+  </article><p th:if="${#lists.isEmpty(addresses)}" class="empty-state">Chưa có địa chỉ.</p></div>
+  <form class="form-card narrow-form" method="post" th:action="@{/account/address/save}"><input type="hidden" name="_csrf" th:value="${csrf}">
+    <h2>Thêm địa chỉ</h2><label>Tên địa chỉ</label><input class="form-control" name="label" maxlength="60" required><label>Người nhận</label><input class="form-control" name="recipientName" maxlength="120" required><label>Số điện thoại</label><input class="form-control" name="phone" maxlength="30" required><label>Địa chỉ</label><input class="form-control" name="line1" maxlength="250" required><label>Phường/xã</label><input class="form-control" name="ward" maxlength="100"><label>Quận/huyện</label><input class="form-control" name="district" maxlength="100"><label>Tỉnh/thành phố</label><input class="form-control" name="city" maxlength="100" required><label class="mt-2"><input type="checkbox" name="defaultAddress"> Đặt làm mặc định</label><button class="btn btn-forest mt-3">Lưu địa chỉ</button>
+  </form>
+</section>

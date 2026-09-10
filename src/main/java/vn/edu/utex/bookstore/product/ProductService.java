@@ -1,6 +1,5 @@
 package vn.edu.utex.bookstore.product;
 
-import java.math.*;
 import java.time.*;
 import java.util.*;
 import vn.edu.utex.bookstore.common.Problem;
@@ -69,31 +68,19 @@ public final class ProductService {
         });
   }
 
-  public void save(
-      Long id,
-      long categoryId,
-      String title,
-      String author,
-      String description,
-      String rawPrice,
-      String rawStock,
-      String image) {
+  public void save(Long id, long categoryId, String title, String author,
+      String description, String image) {
+    saveDetails(id, categoryId, title, author, description, image, null, null, null, null);
+  }
+
+  public void saveDetails(Long id, long categoryId, String title, String author,
+      String description, String image, String isbn, String publisher, Integer publishedYear, String language) {
     String name = text(title, 200, "Tên sách"),
         writer = text(author, 150, "Tác giả"),
         detail = description == null ? "" : description.trim();
     if (detail.length() > 10000) throw Problem.invalid("Mô tả tối đa 10.000 ký tự.");
-    BigDecimal price;
-    int stock;
-    try {
-      price =
-          new BigDecimal(rawPrice == null ? "" : rawPrice).setScale(2, RoundingMode.UNNECESSARY);
-      stock = Integer.parseInt(rawStock);
-      if (price.signum() < 0 || price.precision() > 12 || stock < 0)
-        throw new NumberFormatException();
-    } catch (IllegalArgumentException | ArithmeticException e) {
-      throw Problem.invalid(
-          "Giá/tồn kho không hợp lệ. Giá không âm, tối đa 2 số lẻ; tồn kho là số nguyên không âm.");
-    }
+    String code = optional(isbn, 20, "ISBN"), house = optional(publisher, 200, "Nhà xuất bản"), lang = optional(language, 50, "Ngôn ngữ");
+    if (publishedYear != null && (publishedYear < 1000 || publishedYear > 3000)) throw Problem.invalid("Năm xuất bản không hợp lệ.");
     store.tx(
         d -> {
           var category = d.category(categoryId);
@@ -106,23 +93,16 @@ public final class ProductService {
           p.title = name;
           p.author = writer;
           p.description = detail;
-          p.price = price;
-          p.stock = stock;
           p.image = image;
+          p.isbn = code; p.publisher = house; p.publishedYear = publishedYear; p.language = lang;
           d.saveProduct(p);
           return null;
         });
   }
 
-  /** Admin edits bibliographic data only; old columns await a reviewed import. */
+  /** Admin edits bibliographic data only; prices belong to physical copies. */
   public void saveDetails(Long id, long categoryId, String title, String author, String description, String image) {
-    store.tx(d -> {
-      Product previous = id == null ? null : d.product(id);
-      if (id != null && previous == null) throw Problem.missing();
-      save(id, categoryId, title, author, description,
-          previous == null ? "0" : previous.price.toPlainString(), previous == null ? "0" : Integer.toString(previous.stock), image);
-      return null;
-    });
+    save(id, categoryId, title, author, description, image);
   }
 
   public void delete(long id) {
@@ -139,6 +119,11 @@ public final class ProductService {
   private static String text(String raw, int max, String label) {
     if (raw == null || raw.trim().isBlank() || raw.trim().length() > max)
       throw Problem.invalid(label + " cần từ 1 đến " + max + " ký tự.");
+    return raw.trim();
+  }
+  private static String optional(String raw, int max, String label) {
+    if (raw == null || raw.isBlank()) return null;
+    if (raw.trim().length() > max) throw Problem.invalid(label + " tối đa " + max + " ký tự.");
     return raw.trim();
   }
 }

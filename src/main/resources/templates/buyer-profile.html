@@ -1,0 +1,10 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <p class="eyebrow">TÀI KHOẢN</p><h1>Thông tin cá nhân</h1>
+  <form class="form-card narrow-form" method="post" th:action="@{/account/profile}">
+    <input type="hidden" name="_csrf" th:value="${csrf}">
+    <label for="displayName">Tên hiển thị</label><input id="displayName" class="form-control" name="displayName" maxlength="120" th:value="${profile.displayName}" required>
+    <label for="phone">Số điện thoại</label><input id="phone" class="form-control" name="phone" maxlength="30" th:value="${profile.phone}">
+    <button class="btn btn-forest mt-3">Lưu thông tin</button>
+  </form>
+  <p class="mt-4"><a th:href="@{/account/addresses}">Quản lý địa chỉ nhận hàng →</a> · <a th:href="@{/favorites}">Tủ yêu thích</a> · <a th:href="@{/cart}">Giỏ hàng</a> · <a th:href="@{/orders}">Đơn hàng</a></p>
+</section>

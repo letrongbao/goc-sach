@@ -1,6 +1,5 @@
 package vn.edu.utex.bookstore.config;
 
-import java.nio.file.Path;
 import java.time.Clock;
 import vn.edu.utex.bookstore.auth.*;
 import vn.edu.utex.bookstore.category.*;
@@ -12,7 +11,7 @@ public final class App implements AutoCloseable {
   public final Store store;
   public final AuthService auth;
   public final CategoryService categories;
-  public final LocalImageStorage images;
+  public final ImageStorage images;
   public final RateLimiter limits;
   public final OtpService otp;
   public final vn.edu.utex.bookstore.product.ProductService products;
@@ -27,7 +26,7 @@ public final class App implements AutoCloseable {
   public App(
       Settings settings, Store store, Clock clock, vn.edu.utex.bookstore.mail.EmailSender sender) {
     this(settings, store, new AuthService(store, new Passwords(), clock),
-        new CategoryService(store), new LocalImageStorage(Path.of(settings.require("uploads.dir"))),
+        new CategoryService(store), new InMemoryImageStorage(),
         new RateLimiter(clock), new OtpService(store, new Passwords(), sender, clock, settings.require("otp.secret")),
         new vn.edu.utex.bookstore.product.ProductService(store, clock),
         new vn.edu.utex.bookstore.shop.ShopService(store, clock),
@@ -36,7 +35,7 @@ public final class App implements AutoCloseable {
   }
 
   public App(Settings settings, Store store, AuthService auth, CategoryService categories,
-      LocalImageStorage images, RateLimiter limits, OtpService otp, vn.edu.utex.bookstore.product.ProductService products,
+      ImageStorage images, RateLimiter limits, OtpService otp, vn.edu.utex.bookstore.product.ProductService products,
       vn.edu.utex.bookstore.shop.ShopService shops, vn.edu.utex.bookstore.inventory.InventoryService inventory,
       vn.edu.utex.bookstore.product.CatalogService catalog) {
     this.settings = settings;

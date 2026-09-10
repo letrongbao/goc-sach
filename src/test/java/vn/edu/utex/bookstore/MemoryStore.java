@@ -8,6 +8,9 @@ import vn.edu.utex.bookstore.persistence.Store;
 import vn.edu.utex.bookstore.shop.*;
 import vn.edu.utex.bookstore.inventory.*;
 import vn.edu.utex.bookstore.product.CatalogRepository;
+import vn.edu.utex.bookstore.buyer.*;
+import vn.edu.utex.bookstore.order.*;
+import vn.edu.utex.bookstore.review.*;
 
 public class MemoryStore implements Store, Store.Data {
   private boolean sellable(BookCopy c) {
@@ -212,4 +215,54 @@ public class MemoryStore implements Store, Store.Data {
   public void deleteProduct(long id) {
     products.remove(id);
   }
+
+  public final Map<Long, CustomerProfile> profiles = new LinkedHashMap<>();
+  public final Map<Long, Address> addresses = new LinkedHashMap<>();
+  public final Map<Long, Favorite> favoriteRows = new LinkedHashMap<>();
+  public final Map<Long, RecentlyViewed> viewedRows = new LinkedHashMap<>();
+  public final Map<Long, Cart> carts = new LinkedHashMap<>();
+  public final Map<Long, CartItem> cartItems = new LinkedHashMap<>();
+  private long nextAddress=1, nextFavorite=1, nextViewed=1, nextCart=1, nextCartItem=1;
+  public CustomerProfile profile(long userId){return profiles.get(userId);}
+  public CustomerProfile saveProfile(CustomerProfile p){profiles.put(p.userId,p);return p;}
+  public List<Address> addresses(long userId){return addresses.values().stream().filter(a->a.userId==userId).sorted(Comparator.comparing((Address a)->a.defaultAddress).reversed().thenComparing(a->a.id)).toList();}
+  public Address address(long id){return addresses.get(id);}
+  public Address saveAddress(Address a){if(a.id==null)a.id=nextAddress++;addresses.put(a.id,a);return a;}
+  public void clearDefaultAddresses(long userId){addresses.values().stream().filter(a->a.userId==userId).forEach(a->a.defaultAddress=false);}
+  public void deleteAddress(long id){addresses.remove(id);}
+  public Favorite favorite(long userId,long productId){return favoriteRows.values().stream().filter(f->f.userId==userId&&f.productId==productId).findFirst().orElse(null);}
+  public List<Favorite> favorites(long userId){return favoriteRows.values().stream().filter(f->f.userId==userId).sorted(Comparator.comparing((Favorite f)->f.createdAt).reversed().thenComparing(f->f.id,Comparator.reverseOrder())).toList();}
+  public Favorite saveFavorite(Favorite f){if(f.id==null)f.id=nextFavorite++;favoriteRows.put(f.id,f);return f;}
+  public void deleteFavorite(long userId,long productId){favoriteRows.values().removeIf(f->f.userId==userId&&f.productId==productId);}
+  public RecentlyViewed viewed(long userId,long productId){return viewedRows.values().stream().filter(v->v.userId==userId&&v.productId==productId).findFirst().orElse(null);}
+  public List<RecentlyViewed> recentlyViewed(long userId,int limit){return viewedRows.values().stream().filter(v->v.userId==userId).sorted(Comparator.comparing((RecentlyViewed v)->v.viewedAt).reversed().thenComparing(v->v.id,Comparator.reverseOrder())).limit(limit).toList();}
+  public RecentlyViewed saveViewed(RecentlyViewed v){if(v.id==null)v.id=nextViewed++;viewedRows.put(v.id,v);return v;}
+  public Cart cart(long userId){return carts.values().stream().filter(c->c.userId==userId).findFirst().orElse(null);}
+  public Cart saveCart(Cart c){if(c.id==null)c.id=nextCart++;carts.put(c.id,c);return c;}
+  public List<CartItem> cartItems(long cartId){return cartItems.values().stream().filter(i->i.cartId==cartId).sorted(Comparator.comparing(i->i.id)).toList();}
+  public CartItem cartItem(long cartId,long copyId){return cartItems.values().stream().filter(i->i.cartId==cartId&&i.copyId==copyId).findFirst().orElse(null);}
+  public CartItem saveCartItem(CartItem i){if(i.id==null)i.id=nextCartItem++;cartItems.put(i.id,i);return i;}
+  public void deleteCartItem(long cartId,long copyId){cartItems.values().removeIf(i->i.cartId==cartId&&i.copyId==copyId);}
+  public final Map<Long,Order> orders = new LinkedHashMap<>();
+  public final Map<Long,OrderItem> orderItemRows = new LinkedHashMap<>();
+  public final Map<Long,OrderStatusHistory> orderStatusRows = new LinkedHashMap<>();
+  public final Map<Long,InventoryReservation> reservationRows = new LinkedHashMap<>();
+  private long nextOrder=1,nextOrderItem=1,nextOrderStatus=1,nextReservation=1;
+  public final Map<Long,CheckoutGroup> checkoutGroups = new LinkedHashMap<>(); private long nextCheckoutGroup=1;
+  public CheckoutGroup saveCheckoutGroup(CheckoutGroup g){if(g.id==null)g.id=nextCheckoutGroup++;checkoutGroups.put(g.id,g);return g;}
+  public Order orderByKey(long userId,String key){return orders.values().stream().filter(o->o.userId==userId&&key.equals(o.idempotencyKey)).findFirst().orElse(null);}
+  public Order order(long id, boolean lock){return orders.get(id);}
+  public Order saveOrder(Order o){if(o.id==null)o.id=nextOrder++;orders.put(o.id,o);return o;}
+  public OrderItem saveOrderItem(OrderItem i){if(i.id==null)i.id=nextOrderItem++;orderItemRows.put(i.id,i);return i;}
+  public OrderStatusHistory saveOrderStatus(OrderStatusHistory h){if(h.id==null)h.id=nextOrderStatus++;orderStatusRows.put(h.id,h);return h;}
+  public InventoryReservation saveReservation(InventoryReservation r){if(r.id==null)r.id=nextReservation++;reservationRows.put(r.id,r);return r;}
+  public List<InventoryReservation> reservationsForOrder(long orderId){return reservationRows.values().stream().filter(r->r.orderId==orderId).sorted(Comparator.comparing(r->r.id)).toList();}
+  public List<Order> ordersFor(long userId){return orders.values().stream().filter(o->o.userId==userId).sorted(Comparator.comparing((Order o)->o.createdAt).reversed().thenComparing(o->o.id,Comparator.reverseOrder())).toList();}
+  public List<OrderItem> orderItems(long orderId){return orderItemRows.values().stream().filter(i->i.orderId==orderId).sorted(Comparator.comparing(i->i.id)).toList();}
+  public final Map<Long,Review> reviews = new LinkedHashMap<>(); private long nextReview=1;
+  public boolean deliveredPurchase(long userId,long productId){return orders.values().stream().filter(o->o.userId==userId&&"COMPLETED".equals(o.status)).flatMap(o->orderItemRows.values().stream().filter(i->i.orderId==o.id)).anyMatch(i->i.productId==productId);}
+  public long completedOrderFor(long userId,long productId){return orders.values().stream().filter(o->o.userId==userId&&"COMPLETED".equals(o.status)).filter(o->orderItemRows.values().stream().anyMatch(i->i.orderId==o.id&&i.productId==productId)).sorted(Comparator.comparing((Order o)->o.createdAt).reversed().thenComparing(o->o.id,Comparator.reverseOrder())).map(o->o.id).findFirst().orElse(0L);}
+  public Review review(long userId,long productId){return reviews.values().stream().filter(r->r.userId==userId&&r.productId==productId).findFirst().orElse(null);}
+  public Review saveReview(Review r){if(r.id==null)r.id=nextReview++;reviews.put(r.id,r);return r;}
+  public List<Review> reviews(long productId){return reviews.values().stream().filter(r->r.productId==productId&&"PUBLISHED".equals(r.status)).sorted(Comparator.comparing((Review r)->r.createdAt).reversed().thenComparing(r->r.id,Comparator.reverseOrder())).toList();}
 }

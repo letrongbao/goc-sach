@@ -39,7 +39,7 @@ public final class SecurityFilter implements Filter {
     req.setCharacterEncoding("UTF-8");
     res.setCharacterEncoding("UTF-8");
     String path = req.getServletPath() + (req.getPathInfo() == null ? "" : req.getPathInfo());
-    if (path.startsWith("/assets/") || path.startsWith("/media/")) {
+    if (path.startsWith("/assets/")) {
       chain.doFilter(req, res);
       return;
     }

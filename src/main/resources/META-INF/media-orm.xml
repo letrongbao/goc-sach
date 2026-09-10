@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm" version="3.1">
+  <entity class="vn.edu.utex.bookstore.image.MediaAsset" access="FIELD">
+    <table name="media_assets"/><attributes>
+      <id name="id"><generated-value strategy="IDENTITY"/></id>
+      <basic name="publicId"><column name="public_id" length="500" nullable="false"/></basic>
+      <basic name="resourceType"><column name="resource_type" length="20" nullable="false"/></basic>
+      <basic name="secureUrl"><column name="secure_url" length="1000" nullable="false"/></basic>
+      <basic name="status"><column name="status" length="20" nullable="false"/></basic>
+      <basic name="ownerId"><column name="owner_id"/></basic>
+      <basic name="shopId"><column name="shop_id"/></basic>
+      <basic name="productId"><column name="product_id"/></basic>
+      <basic name="bytes"><column name="bytes" nullable="false"/></basic>
+      <basic name="width"><column name="width"/></basic>
+      <basic name="height"><column name="height"/></basic>
+      <basic name="createdAt"><column name="created_at" nullable="false"/></basic>
+      <basic name="updatedAt"><column name="updated_at" nullable="false"/></basic>
+    </attributes>
+  </entity>
+</entity-mappings>

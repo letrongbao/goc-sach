@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm" version="3.1">
+  <entity class="vn.edu.utex.bookstore.buyer.CustomerProfile" access="FIELD">
+    <table name="customer_profiles"/><attributes>
+      <id name="userId"><column name="user_id"/></id>
+      <basic name="displayName"><column name="display_name" length="120" nullable="false"/></basic>
+      <basic name="phone"><column name="phone" length="30" nullable="false"/></basic>
+      <basic name="updatedAt"><column name="updated_at" nullable="false"/></basic>
+    </attributes>
+  </entity>
+  <entity class="vn.edu.utex.bookstore.buyer.Address" access="FIELD">
+    <table name="addresses"/><attributes>
+      <id name="id"><generated-value strategy="IDENTITY"/></id>
+      <basic name="userId"><column name="user_id" nullable="false"/></basic>
+      <basic name="label"><column name="label" length="60" nullable="false"/></basic>
+      <basic name="recipientName"><column name="recipient_name" length="120" nullable="false"/></basic>
+      <basic name="phone"><column name="phone" length="30" nullable="false"/></basic>
+      <basic name="line1"><column name="line1" length="250" nullable="false"/></basic>
+      <basic name="ward"><column name="ward" length="100" nullable="false"/></basic>
+      <basic name="district"><column name="district" length="100" nullable="false"/></basic>
+      <basic name="city"><column name="city" length="100" nullable="false"/></basic>
+      <basic name="defaultAddress"><column name="is_default" nullable="false"/></basic>
+      <basic name="createdAt"><column name="created_at" nullable="false"/></basic>
+      <basic name="updatedAt"><column name="updated_at" nullable="false"/></basic>
+    </attributes>
+  </entity>
+  <entity class="vn.edu.utex.bookstore.buyer.Favorite" access="FIELD">
+    <table name="favorites"/><attributes>
+      <id name="id"><generated-value strategy="IDENTITY"/></id>
+      <basic name="userId"><column name="user_id" nullable="false"/></basic>
+      <basic name="productId"><column name="product_id" nullable="false"/></basic>
+      <basic name="createdAt"><column name="created_at" nullable="false"/></basic>
+    </attributes>
+  </entity>
+  <entity class="vn.edu.utex.bookstore.buyer.RecentlyViewed" access="FIELD">
+    <table name="recently_viewed"/><attributes>
+      <id name="id"><generated-value strategy="IDENTITY"/></id>
+      <basic name="userId"><column name="user_id" nullable="false"/></basic>
+      <basic name="productId"><column name="product_id" nullable="false"/></basic>
+      <basic name="viewedAt"><column name="viewed_at" nullable="false"/></basic>
+    </attributes>
+  </entity>
+  <entity class="vn.edu.utex.bookstore.buyer.Cart" access="FIELD">
+    <table name="carts"/><attributes>
+      <id name="id"><generated-value strategy="IDENTITY"/></id>
+      <basic name="userId"><column name="user_id" nullable="false"/></basic>
+      <basic name="updatedAt"><column name="updated_at" nullable="false"/></basic>
+    </attributes>
+  </entity>
+  <entity class="vn.edu.utex.bookstore.buyer.CartItem" access="FIELD">
+    <table name="cart_items"/><attributes>
+      <id name="id"><generated-value strategy="IDENTITY"/></id>
+      <basic name="cartId"><column name="cart_id" nullable="false"/></basic>
+      <basic name="copyId"><column name="copy_id" nullable="false"/></basic>
+      <basic name="unitPrice"><column name="unit_price" precision="12" scale="2" nullable="false"/></basic>
+      <basic name="addedAt"><column name="added_at" nullable="false"/></basic>
+    </attributes>
+  </entity>
+</entity-mappings>

@@ -48,7 +48,7 @@ public final class Web {
 
   public static java.util.Map<String, Object> emptyProduct() {
     var values = new java.util.HashMap<String, Object>();
-    for (String key : java.util.List.of("id", "categoryId", "title", "author", "description", "price", "stock", "image"))
+    for (String key : java.util.List.of("id", "categoryId", "title", "author", "description", "image", "isbn", "publisher", "publishedYear", "language"))
       values.put(key, "");
     return values;
   }

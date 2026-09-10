@@ -1,0 +1,3 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org"><p class="eyebrow">TÀI KHOẢN</p><h1>Đã xem gần đây</h1>
+  <div class="shop-grid"><article class="form-card saved-book" th:each="item : ${recentlyViewed}"><p class="eyebrow">VỪA XEM</p><h3 th:text="${item.title}"></h3><p class="muted" th:text="${item.author}"></p><a th:href="@{/product/detail(id=${item.productId})}">Xem lại →</a></article><p th:if="${#lists.isEmpty(recentlyViewed)}" class="empty-state">Chưa có lịch sử xem.</p></div>
+</section>

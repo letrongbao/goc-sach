@@ -7,18 +7,20 @@ import java.time.Clock;
 import java.util.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.api.io.CleanupMode;
+import vn.edu.utex.bookstore.TempDirectorySupport;
 import vn.edu.utex.bookstore.MemoryStore;
 import vn.edu.utex.bookstore.config.*;
 
 class JwtConfigurationTest {
-  @TempDir Path directory;
+  @TempDir(cleanup = CleanupMode.NEVER) Path directory;
   Properties values;
   final JwtConfiguration configuration = new JwtConfiguration();
   @BeforeEach void setup() {
     values = new Properties();
-    values.setProperty("uploads.dir", directory.resolve("uploads").toString());
     values.setProperty("otp.secret", "test-only-secret-not-for-production-0123456789");
   }
+  @AfterEach void cleanup() { TempDirectorySupport.deleteEventually(directory); }
   App app() { return new App(new Settings(values), new MemoryStore(), Clock.systemUTC(), (to, subject, body) -> {}); }
   void configure(int bits) throws Exception {
     var generator = KeyPairGenerator.getInstance("RSA");

@@ -29,8 +29,7 @@ class CatalogTest {
     inventory.update(owner, shop, copy, 0, "GOOD", "Đủ trang", price, "AVAILABLE", "Đã kiểm tra sách");
     return copy;
   }
-  @Test void legacyStockNeverCreatesPublicAvailabilityOrPrice() {
-    assertTrue(store.product(1).stock > 0);
+  @Test void productWithoutCopiesNeverAppearsPublicly() {
     assertTrue(catalog.latest().isEmpty()); assertEquals(0, catalog.page("1", "").total());
     var detail = catalog.detail(1, null);
     assertEquals(0, detail.product().stock()); assertNull(detail.product().price()); assertTrue(detail.offers().isEmpty());
@@ -102,10 +101,9 @@ class CatalogTest {
     assertEquals(404, assertThrows(Problem.class, () -> catalog.detail(999, "1")).status);
     assertEquals(400, assertThrows(Problem.class, () -> catalog.page("1", "x".repeat(101))).status);
   }
-  @Test void metadataEditPreservesLegacyColumnsAndCannotChangeCopyPricing() {
-    offer(1, "40000"); var previous = store.product(1); int stock = previous.stock; var price = previous.price;
+  @Test void metadataEditCannotChangeCopyPricing() {
     new ProductService(store, Clock.systemUTC()).saveDetails(1L, 1, "Tên mới", "Tác giả", "Mô tả", "");
-    assertEquals(stock, store.product(1).stock); assertEquals(price, store.product(1).price);
+    offer(1, "40000");
     assertEquals(new BigDecimal("40000.00"), catalog.detail(1, null).product().price());
   }
 }
