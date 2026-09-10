@@ -8,13 +8,13 @@ Các mục dưới đây là thiết kế ban đầu; hiện trạng triển kha
 
 | Vị trí trong source | Điều đã thấy | Việc cần thay đổi |
 |---|---|---|
-| `pom.xml` | Boot 3.5.16, Java 21, Thymeleaf, Hibernate, PostgreSQL; chưa có Security/WebSocket/Cloudinary | Bổ sung dependency theo từng mốc, giữ phiên bản do Boot quản lý khi có |
-| `config/App.java` | Tự tạo service bằng `new`; trường ảnh mang kiểu `LocalImageStorage` | Chuyển sang bean/constructor injection; phụ thuộc interface ảnh |
+| `pom.xml` | Boot 3.5.16, Java 21, Thymeleaf, Hibernate, PostgreSQL, Security/JWT và Cloudinary; chưa có WebSocket | Bổ sung dependency theo từng mốc, giữ phiên bản do Boot quản lý khi có |
+| `config/App.java` | Tự tạo service bằng `new`; wiring đang chuyển tiếp | Hoàn tất bean/constructor injection; production dùng Cloudinary |
 | `persistence/JpaStore.java` | Tự tạo EMF; mỗi `tx()` mở EntityManager và transaction mới | Một EMF do Spring quản lý; transaction của cùng nghiệp vụ phải dùng chung |
 | `web/SecurityFilter.java` | Tự xử lý session, remember token, CSRF và ADMIN | Thay bằng Spring Security, giữ các bảo vệ hiện có và test hồi quy |
 | `auth/User.java`, `sql/schema.sql` | Một role ADMIN/USER, active, auth_version | Thêm phân quyền theo shop; tách chờ kích hoạt với bị khóa |
 | `product/ProductService.java` | 10 mới nhất, 6/trang, xóa vật lý; giá/tồn đặt tại product | Thêm truy vấn theo yêu cầu cuối kỳ, tồn từng bản/shop, ngừng bán thay xóa lịch sử |
-| `image/ImageStorage.java` | Chỉ trả chuỗi tham chiếu, chưa có quản lý/xóa tài sản | Kiểu media có provider/id/chủ sở hữu; bổ sung adapter Cloudinary |
+| `image/ImageStorage.java` | Có adapter Cloudinary và kiểm tra upload; mới lưu URL, chưa lưu asset ID để quản lý/xóa | Mở rộng kiểu media với provider/id/chủ sở hữu trước chức năng ảnh/video bình luận |
 | `META-INF/orm.xml` và 5 bảng hiện tại | Mapping JPA XML, schema validate | Giữ ID/dữ liệu; mở rộng từng bước, không create/update schema tự động |
 
 Không dùng kết quả test mock để khẳng định dữ liệu thật đã đúng. Nghiệm thu nền tảng PostgreSQL/Gmail là đầu việc đầu tiên của M1.
@@ -90,7 +90,7 @@ Các nhóm bảng dự kiến, chỉ tạo khi tới mốc:
 
 Quy trình chuyển dữ liệu: backup DB riêng → SQL bổ sung để người dùng duyệt → chạy trên DB kiểm thử được chuẩn bị thủ công → đối chiếu ID/số lượng/tổng tồn → chuyển code đọc dữ liệu mới → chỉ dọn cột cũ sau nghiệm thu và cho phép riêng.
 
-Đối với product cũ có stock N, chuẩn bị ánh xạ N bản sách vào shop khởi tạo được chọn, giữ product ID và giá cũ. Tình trạng chưa biết phải là “chưa phân loại”, không tự khẳng định như mới; chỉ mở bán sau phân loại. Không tự gán dữ liệu thật vào một shop tùy tiện.
+Schema hiện là baseline sạch: giá/tồn chỉ nằm ở `book_copies`, không có bước tự chuyển `products.price/stock`. Dữ liệu demo phải thêm bản sách qua nghiệp vụ kho hoặc SQL đã duyệt; không tự gán dữ liệu thật vào một shop tùy tiện.
 
 Khóa ngoại bảo vệ dữ liệu; tiền dùng BigDecimal/NUMERIC, lưu thời gian UTC, hiển thị giờ Việt Nam. Ràng buộc unique cho favorites, membership và mã giao dịch; index theo shop/trạng thái/thời gian. Xóa đầu sách/shop có lịch sử bằng ngừng hoạt động, không cascade xóa đơn.
 
@@ -104,7 +104,7 @@ M3 dùng Cloudinary thật cho ảnh bìa/ảnh tình trạng, avatar và logo s
 - Asset lỗi/chưa kiểm định không được publish. Giới hạn số pixel, loại nội dung, dung lượng và thời gian xử lý; rate limit theo tài khoản.
 - Upload thành công nhưng DB thất bại: đánh dấu tài sản mồ côi và dọn có kiểm soát. Thay ảnh phải gắn ảnh mới trước, ảnh cũ chỉ xóa khi không còn tham chiếu và đúng chủ sở hữu.
 - Xóa Cloudinary dùng ID/resource type đã lưu, không nhận tùy ý public ID từ client. Phải tính cả cache CDN và khả năng khôi phục trước khi xóa thật. [Upload API](https://cloudinary.com/documentation/image_upload_api_reference).
-- Không tự tải URL tùy ý từ internet để nhập ảnh; giữ tham chiếu legacy trong giai đoạn chuyển và nhập lại ảnh có quyền sử dụng.
+- Không tự tải URL tùy ý từ internet để nhập ảnh; ảnh mới phải đi qua Cloudinary và chỉ lưu URL HTTPS hợp lệ.
 - Thumbnail đúng kích thước, ảnh dự phòng, lazy loading; không dùng AI tạo ảnh minh chứng sản phẩm thật.
 
 Giữ thiết kế Góc Sách hiện tại, Thymeleaf fragments/layout, Bootstrap responsive. Bổ sung sidebar riêng cho shop/admin, breadcrumbs, lỗi tại form, trạng thái rỗng/loading, xác nhận thao tác quan trọng. Bàn phím và nhãn form dùng được ở 320/390/768/1366px. Ghi nguồn và giấy phép template/ảnh.

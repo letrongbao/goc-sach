@@ -12,18 +12,18 @@
 | T02 | JPA + SQLServer/MySQL/PostgreSQL | Đã chọn PostgreSQL; JPA mapping XML | M1/M5: lưu thật, rollback và chống bán trùng |
 | T03 | Spring Security khi dùng Spring Boot | Web/API chain riêng; quyền và CSRF do Spring xử lý, test HTTP đạt | M1: còn nghiệm thu DB/email thật và màn hình quản lý khóa user ở mốc vận hành |
 | T04 | JWT | RS256, issuer/audience/hạn, grant thu hồi theo phiên, active/blocked/auth_version; `/api/me` đã test HTTP | M4: nối giỏ/yêu thích vào UI; grant hiện chỉ dùng cho một instance |
-| T05 | WebSocket | Chưa có | M7: hai trình duyệt nhận cập nhật đơn đúng quyền |
-| T06 | Cloudinary (trang ghi Cloudairy) | Chưa có; ảnh lưu local | M3/M7: ảnh sách, logo, ảnh/video bình luận lưu thật |
+| T05 | WebSocket | Đã bật STOMP endpoint `/ws` và simple broker cùng-origin; chưa phát thông báo nghiệp vụ | M7: hai trình duyệt nhận cập nhật đơn đúng quyền |
+| T06 | Cloudinary (trang ghi Cloudairy) | Adapter upload ảnh, metadata asset và bảng `media_assets`, cấu hình ngoài Git đã có; lượt upload thật vào `WEPR` còn chờ nghiệm thu | M3/M7: ảnh sách, logo, ảnh/video bình luận lưu thật |
 | F01 | Đăng ký OTP email, login/logout, quên mật khẩu OTP, mật khẩu băm | Có nghiệp vụ và test nền | M1: Gmail thật, OTP sai/hết hạn/dùng lại, thu hồi đăng nhập |
 | F02 | Tìm kiếm, lọc sản phẩm | Có tìm tên/tác giả, phân trang giữ từ khóa | M3: còn lọc danh mục/giá/tình trạng/shop và test DB |
 | F03 | Guest: trang chủ, nội dung bán trên 10 sản phẩm của các shop, thứ tự giảm dần | Tối đa 20 đầu sách mới đang có hàng; chưa có số liệu bán | M0 xác nhận cách hiểu; M3/M6 kiểm tra số liệu bán thật |
 | F04 | User: danh mục, top 20 mới/bán chạy/đánh giá/yêu thích, phân trang hoặc lazy loading, chi tiết | Có danh sách 20 đầu sách/trang và chi tiết các bản sẵn bán; chưa đủ bốn top 20 | M3/M7: bốn danh sách top 20 có thứ tự ổn định, dữ liệu đủ và rỗng |
-| F05 | Profile và nhiều địa chỉ nhận hàng | Chưa có | M4: địa chỉ mặc định, sửa/xóa, quyền sở hữu |
-| F06 | Giỏ hàng lưu database | Chưa có | M4: tải lại/đăng nhập lại vẫn còn; kiểm tra giá và tồn |
-| F07 | Thanh toán COD, VNPAY hoặc MOMO | Chưa có | Chọn COD + VNPAY sandbox ở M5/M6 |
-| F08 | Lịch sử mua hàng theo trạng thái, hủy, trả hàng/hoàn tiền | Chưa có | M5/M6: chuyển trạng thái đúng role, hoàn trả không lặp |
-| F09 | Thích, đã xem, đánh giá sản phẩm đã mua | Chưa có | M4/M7: không trùng, chỉ người mua đã nhận được đánh giá |
-| F10 | Bình luận sản phẩm đã mua: text tối thiểu 50 ký tự, ảnh/video | Chưa có | M7: biên 49/50 ký tự, file sai và vượt giới hạn bị chặn |
+| F05 | Profile và nhiều địa chỉ nhận hàng | Đã có nghiệp vụ, trang profile/địa chỉ, kiểm tra sở hữu; xóa địa chỉ mặc định sẽ chọn địa chỉ thay thế | M4: nghiệm thu PostgreSQL và bổ sung sửa địa chỉ trên UI |
+| F06 | Giỏ hàng lưu database | Đã có bảng/lớp nghiệp vụ, JWT API và trang giỏ; mỗi dòng trỏ một bản sách, hiển thị sách/shop/giá và chặn checkout khi hết bán | M4: nghiệm thu PostgreSQL, đăng nhập lại và giá/tồn |
+| F07 | Thanh toán COD, VNPAY hoặc MOMO | Có trang đặt COD, tạo đơn con và reservation; chưa tích hợp cổng | M6: VNPAY sandbox |
+| F08 | Lịch sử mua hàng theo trạng thái, hủy, trả hàng/hoàn tiền | Có Order/OrderStatusHistory, trang lịch sử và hủy đơn PENDING; chưa có chuyển trạng thái Seller/hoàn | M5/M6: state machine và hoàn trả idempotent |
+| F09 | Thích, đã xem, đánh giá sản phẩm đã mua | Yêu thích/đã xem có API và trang; xem chi tiết tự ghi lịch sử; review nền giới hạn người đã hoàn tất đơn và một đánh giá/sản phẩm | M7: giao diện review, sửa/duyệt và nghiệm thu DB |
+| F10 | Bình luận sản phẩm đã mua: text tối thiểu 50 ký tự, ảnh/video | Text/rating đã kiểm tra biên 50 ký tự; chưa có media | M7: ảnh/video, kiểm duyệt và file sai/vượt giới hạn |
 | F11 | Chọn mã giảm giá | Chưa có | M6: hết hạn, hết lượt, sai shop, đua lượt cuối |
 | F12 | Seller có quyền User; đăng ký shop, trang shop, sản phẩm, đơn, khuyến mãi, doanh thu riêng | Có đăng ký/duyệt, quản lý shop/kho và hàng sẵn bán trên catalog; còn trang shop công khai/đơn/khuyến mãi/doanh thu; chưa test DB thật | M2/M3/M5/M6: shop chờ duyệt không bán; shop A không đọc/sửa shop B |
 | F13 | Manager quản lý user, sản phẩm từng shop, danh mục, chiết khấu, khuyến mãi, nhà vận chuyển | Có cấp/thu hồi Seller và sửa bản sách theo shop; phần vận hành còn thiếu | M2/M6: phạm vi shop được giao; giới hạn cấu hình toàn hệ thống cần xác nhận |

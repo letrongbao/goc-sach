@@ -22,7 +22,7 @@ Mục tiêu: phát triển các chức năng đang có thành website quản lý
 | M0 — Chốt phạm vi | Xác nhận mô hình cửa hàng/Seller, cách tính danh sách trang chủ; khảo sát, use case và phân công | Bảng yêu cầu có vai trò, màn hình và ca kiểm tra; không tự bỏ chức năng | 1–2 |
 | M1 — Nền tảng và bảo mật | Kiểm tra DB/email thật; đưa service/JPA vào vòng đời Spring; Spring Security + JWT | Luồng tài khoản cũ hoạt động; token sai/hết hạn/thu hồi bị chặn; rollback đúng | 5–7 |
 | M2 — Cửa hàng và sách cũ | Đăng ký/duyệt shop, thành viên theo shop, đầu sách và từng bản sách, nhập/điều chỉnh tồn | Dữ liệu hai shop tách biệt; không bán bản sách ngừng bán hoặc chưa duyệt | 5–7 |
-| M3 — Cloudinary và tủ sách | Upload ảnh thật, tìm kiếm/lọc, trang shop, danh sách mới/bán chạy/đánh giá/yêu thích | Ảnh vẫn còn sau khởi động lại; kết quả lọc/phân trang đúng và responsive | 3–4 |
+| M3 — Cloudinary và tủ sách | Hoàn tất nghiệm thu upload Cloudinary, tìm kiếm/lọc, trang shop, danh sách mới/bán chạy/đánh giá/yêu thích | Ảnh vẫn còn sau khởi động lại; kết quả lọc/phân trang đúng và responsive | 3–4 |
 | M4 — Người mua | Hồ sơ, nhiều địa chỉ, yêu thích, đã xem, giỏ hàng DB; kết nối JWT vào UI | Đăng nhập lại còn giỏ; không sửa được dữ liệu người khác; giá tính ở server | 3–4 |
 | M5 — Đơn hàng COD | Tách đơn theo shop, vận chuyển, giữ/trừ tồn, lịch sử trạng thái, hủy | Mua hàng end-to-end; hai người tranh cuốn cuối chỉ một người mua được | 6–8 |
 | M6 — Thanh toán và vận hành | VNPAY sandbox, trả hàng/hoàn tiền, khuyến mãi, chiết khấu, quản lý người dùng/nhà vận chuyển, doanh thu | Callback trùng không xử lý hai lần; hoàn trả và số liệu đối soát được | 7–10 |
@@ -31,7 +31,7 @@ Mục tiêu: phát triển các chức năng đang có thành website quản lý
 
 Các mốc theo thứ tự phụ thuộc trên. Khung hiển thị đánh giá/yêu thích ở M3 chỉ được nghiệm thu đầy đủ khi M4/M7 cung cấp dữ liệu thật. Không ghi số liệu giả để lấp màn hình trống.
 
-Tiến độ 04/09: M1 còn chờ database riêng và nhận OTP thật; SMTP đã kiểm tra kết nối. M2 có cửa hàng, kho từng bản và đã nối giá/tồn vào tủ sách; còn chuyển tồn cũ và metadata đầu sách. M3 bắt đầu với tìm tên/tác giả, phân trang 20 đầu sách và chi tiết bản đang bán. Đã test bộ nhớ/HTTP và xem Chrome; chưa nghiệm thu PostgreSQL. SQL chưa chạy vì giới hạn tạo bảng vẫn còn hiệu lực. Theo dõi [review và kiểm thử từng mốc](MILESTONES.md).
+Tiến độ 09/09: M1 còn chờ nghiệm thu database riêng và nhận OTP thật. M2 có cửa hàng, kho từng bản và đã nối giá/tồn vào tủ sách; metadata đầu sách đã bổ sung. M3 có tìm kiếm cơ bản, adapter Cloudinary và STOMP endpoint; còn lượt upload thật, bộ lọc và top-list theo đề. M4 đã có profile/địa chỉ/favorite/đã xem/giỏ và trang cơ bản. M5 đã có checkout đa shop, trang đặt COD, snapshot, reservation, idempotency và hủy đơn PENDING ở lớp nghiệp vụ; chưa có state machine Seller/carrier. SQL không được tự chạy. Theo dõi [review và kiểm thử từng mốc](MILESTONES.md).
 
 Sau M7 có đủ các thành phần stack hoạt động; chỉ sau M8 mới xét hoàn thành đồ án. Mọi mốc có thay đổi schema đều phải dừng để chủ project kiểm tra và cho phép thực thi SQL.
 

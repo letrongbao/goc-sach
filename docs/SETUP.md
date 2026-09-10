@@ -2,9 +2,9 @@
 
 Cần Java 21 và PostgreSQL 17. Không cần cài Maven hoặc Tomcat riêng.
 
-1. Chuẩn bị database riêng tên `goc_sach`. Đọc và tự chạy `sql/schema.sql` nếu database mới; không chạy lại khi đã có bảng. Nếu dùng bản nền cũ trong database đồ án riêng, chỉ áp dụng `sql/upgrade-m1-security.sql` để thêm trạng thái khóa tài khoản, không chạy lại schema nền. Sau đó đọc và chạy lần lượt `sql/m2-shops.sql`, `sql/m2-inventory.sql`, mỗi file một lần. Không áp dụng các file này vào database bài tập. Ứng dụng chỉ kiểm tra bảng, không tự tạo/sửa.
+1. Chuẩn bị database riêng tên `goc_sach`. Đọc và tự chạy `sql/schema.sql` đúng một lần trên database trống. Schema đã gồm tài khoản, shop và kho sách; không áp dụng vào database bài tập. Ứng dụng chỉ kiểm tra bảng, không tự tạo/sửa.
 2. Sao chép `config/local.example.properties` hoặc `config/gmail.example.properties` thành `config/local.properties`.
-3. Điền kết nối database, thư mục ảnh, khóa OTP và email theo mẫu. Không dùng database của repo khác. Khi bật API JWT, dùng PowerShell 7 chạy `scripts/new-jwt-keys.ps1 -OutputDirectory C:/secure/goc-sach-jwt` để tạo khóa ngoài repo, rồi điền các dòng `jwt.*` trong mẫu. Script không ghi đè thư mục đã có; khóa riêng không được đưa vào Git.
+3. Điền kết nối database, khóa OTP và email theo mẫu. Để lưu ảnh trên Cloudinary, đặt `cloudinary.enabled=true`, điền `cloud-name`, `api-key`, `api-secret` và giữ `cloudinary.asset-folder=WEPR`. Các khóa chỉ nằm trong `config/local.properties`, không đưa lên Git. Không dùng database của repo khác. Khi bật API JWT, dùng PowerShell 7 chạy `scripts/new-jwt-keys.ps1 -OutputDirectory C:/secure/goc-sach-jwt` để tạo khóa ngoài repo, rồi điền các dòng `jwt.*` trong mẫu.
 4. Chạy `mvnw.cmd clean verify`.
 5. Chạy lệnh dưới đây, sửa đường dẫn cấu hình theo máy.
 
@@ -24,7 +24,7 @@ Bản xem thử có 13 đầu sách, mỗi đầu sách một bản sẵn bán t
 
 Thử cửa hàng: đăng nhập `reader` → Cửa hàng → Đăng ký cửa hàng. Đăng xuất, vào `admin` → Duyệt cửa hàng → duyệt hoặc từ chối. Khi được duyệt, `reader` thấy cửa hàng của mình. Admin cấp Manager tại trang cửa hàng; Manager chỉ quản lý Seller của shop được giao.
 
-Thử kho: mở cửa hàng → Kho sách cũ → Nhập một bản sách. Dùng mã đầu sách `1` trong preview, nhập giá/lý do. Bản mới ngừng bán; phân loại rồi chuyển sang Sẵn bán, kiểm tra lịch sử và tải lại trang. Không thể xóa đầu sách có bản trong kho. Ra Tủ sách để kiểm tra giá/số lượng và danh sách bản đang bán. Admin tạm khóa shop thì các bản của shop đó không còn xuất hiện để bán. Đơn hàng chưa có. Dừng preview sẽ mất mọi thay đổi thử nghiệm.
+Thử kho: mở cửa hàng → Kho sách cũ → Nhập một bản sách. Dùng mã đầu sách `1` trong preview, nhập giá/lý do. Bản mới ngừng bán; phân loại rồi chuyển sang Sẵn bán, kiểm tra lịch sử và tải lại trang. Không thể xóa đầu sách có bản trong kho. Ra Tủ sách để kiểm tra giá/số lượng và danh sách bản đang bán. Admin tạm khóa shop thì các bản của shop đó không còn xuất hiện để bán. Bản preview có trang giỏ, checkout COD và lịch sử đơn; dữ liệu sẽ mất khi dừng preview.
 
 Trong database thật, thêm đầu sách chưa làm nó xuất hiện trên Tủ sách: cần có cửa hàng được duyệt, bản sách đã phân loại và mở bán, danh mục đang bật. Giá/tồn cũ không được tự chuyển sang kho.
 
@@ -32,7 +32,7 @@ Trong database thật, thêm đầu sách chưa làm nó xuất hiện trên T�
 
 Sau khi build, chạy `scripts/hash-password.ps1`, nhập mật khẩu và điền hash vào `sql/demo.sql`. Kiểm tra SQL rồi tự chạy trên database demo.
 
-Ảnh tải lên nằm ở `uploads.dir`; cần giữ thư mục này khi cập nhật ứng dụng. Khi triển khai HTTPS, đặt `cookie.secure=true`.
+Ảnh production bắt buộc tải qua Cloudinary vào folder `WEPR`; ứng dụng chỉ lưu URL HTTPS do Cloudinary trả về. Bản preview/test dùng bộ nhớ tạm, không tạo thư mục ảnh trên máy. Khi triển khai HTTPS, đặt `cookie.secure=true`.
 
 API JWT cần đủ `jwt.private-key-file`, `jwt.public-key-file`, `jwt.issuer` và `jwt.audience`. Thiếu một phần hoặc khóa sai thì ứng dụng báo lỗi khi khởi động; không cấu hình thì API luôn từ chối truy cập. Đăng nhập web, gửi `POST /auth/api-token` kèm `_csrf` hoặc header `X-CSRF-TOKEN`, rồi gọi `GET /api/me` với `Authorization: Bearer <access_token>`. Mặc định 10 phút, cấp lại làm token trước mất hiệu lực; tối đa 10 lần/phút/tài khoản. Không lưu token vào localStorage/URL. Restart sẽ thu hồi tất cả token; chỉ chạy một instance.
 
