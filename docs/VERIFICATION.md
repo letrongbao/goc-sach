@@ -1,23 +1,23 @@
 # Kết quả kiểm tra
 
-Cập nhật: 10/09/2026.
+Cập nhật: 17/09/2026.
 
 ## Kết quả hiện tại
 
-- `mvnw.cmd -B -ntp verify`: **127/127 test đạt**, 0 lỗi, 0 bỏ qua; đóng gói `target/goc-sach.jar` thành công.
-- Đã sửa lỗi dọn thư mục khóa JWT tạm trên Windows; full build không còn đỏ do `AccessDeniedException`.
-- Đã kiểm tra preview thật Chrome ở desktop và mobile 390 px: trang chủ, đăng nhập, chi tiết sách, thêm giỏ, giỏ hàng và checkout; không có lỗi console.
-- Giỏ hàng hiển thị tên sách/cửa hàng, tổng tiền, trạng thái hết bán và thao tác bỏ. Checkout giữ cùng idempotency key khi tải lại form.
-- Checkout khóa các bản sách theo ID tăng dần, tách đơn theo shop và chỉ trả phóng bản có reservation còn hoạt động khi hủy.
-- Xóa địa chỉ mặc định sẽ chọn địa chỉ còn lại làm mặc định. Xem chi tiết khi đăng nhập sẽ cập nhật danh sách đã xem.
-- API đọc review công khai; API tạo review vẫn yêu cầu JWT. CSP ảnh chỉ cho phép nội bộ, data preview và Cloudinary HTTPS.
+- `mvnw.cmd -B -ntp verify`: **136/136 test đạt**, 0 lỗi, 0 bỏ qua; đóng gói `target/goc-sach.jar` thành công.
+- Đã kiểm tra Chrome tại 320, 390, 768 và 1366 px trên 11 trang chính: trang chủ, tủ sách, chi tiết sách, cửa hàng, địa chỉ, yêu thích, đã xem, giỏ hàng, đặt hàng, đơn người mua và đơn người bán. Không có tràn ngang hoặc câu chữ kỹ thuật trên giao diện.
+- Bộ lọc giữ điều kiện khi chuyển trang; sản phẩm ẩn không xuất hiện trong yêu thích/đã xem; địa chỉ báo lỗi cạnh đúng trường.
+- Checkout chốt đúng các dòng trong giỏ, khóa dữ liệu theo thứ tự ổn định, tách đơn theo cửa hàng và không xóa nhầm sách vừa thêm. Khóa yêu cầu được chuẩn hóa để chống tạo đơn trùng.
+- Đơn hàng lưu ảnh/tên/tình trạng/giá tại thời điểm mua. Người mua và người bán chỉ xem, hủy hoặc đổi trạng thái đơn đúng phạm vi và đúng thứ tự.
+- Cửa hàng bị tạm khóa không nhận đơn mới nhưng vẫn có thể hoàn tất hoặc hủy an toàn những đơn đã nhận, tránh giữ sách vô thời hạn.
+- Lỗi nghiệp vụ API được trả về JSON với mã 4xx phù hợp; không biến dữ liệu sai thành trang lỗi 500.
 - JPA tiếp tục dùng `hibernate.hbm2ddl.auto=validate`; không có SQL hoặc migration nào được chạy trong lượt kiểm tra.
 
 ## Phần Chưa Nghiệm Thu Thật
 
 - PostgreSQL `goc_sach`: chưa xác nhận schema, transaction cạnh tranh, rollback và dữ liệu sau restart trong lượt này.
-- Gmail/Cloudinary: test adapter và cấu hình không thay cho việc gửi OTP/upload-xóa asset thật bằng ứng dụng.
-- Các phần cuối kỳ còn thiếu: trang shop công khai, bộ lọc/top 20 đầy đủ, vận hành đơn Seller/Manager, carrier, voucher, VNPAY, trả/hoàn tiền, media review và thông báo WebSocket.
+- Gmail/Cloudinary: cấu hình đã có nhưng lượt này không gửi OTP hoặc upload/xóa ảnh thật; test tự động không thay cho nghiệm thu hai dịch vụ.
+- Các phần cuối kỳ còn thiếu: các bảng top 20 theo lượt bán/đánh giá/yêu thích, đơn vị vận chuyển, voucher, VNPAY, trả/hoàn tiền, media review, thông báo WebSocket và báo cáo doanh thu.
 - Một số controller cũ và `App`/`Store` service locator vẫn cần tiếp tục tách theo module; đây là nợ kiến trúc, không phải lỗi build hiện tại.
 
 ## Cách Kiểm Tra Lại

@@ -1,14 +1,14 @@
 # Tiến độ và kiểm tra
 
-Cập nhật 10/09/2026. Chưa hoàn thành toàn bộ đồ án.
+Cập nhật 17/09/2026. Chưa hoàn thành toàn bộ đồ án.
 
 | Mốc | Đã làm / kiểm tra | Còn chờ |
 |---|---|---|
-| M1 — Nền tảng | Spring quản lý service và transaction; Security bảo vệ web/API; JWT có thu hồi; tách khóa tài khoản với kích hoạt; sửa lỗi trang upload; test hồi quy | Database riêng và schema được duyệt; kiểm tra JPA/lưu sau restart, nhận OTP thật, UI thực tế sau chuyển Security |
-| M2 — Cửa hàng và sách cũ | Đăng ký/duyệt/tạm khóa shop, Seller/Manager; kho từng bản và lịch sử; giá/tồn công khai lấy từ kho sẵn bán; test nghiệp vụ/HTTP, Chrome desktop/mobile | Chưa có trang shop công khai; chưa chạy SQL hoặc kiểm thử PostgreSQL |
-| M3 — Tủ sách | Tìm tên/tác giả, danh sách 20 đầu sách/trang; chi tiết các bản đang bán; adapter Cloudinary và test tự động | Còn upload thật vào `WEPR`, bộ lọc mở rộng, trang shop và các danh sách top 20 |
-| M4 — Người mua | Hồ sơ, địa chỉ mặc định, yêu thích, đã xem, giỏ DB/JWT API; trang Thymeleaf hiển thị tên sách, shop, tổng tiền và trạng thái bán | Chưa nghiệm thu PostgreSQL thật |
-| M5 — Đơn hàng COD | Checkout tách đơn theo shop, tóm tắt đơn, snapshot địa chỉ, khóa theo ID ổn định, reservation, lịch sử, idempotency và hủy đơn PENDING | Chưa có carrier, state machine vận hành đầy đủ và nghiệm thu locking PostgreSQL |
+| M1 — Nền tảng | Spring quản lý service và transaction; Security bảo vệ web/API; JWT có thu hồi; tách khóa tài khoản với kích hoạt; test hồi quy và Chrome responsive | Database riêng và schema được duyệt; kiểm tra JPA/lưu sau restart và nhận OTP thật |
+| M2 — Cửa hàng và sách cũ | Đăng ký/duyệt/tạm khóa shop, Seller/Manager; trang shop công khai; kho từng bản và lịch sử; giá/tồn công khai lấy từ kho sẵn bán | Chưa chạy SQL hoặc kiểm thử PostgreSQL |
+| M3 — Tủ sách | Tìm và lọc theo danh mục, giá, tình trạng, cửa hàng; 20 đầu sách/trang; chi tiết các bản đang bán; adapter Cloudinary | Còn upload thật vào `WEPR` và các danh sách top 20 theo bán chạy/đánh giá/yêu thích |
+| M4 — Người mua | Hồ sơ, thêm/sửa/xóa/đặt mặc định địa chỉ, yêu thích, đã xem, giỏ DB/JWT API; kiểm tra sở hữu và sản phẩm đang bán | Chưa nghiệm thu PostgreSQL thật |
+| M5 — Đơn hàng COD | Checkout đa shop, tổng tiền/phí, snapshot, khóa ổn định, idempotency; chi tiết/lịch sử; người mua hủy và người bán xử lý đến hoàn tất | Chưa có carrier, trả/hoàn tiền và nghiệm thu locking PostgreSQL |
 | M6–M8 | Giữ phạm vi trong ROADMAP | Chưa triển khai; không đánh dấu đạt bằng test nền tảng |
 
 Review M1 đã xử lý: API không được bỏ bảo vệ khi thiếu khóa, PEM nhiều dòng, token không lộ session ID, không dùng token sau logout/reset, không cấp token từ request của lượt đăng nhập cũ, transaction lồng nhau, error dispatch không đọc lại file quá lớn.

@@ -2,7 +2,7 @@
 
 Cần Java 21 và PostgreSQL 17. Không cần cài Maven hoặc Tomcat riêng.
 
-1. Chuẩn bị database riêng tên `goc_sach`. Đọc và tự chạy `sql/schema.sql` đúng một lần trên database trống. Schema đã gồm tài khoản, shop và kho sách; không áp dụng vào database bài tập. Ứng dụng chỉ kiểm tra bảng, không tự tạo/sửa.
+1. Chuẩn bị database riêng tên `goc_sach`. Với database trống, đọc và tự chạy `sql/schema.sql` đúng một lần. Với database đã dùng bản đơn hàng cũ, xem riêng `sql/order-m3-manual.sql` trước khi tự chạy. Không áp dụng các file này vào database bài tập; ứng dụng chỉ kiểm tra bảng, không tự tạo/sửa.
 2. Sao chép `config/local.example.properties` hoặc `config/gmail.example.properties` thành `config/local.properties`.
 3. Điền kết nối database, khóa OTP và email theo mẫu. Để lưu ảnh trên Cloudinary, đặt `cloudinary.enabled=true`, điền `cloud-name`, `api-key`, `api-secret` và giữ `cloudinary.asset-folder=WEPR`. Các khóa chỉ nằm trong `config/local.properties`, không đưa lên Git. Không dùng database của repo khác. Khi bật API JWT, dùng PowerShell 7 chạy `scripts/new-jwt-keys.ps1 -OutputDirectory C:/secure/goc-sach-jwt` để tạo khóa ngoài repo, rồi điền các dòng `jwt.*` trong mẫu.
 4. Chạy `mvnw.cmd clean verify`.
@@ -24,7 +24,7 @@ Bản xem thử có 13 đầu sách, mỗi đầu sách một bản sẵn bán t
 
 Thử cửa hàng: đăng nhập `reader` → Cửa hàng → Đăng ký cửa hàng. Đăng xuất, vào `admin` → Duyệt cửa hàng → duyệt hoặc từ chối. Khi được duyệt, `reader` thấy cửa hàng của mình. Admin cấp Manager tại trang cửa hàng; Manager chỉ quản lý Seller của shop được giao.
 
-Thử kho: mở cửa hàng → Kho sách cũ → Nhập một bản sách. Dùng mã đầu sách `1` trong preview, nhập giá/lý do. Bản mới ngừng bán; phân loại rồi chuyển sang Sẵn bán, kiểm tra lịch sử và tải lại trang. Không thể xóa đầu sách có bản trong kho. Ra Tủ sách để kiểm tra giá/số lượng và danh sách bản đang bán. Admin tạm khóa shop thì các bản của shop đó không còn xuất hiện để bán. Bản preview có trang giỏ, checkout COD và lịch sử đơn; dữ liệu sẽ mất khi dừng preview.
+Thử kho: mở cửa hàng → Kho sách cũ → Nhập một bản sách, chọn đầu sách rồi nhập giá/lý do. Bản mới ngừng bán; phân loại rồi chuyển sang Sẵn bán, kiểm tra lịch sử và tải lại trang. Không thể xóa đầu sách có bản trong kho. Ra Tủ sách để kiểm tra giá/số lượng và danh sách bản đang bán. Admin tạm khóa shop thì các bản của shop đó không còn xuất hiện để bán. Bản preview có giỏ, đặt hàng COD, lịch sử đơn và màn hình người bán xử lý đơn; dữ liệu sẽ mất khi dừng preview.
 
 Trong database thật, thêm đầu sách chưa làm nó xuất hiện trên Tủ sách: cần có cửa hàng được duyệt, bản sách đã phân loại và mở bán, danh mục đang bật. Giá/tồn cũ không được tự chuyển sang kho.
 

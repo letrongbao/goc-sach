@@ -1,6 +1,6 @@
 # Kế hoạch hoàn thiện Góc Sách
 
-Cập nhật ngày 04/09/2026, sau khi đọc lại [quy định cuối khóa trên UTEx](https://utexlms.hcmute.edu.vn/mod/page/view.php?id=1452010) và đối chiếu source. Đây là kế hoạch, không phải danh sách tính năng đã hoàn thành.
+Cập nhật ngày 17/09/2026, sau khi đọc lại [quy định cuối khóa trên UTEx](https://utexlms.hcmute.edu.vn/mod/page/view.php?id=1452010) và đối chiếu source. Đây là kế hoạch, không phải danh sách tính năng đã hoàn thành.
 
 Mục tiêu: phát triển các chức năng đang có thành website quản lý chuỗi cửa hàng sách cũ theo đề tài 14. Repo bài tập giữ nguyên. Không tạo lại dự án và không đưa submissions trở lại repo đồ án.
 
@@ -23,7 +23,7 @@ Mục tiêu: phát triển các chức năng đang có thành website quản lý
 | M1 — Nền tảng và bảo mật | Kiểm tra DB/email thật; đưa service/JPA vào vòng đời Spring; Spring Security + JWT | Luồng tài khoản cũ hoạt động; token sai/hết hạn/thu hồi bị chặn; rollback đúng | 5–7 |
 | M2 — Cửa hàng và sách cũ | Đăng ký/duyệt shop, thành viên theo shop, đầu sách và từng bản sách, nhập/điều chỉnh tồn | Dữ liệu hai shop tách biệt; không bán bản sách ngừng bán hoặc chưa duyệt | 5–7 |
 | M3 — Cloudinary và tủ sách | Hoàn tất nghiệm thu upload Cloudinary, tìm kiếm/lọc, trang shop, danh sách mới/bán chạy/đánh giá/yêu thích | Ảnh vẫn còn sau khởi động lại; kết quả lọc/phân trang đúng và responsive | 3–4 |
-| M4 — Người mua | Hồ sơ, nhiều địa chỉ, yêu thích, đã xem, giỏ hàng DB; kết nối JWT vào UI | Đăng nhập lại còn giỏ; không sửa được dữ liệu người khác; giá tính ở server | 3–4 |
+| M4 — Người mua | Hồ sơ, nhiều địa chỉ, yêu thích, đã xem, giỏ hàng DB; API tương tác dùng JWT | Đăng nhập lại còn giỏ; không sửa được dữ liệu người khác; giá tính ở server | 3–4 |
 | M5 — Đơn hàng COD | Tách đơn theo shop, vận chuyển, giữ/trừ tồn, lịch sử trạng thái, hủy | Mua hàng end-to-end; hai người tranh cuốn cuối chỉ một người mua được | 6–8 |
 | M6 — Thanh toán và vận hành | VNPAY sandbox, trả hàng/hoàn tiền, khuyến mãi, chiết khấu, quản lý người dùng/nhà vận chuyển, doanh thu | Callback trùng không xử lý hai lần; hoàn trả và số liệu đối soát được | 7–10 |
 | M7 — Đánh giá và realtime | Đánh giá sau mua, bình luận từ 50 ký tự, ảnh/video; thông báo WebSocket | Người chưa mua không đánh giá được; thông báo đúng người/shop, có phục hồi khi mất kết nối | 4–6 |
@@ -31,7 +31,7 @@ Mục tiêu: phát triển các chức năng đang có thành website quản lý
 
 Các mốc theo thứ tự phụ thuộc trên. Khung hiển thị đánh giá/yêu thích ở M3 chỉ được nghiệm thu đầy đủ khi M4/M7 cung cấp dữ liệu thật. Không ghi số liệu giả để lấp màn hình trống.
 
-Tiến độ 09/09: M1 còn chờ nghiệm thu database riêng và nhận OTP thật. M2 có cửa hàng, kho từng bản và đã nối giá/tồn vào tủ sách; metadata đầu sách đã bổ sung. M3 có tìm kiếm cơ bản, adapter Cloudinary và STOMP endpoint; còn lượt upload thật, bộ lọc và top-list theo đề. M4 đã có profile/địa chỉ/favorite/đã xem/giỏ và trang cơ bản. M5 đã có checkout đa shop, trang đặt COD, snapshot, reservation, idempotency và hủy đơn PENDING ở lớp nghiệp vụ; chưa có state machine Seller/carrier. SQL không được tự chạy. Theo dõi [review và kiểm thử từng mốc](MILESTONES.md).
+Tiến độ 17/09: M1 còn chờ nghiệm thu PostgreSQL và gửi OTP thật. M2 có cửa hàng, trang shop công khai, kho từng bản và phân quyền theo shop. M3 đã có bộ lọc đầy đủ và chi tiết các bản đang bán; còn các top-list theo đề và lượt upload thật. M4 đã có hồ sơ, địa chỉ, yêu thích, đã xem và giỏ hàng. M5 đã có checkout đa shop, tổng phí trước khi đặt, snapshot, giữ sách, idempotency, chi tiết/lịch sử và state machine người bán; còn đơn vị vận chuyển, trả/hoàn tiền và kiểm thử đồng thời trên PostgreSQL. SQL không được tự chạy. Theo dõi [review và kiểm thử từng mốc](MILESTONES.md).
 
 Sau M7 có đủ các thành phần stack hoạt động; chỉ sau M8 mới xét hoàn thành đồ án. Mọi mốc có thay đổi schema đều phải dừng để chủ project kiểm tra và cho phép thực thi SQL.
 

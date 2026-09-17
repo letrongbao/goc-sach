@@ -1,25 +1,26 @@
 # Góc Sách
 
-Website quản lý chuỗi cửa hàng sách cũ — định hướng đề tài 14.
+Website chuỗi cửa hàng sách cũ, phát triển theo đề tài 14.
 
-## Hiện có
+## Chức năng hiện có
 
-- Đăng ký, kích hoạt và quên mật khẩu bằng OTP email.
-- Đăng nhập, ghi nhớ đăng nhập, phân quyền người dùng/quản trị.
-- Quản lý danh mục, sách và ảnh bìa trên Cloudinary.
-- Tủ sách tìm theo tên/tác giả, phân trang; giá và số lượng lấy từ kho từng cửa hàng.
-- Chi tiết đầu sách có các bản đang sẵn bán, tình trạng và giá riêng.
-- Đăng ký/duyệt cửa hàng, tạm khóa/mở lại và phân quyền thành viên theo cửa hàng (đang kiểm thử).
-- Nhập từng bản sách cũ, phân loại, điều chỉnh giá, mở/ngừng bán và xem lịch sử kho.
-- Hồ sơ, địa chỉ nhận hàng, yêu thích, đã xem và giỏ hàng theo từng bản sách.
-- Checkout COD thử nghiệm: tách đơn theo shop, snapshot địa chỉ, giữ bản sách, chống gửi trùng và hủy đơn chờ xác nhận.
+- Đăng ký, mã xác nhận email, đăng nhập và khôi phục mật khẩu.
+- Tìm và lọc sách theo danh mục, giá, tình trạng, cửa hàng; xem trang cửa hàng và từng cuốn đang bán.
+- Hồ sơ, nhiều địa chỉ, yêu thích, sách đã xem và giỏ hàng lưu theo tài khoản.
+- Đặt hàng thanh toán khi nhận; tách đơn theo cửa hàng, chốt giá và thông tin nhận hàng tại thời điểm mua.
+- Người mua theo dõi hoặc hủy đơn đang chờ. Người bán xác nhận, chuẩn bị, giao, hoàn tất hoặc hủy đơn đúng quy trình.
+- Quản lý cửa hàng, danh mục, đầu sách, từng cuốn sách cũ và ảnh.
 
-Nền tảng: Java 21, Spring Boot, Thymeleaf, Bootstrap, JPA, PostgreSQL và Cloudinary.
+## Chạy dự án
 
-## Chạy thử
+Xem [hướng dẫn chạy](docs/SETUP.md). Dùng `scripts/preview.ps1` nếu chỉ muốn xem giao diện với dữ liệu minh họa, không cần database và không gửi email.
 
-Xem [hướng dẫn chạy](docs/SETUP.md). Có thể dùng `scripts/preview.ps1` để xem giao diện bằng dữ liệu giả, không cần database và không gửi email.
+Lệnh kiểm tra toàn bộ:
 
-Đồ án đang phát triển; bản xem thử dùng dữ liệu trong bộ nhớ, chưa thay cho nghiệm thu PostgreSQL. WebSocket và đánh giá đã có nền tảng; VNPAY, thông báo realtime, media đánh giá và vận hành nâng cao còn trong [kế hoạch phát triển](docs/ROADMAP.md). Xem [tiến độ từng mốc](docs/MILESTONES.md), không coi bản hiện tại là đồ án đã hoàn tất.
+```powershell
+.\mvnw.cmd -B -ntp verify
+```
 
-[Phạm vi](docs/FINAL_PROJECT.md) · [Kiểm thử](docs/VERIFICATION.md)
+Kết quả gần nhất: **136/136 test đạt** và đóng gói JAR thành công. SQL chỉ được chuẩn bị để xem xét, dự án không tự tạo hoặc cập nhật bảng.
+
+Các phần tiếp theo gồm thanh toán VNPAY, khuyến mãi, đánh giá có ảnh/video, thông báo đơn hàng và báo cáo vận hành. Xem [tiến độ](docs/MILESTONES.md), [kết quả kiểm tra](docs/VERIFICATION.md) và [kế hoạch](docs/ROADMAP.md).
