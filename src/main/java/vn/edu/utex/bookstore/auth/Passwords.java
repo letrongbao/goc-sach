@@ -24,6 +24,6 @@ public class Passwords {
     if (password == null
         || password.length() < 10
         || password.getBytes(StandardCharsets.UTF_8).length > 72)
-      throw Problem.invalid("Mật khẩu cần ít nhất 10 ký tự và tối đa 72 byte UTF-8.");
+      throw Problem.invalid("Mật khẩu cần ít nhất 10 ký tự và không được quá dài.");
   }
 }

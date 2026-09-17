@@ -1,12 +1,6 @@
-<!doctype html><html lang="vi" xmlns:th="http://www.thymeleaf.org"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Thông báo · Góc Sách</title>
-<link rel="stylesheet" th:href="@{/assets/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/assets/app.css}"><link rel="stylesheet" th:href="@{/assets/typography.css}">
-<link rel="stylesheet" th:href="@{/assets/responsive.css}">
-</head><body>
-<th:block th:if="${preview}"><div class="alert alert-warning mb-0 text-center">BẢN XEM GIAO DIỆN · Dữ liệu giả trong bộ nhớ · Chưa kết nối PostgreSQL/Gmail</div></th:block>
-<header class="site-header"><a class="brand" th:href="@{/}">góc<span>sách.</span></a></header>
-<main class="container section auth-narrow"><section class="form-card" aria-labelledby="error-title">
-<p class="eyebrow">GÓC SÁCH / THÔNG BÁO</p><h1 id="error-title">[[${statusCode}]] — Chưa thể tiếp tục</h1>
-<p class="muted">[[${safeMessage}]]</p>
-<div class="d-flex flex-wrap gap-2 mt-4"><a class="btn btn-forest" th:href="@{/}">Về trang chủ</a><a class="btn btn-outline-dark" th:href="@{/auth/login}">Đăng nhập</a></div>
-</section></main></body></html>
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#233d31"><title>Thông báo · Góc Sách</title><link rel="stylesheet" th:href="@{/assets/bootstrap.min.css}"><link rel="stylesheet" th:href="@{/assets/app.css}"><link rel="stylesheet" th:href="@{/assets/typography.css}"><link rel="stylesheet" th:href="@{/assets/responsive.css}"></head>
+<body><a class="skip-link" href="#main">Đi thẳng đến nội dung</a><header class="site-header simple-header"><a class="brand" th:href="@{/}" aria-label="Góc Sách - Trang chủ">góc<span>sách.</span></a></header>
+<main id="main" class="container section auth-narrow"><section class="form-card error-card" aria-labelledby="error-title"><span class="error-mark" aria-hidden="true">!</span><p class="eyebrow">GÓC SÁCH / THÔNG BÁO</p><h1 id="error-title">Chưa thể tiếp tục</h1><p class="status-code" th:text="${statusCode}">404</p><p class="muted" th:text="${safeMessage}">Trang bạn tìm không tồn tại.</p><div class="action-row"><a class="btn btn-forest" th:href="@{/}">Về trang chủ</a><a class="btn btn-outline-dark" th:href="@{/auth/login}">Đăng nhập</a></div></section></main>
+<footer class="site-footer compact-footer"><small>Góc Sách · Trao sách cũ, mở câu chuyện mới</small><small class="preview-note" th:if="${preview}">Bản trải nghiệm — dữ liệu minh họa</small></footer></body></html>

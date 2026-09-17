@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.servlet.ModelAndView;
 import vn.edu.utex.bookstore.auth.Identity;
 import vn.edu.utex.bookstore.auth.Tokens;
+import vn.edu.utex.bookstore.common.FormProblem;
 import vn.edu.utex.bookstore.common.Problem;
 import vn.edu.utex.bookstore.order.OrderService;
 import vn.edu.utex.bookstore.web.Web;
@@ -50,8 +51,16 @@ public final class BuyerWebController {
   public ModelAndView addresses(HttpServletRequest request, HttpServletResponse response) {
     Identity identity = identity(request);
     if (identity == null) return redirect(request, response, "/auth/login");
-    request.setAttribute("addresses", buyer.addresses(identity.id()));
-    request.setAttribute("view", "buyer-addresses");
+    try {
+      String edit = request.getParameter("edit");
+      Address form = edit == null || edit.isBlank() ? emptyAddress()
+          : buyer.address(identity.id(), Web.formId(edit, true));
+      renderAddresses(request, identity, form);
+    } catch (Problem problem) {
+      response.setStatus(problem.status);
+      request.setAttribute("error", problem.getMessage());
+      renderAddresses(request, identity, emptyAddress());
+    }
     return Web.result(request, response);
   }
 
@@ -67,7 +76,12 @@ public final class BuyerWebController {
       request.getSession().setAttribute("notice", "Đã lưu địa chỉ.");
       return redirect(request, response, "/account/addresses");
     } catch (Problem problem) {
-      return showProblem(request, response, problem, () -> addresses(request, response));
+      response.setStatus(problem.status);
+      request.setAttribute("error", problem.getMessage());
+      if (problem instanceof FormProblem fieldProblem)
+        request.setAttribute("fieldErrors", java.util.Map.of(fieldProblem.field, fieldProblem.getMessage()));
+      renderAddresses(request, identity, submittedAddress(request));
+      return Web.result(request, response);
     }
   }
 
@@ -93,13 +107,31 @@ public final class BuyerWebController {
     return Web.result(request, response);
   }
 
+  @PostMapping("/favorites/add")
+  public ModelAndView addFavorite(HttpServletRequest request, HttpServletResponse response) {
+    Identity identity = identity(request);
+    if (identity == null) return redirect(request, response, "/auth/login");
+    try {
+      long productId = Web.formId(request.getParameter("productId"), true);
+      buyer.addFavorite(identity.id(), productId);
+      request.getSession().setAttribute("notice", "Đã thêm sách vào danh sách yêu thích.");
+      return redirect(request, response, "/product/detail?id=" + productId);
+    } catch (Problem problem) {
+      return showProblem(request, response, problem, () -> favorites(request, response));
+    }
+  }
+
   @PostMapping("/favorites/remove")
   public ModelAndView removeFavorite(HttpServletRequest request, HttpServletResponse response) {
     Identity identity = identity(request);
     if (identity == null) return redirect(request, response, "/auth/login");
-    buyer.removeFavorite(identity.id(), Web.formId(request.getParameter("productId"), true));
-    request.getSession().setAttribute("notice", "Đã bỏ sách khỏi danh sách yêu thích.");
-    return redirect(request, response, "/favorites");
+    try {
+      buyer.removeFavorite(identity.id(), Web.formId(request.getParameter("productId"), true));
+      request.getSession().setAttribute("notice", "Đã bỏ sách khỏi danh sách yêu thích.");
+      return redirect(request, response, "/favorites");
+    } catch (Problem problem) {
+      return showProblem(request, response, problem, () -> favorites(request, response));
+    }
   }
 
   @GetMapping("/recently-viewed")
@@ -117,6 +149,7 @@ public final class BuyerWebController {
     if (identity == null) return redirect(request, response, "/auth/login");
     var lines = buyer.cart(identity.id());
     request.setAttribute("cartLines", lines);
+    request.setAttribute("cartGroups", buyer.groupCart(lines));
     request.setAttribute("cartSubtotal", lines.stream().map(BuyerService.CartLine::price)
         .reduce(BigDecimal.ZERO, BigDecimal::add));
     request.setAttribute("cartReady", !lines.isEmpty() && lines.stream().allMatch(BuyerService.CartLine::sellable));
@@ -141,9 +174,13 @@ public final class BuyerWebController {
   public ModelAndView removeCartItem(HttpServletRequest request, HttpServletResponse response) {
     Identity identity = identity(request);
     if (identity == null) return redirect(request, response, "/auth/login");
-    buyer.removeFromCart(identity.id(), Web.formId(request.getParameter("copyId"), true));
-    request.getSession().setAttribute("notice", "Đã bỏ bản sách khỏi giỏ.");
-    return redirect(request, response, "/cart");
+    try {
+      buyer.removeFromCart(identity.id(), Web.formId(request.getParameter("copyId"), true));
+      request.getSession().setAttribute("notice", "Đã bỏ bản sách khỏi giỏ.");
+      return redirect(request, response, "/cart");
+    } catch (Problem problem) {
+      return showProblem(request, response, problem, () -> cart(request, response));
+    }
   }
 
   @GetMapping("/checkout")
@@ -159,6 +196,7 @@ public final class BuyerWebController {
     request.setAttribute("cartLines", lines);
     request.setAttribute("cartSubtotal", lines.stream().map(BuyerService.CartLine::price)
         .reduce(BigDecimal.ZERO, BigDecimal::add));
+    request.setAttribute("checkoutQuote", orders.quote(identity.id()));
     request.setAttribute("checkoutKey", key == null ? "" : key);
     request.setAttribute("addresses", buyer.addresses(identity.id()));
     request.setAttribute("view", "buyer-checkout");
@@ -175,9 +213,10 @@ public final class BuyerWebController {
       String sessionKey = (String) request.getSession().getAttribute(CHECKOUT_KEY);
       if (sessionKey == null || !sessionKey.equals(submittedKey))
         throw Problem.invalid("Phiên đặt hàng đã hết hạn. Vui lòng tải lại trang.");
-      orders.checkout(identity.id(), address, submittedKey);
+      orders.checkout(identity.id(), address, submittedKey, request.getParameter("quoteFingerprint"));
       request.getSession().removeAttribute(CHECKOUT_KEY);
-      request.getSession().setAttribute("notice", "Đã tạo đơn COD. Cửa hàng sẽ xác nhận sớm.");
+      request.getSession().setAttribute(
+          "notice", "Đã đặt hàng. Cửa hàng sẽ sớm xác nhận đơn của bạn.");
       return redirect(request, response, "/orders");
     } catch (Problem problem) {
       return showProblem(request, response, problem, () -> checkout(request, response));
@@ -215,6 +254,44 @@ public final class BuyerWebController {
 
   private static Identity identity(HttpServletRequest request) {
     return (Identity) request.getAttribute("identity");
+  }
+
+  private void renderAddresses(HttpServletRequest request, Identity identity, Address form) {
+    request.setAttribute("addresses", buyer.addresses(identity.id()));
+    request.setAttribute("addressForm", form);
+    request.setAttribute("editingAddress", form.id != null);
+    request.setAttribute("view", "buyer-addresses");
+  }
+
+  private static Address emptyAddress() {
+    Address address = new Address();
+    address.label = "";
+    address.recipientName = "";
+    address.phone = "";
+    address.line1 = "";
+    address.ward = "";
+    address.district = "";
+    address.city = "";
+    return address;
+  }
+
+  private static Address submittedAddress(HttpServletRequest request) {
+    Address address = emptyAddress();
+    address.id = Web.positiveIdOrNull(request.getParameter("id"));
+    address.label = value(request, "label");
+    address.recipientName = value(request, "recipientName");
+    address.phone = value(request, "phone");
+    address.line1 = value(request, "line1");
+    address.ward = value(request, "ward");
+    address.district = value(request, "district");
+    address.city = value(request, "city");
+    address.defaultAddress = "on".equals(request.getParameter("defaultAddress"));
+    return address;
+  }
+
+  private static String value(HttpServletRequest request, String name) {
+    String value = request.getParameter(name);
+    return value == null ? "" : value;
   }
 
   private static ModelAndView redirect(HttpServletRequest request, HttpServletResponse response, String path) {

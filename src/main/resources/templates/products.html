@@ -1,23 +1,45 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-<section class="container section"><div class="section-heading"><div>
+<section class="container section catalog-page"><div class="section-heading"><div>
   <p class="eyebrow" th:text="${adminView ? 'KHÔNG GIAN QUẢN TRỊ' : 'TỦ SÁCH GÓC'}"></p>
-  <h1 th:text="${adminView ? 'Quản lý đầu sách' : 'Tìm một cuốn sách cho mình.'}"></h1>
-  <p class="muted">[[${catalog.total}]] đầu sách · [[${adminView ? 6 : 20}]] đầu sách mỗi trang · Mới nhất trước</p>
-</div><a th:if="${adminView}" class="btn btn-forest" th:href="@{/admin/product/add}">+ Thêm đầu sách</a></div>
-<form th:unless="${adminView}" class="shop-toolbar" method="get" th:action="@{/product}">
-  <label for="catalog-q">Tên sách hoặc tác giả</label><input class="form-control" id="catalog-q" name="q" maxlength="100" th:value="${catalog.query}">
-  <button class="btn btn-forest">Tìm sách</button><a th:href="@{/product}">Xóa tìm kiếm</a>
+  <h1 th:text="${adminView ? 'Quản lý đầu sách' : 'Tìm cuốn sách dành cho bạn.'}"></h1>
+  <p class="muted" th:if="${!adminView}">[[${catalog.total}]] kết quả · Sách mới được giới thiệu trước</p>
+  <p class="muted" th:if="${adminView}">[[${catalog.total}]] đầu sách · 6 đầu sách mỗi trang</p>
+</div><a th:if="${adminView}" class="btn btn-forest" th:href="@{/admin/product/add}">Thêm đầu sách</a></div>
+
+<form th:unless="${adminView}" class="catalog-filters panel" method="get" th:action="@{/product}">
+  <div class="catalog-filter-main"><label for="catalog-q">Tên sách hoặc tác giả</label>
+    <input class="form-control" id="catalog-q" name="q" maxlength="100" th:value="${catalog.filters.query}" placeholder="Ví dụ: văn học, Nguyễn Nhật Ánh…">
+  </div>
+  <div><label for="catalog-category">Danh mục</label><select class="form-select" id="catalog-category" name="category">
+    <option value="">Tất cả danh mục</option><option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}" th:selected="${catalog.filters.categoryId == category.id}"></option>
+  </select></div>
+  <div><label for="catalog-condition">Tình trạng</label><select class="form-select" id="catalog-condition" name="condition">
+    <option value="">Mọi tình trạng</option><option value="LIKE_NEW" th:selected="${catalog.filters.condition == 'LIKE_NEW'}">Như mới</option>
+    <option value="GOOD" th:selected="${catalog.filters.condition == 'GOOD'}">Tốt</option><option value="ACCEPTABLE" th:selected="${catalog.filters.condition == 'ACCEPTABLE'}">Đọc được</option>
+  </select></div>
+  <div><label for="catalog-shop">Cửa hàng</label><select class="form-select" id="catalog-shop" name="shop">
+    <option value="">Tất cả cửa hàng</option><option th:each="shop : ${catalogShops}" th:value="${shop.id}" th:text="${shop.name}" th:selected="${catalog.filters.shopId == shop.id}"></option>
+  </select></div>
+  <div><label for="catalog-min-price">Giá từ</label><input class="form-control" id="catalog-min-price" name="minPrice" type="number" min="0" step="1000" th:value="${catalog.filters.minimumPrice}" placeholder="0"></div>
+  <div><label for="catalog-max-price">Giá đến</label><input class="form-control" id="catalog-max-price" name="maxPrice" type="number" min="0" step="1000" th:value="${catalog.filters.maximumPrice}" placeholder="Không giới hạn"></div>
+  <div class="catalog-filter-actions"><button class="btn btn-forest" type="submit">Xem kết quả</button><a class="btn btn-link" th:href="@{/product}">Bỏ bộ lọc</a></div>
 </form>
+
 <div th:if="${adminView}" class="table-responsive panel"><table class="table align-middle">
   <thead><tr><th>Mã</th><th>Đầu sách</th><th>Danh mục</th><th>Thao tác</th></tr></thead>
-  <tbody><tr th:each="book : ${catalog.items}"><td>#[[${book.id}]]</td>
-    <td><a th:href="@{/product/detail(id=${book.id})}" th:text="${book.title}"></a></td><td th:text="${book.categoryName}"></td>
-    <td><div class="table-actions"><a th:href="@{/admin/product/edit(id=${book.id})}">Chỉnh sửa</a>
+  <tbody><tr th:each="book : ${catalog.items}"><td data-label="Mã">#[[${book.id}]]</td>
+    <td data-label="Đầu sách"><a th:href="@{/product/detail(id=${book.id})}" th:text="${book.title}"></a></td><td data-label="Danh mục" th:text="${book.categoryName}"></td>
+    <td data-label="Thao tác"><div class="table-actions"><a th:href="@{/admin/product/edit(id=${book.id})}">Chỉnh sửa</a>
       <form method="post" th:action="@{/admin/product/delete}"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${book.id}"><button class="link-button danger">Xóa</button></form>
     </div></td></tr><tr th:if="${#lists.isEmpty(catalog.items)}"><td colspan="4" class="empty-state">Chưa có đầu sách.</td></tr></tbody>
 </table></div>
 <th:block th:unless="${adminView}"><th:block th:replace="~{book-cards :: content(products=${catalog.items})}"></th:block></th:block>
-<nav class="page-nav" aria-label="Phân trang"><th:block th:each="n : ${#numbers.sequence((catalog.number > 2 ? catalog.number - 2 : 1), (catalog.pages < catalog.number + 2 ? catalog.pages : catalog.number + 2))}">
-  <a th:href="@{${adminView ? '/admin/products' : '/product'}(page=${n},q=${adminView ? null : catalog.query})}" th:class="${n == catalog.number ? 'selected' : ''}" th:aria-label="'Trang ' + ${n}">[[${n}]]</a>
-</th:block><span>Trang [[${catalog.number}]] / [[${catalog.pages}]]</span></nav></section>
+
+<nav class="page-nav" aria-label="Phân trang" th:if="${adminView and catalog.pages > 1}"><th:block th:each="n : ${#numbers.sequence((catalog.number > 2 ? catalog.number - 2 : 1), (catalog.pages < catalog.number + 2 ? catalog.pages : catalog.number + 2))}">
+  <a th:href="@{/admin/products(page=${n})}" th:class="${n == catalog.number ? 'selected' : ''}" th:aria-label="'Trang ' + ${n}" th:attr="aria-current=${n == catalog.number ? 'page' : null}">[[${n}]]</a>
+</th:block><span>Trang [[${catalog.number}]] / [[${catalog.pages}]]</span></nav>
+<nav class="page-nav" aria-label="Phân trang" th:if="${!adminView and catalog.pages > 1}"><th:block th:each="n : ${#numbers.sequence((catalog.number > 2 ? catalog.number - 2 : 1), (catalog.pages < catalog.number + 2 ? catalog.pages : catalog.number + 2))}">
+  <a th:href="@{/product(page=${n},q=${catalog.filters.query},category=${catalog.filters.categoryId},minPrice=${catalog.filters.minimumPrice},maxPrice=${catalog.filters.maximumPrice},condition=${catalog.filters.condition},shop=${catalog.filters.shopId})}" th:class="${n == catalog.number ? 'selected' : ''}" th:aria-label="'Trang ' + ${n}" th:attr="aria-current=${n == catalog.number ? 'page' : null}">[[${n}]]</a>
+</th:block><span>Trang [[${catalog.number}]] / [[${catalog.pages}]]</span></nav>
+</section>
 </th:block>

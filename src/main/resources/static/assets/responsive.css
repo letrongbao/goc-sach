@@ -45,8 +45,8 @@
   .auth-narrow .form-card h1 { font-size: 30px; }
 }
 .cart-title { font-family: Georgia, serif; font-size: 18px; }
-.cart-summary, .checkout-line, .saved-actions { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.cart-summary { margin: 24px 0 0; padding: 20px; border-bottom: 1px solid var(--line); font-size: 18px; }
+.checkout-line, .saved-actions { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.cart-summary { margin: 0; border-bottom: 1px solid var(--line); font-size: inherit; }
 .checkout-summary, .checkout-form { padding: 28px; }
 .checkout-summary h2 { margin-top: 0; }
 .checkout-line { padding: 12px 0; border-bottom: 1px solid var(--line); }
@@ -64,4 +64,118 @@
   .table-responsive .table tr:last-child { border-bottom: 0; }
   .table-responsive .table td { display: grid; grid-template-columns: minmax(84px, .6fr) minmax(0, 1.4fr); gap: 12px; padding: 8px 0; border: 0; }
   .table-responsive .table td::before { content: attr(data-label); font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); }
+}
+
+/* Shared layout breakpoints */
+@media (max-width: 1180px) {
+  .site-header { gap: 16px; }
+  .site-header .primary-nav { gap: 18px; }
+  .header-actions { gap: 4px; }
+  .header-menu summary { padding-inline: 8px; }
+  .site-footer { grid-template-columns: 1fr auto; }
+  .site-footer > small { grid-column: 1 / -1; text-align: left; }
+  .site-footer .preview-note { text-align: center; }
+}
+
+@media (max-width: 900px) {
+  .site-header { align-items: center; }
+  .site-header .primary-nav { order: 3; width: 100%; border-top: 1px solid var(--line); padding-top: 8px; }
+  .header-actions { margin-left: auto; }
+  .menu-popover { right: 0; }
+  .site-footer { grid-template-columns: 1fr; }
+  .site-footer nav { flex-wrap: wrap; }
+  .site-footer > small { grid-column: auto; }
+  .site-footer .preview-note { grid-column: auto; text-align: left; }
+  .management-actions { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .application-layout { grid-template-columns: minmax(0, 1fr); }
+  .catalog-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .catalog-filter-main { grid-column: span 2; }
+  .account-two-column,.cart-layout { grid-template-columns: minmax(0, 1fr); }
+  .address-form,.cart-summary { position: static; }
+  .saved-book-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 700px) {
+  body { font-size: 15px; }
+  .topline { padding-inline: 20px; }
+  .site-header { padding: 14px 20px; }
+  .site-header .primary-nav { overflow-x: auto; flex-wrap: nowrap; gap: 20px; scrollbar-width: thin; }
+  .primary-nav a { white-space: nowrap; }
+  .header-actions { width: 100%; order: 2; justify-content: flex-start; flex-wrap: wrap; }
+  .header-menu { position: static; }
+  .header-menu[open] { width: 100%; }
+  .menu-popover { position: static; left: auto; right: auto; top: auto; margin-top: 6px; width: 100%; box-shadow: none; }
+  .site-header .primary-nav { order: 3; }
+  .section { padding: 42px 20px 56px; }
+  .section-heading { gap: 16px; }
+  .section-heading .btn { width: 100%; }
+  .subsection-heading { align-items: flex-start; flex-direction: column; }
+  .content-section { margin-top: 38px; }
+  .form-card { padding: 24px 20px; }
+  .form-grid { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .search-row { align-items: stretch; flex-direction: column; max-width: none; }
+  .search-row .btn { width: 100%; }
+  .form-actions .btn,.action-row .btn { flex: 1 1 160px; }
+  .management-actions { grid-template-columns: minmax(0, 1fr); }
+  .copy-summary,.copy-summary > div:last-child { align-items: flex-start; flex-direction: column; }
+  .history-heading { flex-direction: column; gap: 2px; }
+  .site-footer { padding: 30px 20px; }
+  .catalog-filters { grid-template-columns: minmax(0, 1fr); padding: 20px; }
+  .catalog-filter-main { grid-column: auto; }
+  .catalog-filter-actions .btn { flex: 1 1 150px; }
+  .form-split { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cart-shop-heading { padding: 18px 20px; }
+  .cart-line { padding: 18px 20px; }
+  .shop-hero { padding: 30px 26px; margin-bottom: 36px; }
+  .book-facts { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 575px) {
+  .site-header .brand { font-size: 28px; }
+  .header-actions { gap: 2px; }
+  .header-menu summary { font-size: 12px; }
+  .notice-stack { padding-inline: 16px; }
+  .auth-links { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .choice-card { padding: 12px !important; }
+  .card-heading { align-items: flex-start; flex-direction: column; }
+  .review-actions > form:first-child,.review-actions > form:first-child .btn { width: 100%; }
+  .table-responsive .table tr:has(.empty-state) { padding: 0; }
+  .table-responsive .table td[colspan] { display: block; }
+  .table-responsive .table td[colspan]::before { content: none; }
+  .table-actions { flex-wrap: wrap; }
+  .simple-page-nav { justify-content: space-between; }
+  .simple-page-nav span { order: -1; width: 100%; text-align: center; margin: 0 0 8px; }
+  .error-card h1 { font-size: 32px; }
+  .saved-book-card { grid-template-columns: 96px minmax(0, 1fr); }
+  .saved-book-cover { min-height: 170px; padding: 10px; }
+  .saved-book-cover .typographic-cover { min-height: 150px; padding: 9px; }
+  .saved-book-cover .typographic-cover span { font-size: 17px; }
+  .saved-book-content { padding: 17px; }
+  .saved-actions { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .cart-line { grid-template-columns: 72px minmax(0, 1fr); gap: 14px; }
+  .cart-line-cover { width: 72px; }
+  .cart-line-actions { grid-column: 2; min-width: 0; flex-direction: row; align-items: center; justify-content: space-between; text-align: left; }
+  .cart-summary { padding: 20px; }
+  .checkout-line.order-item-row { grid-template-columns: 54px minmax(0, 1fr); gap: 12px; }
+  .order-item-cover { width: 54px; }
+  .order-item-price { grid-column: 2; text-align: left; }
+  .seller-order-filter-fields { align-items: stretch; flex-direction: column; }
+  .seller-order-filter-fields .btn { width: 100%; }
+  .page-nav { flex-wrap: wrap; gap: 8px; margin-top: 32px; }
+  .page-nav span { width: 100%; margin: 4px 0 0; text-align: center; }
+  .offer-card { padding: 22px 20px; }
+  .offer-pagination { align-items: center; }
+}
+
+@media (max-width: 390px) {
+  .cart-shop-heading { align-items: flex-start; flex-direction: column; }
+  .cart-shop-heading > strong { align-self: flex-start; }
+  .saved-book-card { grid-template-columns: 84px minmax(0, 1fr); }
+  .saved-book-cover { min-height: 150px; padding: 8px; }
+  .saved-book-cover .typographic-cover { min-height: 132px; }
+  .saved-book-cover .typographic-cover small { display: none; }
+  .saved-book-content { padding: 15px; }
+  .saved-book-content h2 { font-size: 18px; }
+  .detail-actions .btn { width: 100%; }
+  .offer-card > div:first-child { align-items: flex-start; flex-direction: column; }
 }

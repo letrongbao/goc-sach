@@ -1,1 +1,18 @@
-<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org"><p class="eyebrow">MUA SÁCH</p><h1>Đơn hàng của tôi</h1><div class="shop-grid"><article class="form-card" th:each="order : ${orders}"><h3>Đơn #[[${order.id}]]</h3><p>Cửa hàng #[[${order.shopId}]] · <span th:text="${order.status == 'PENDING' ? 'Chờ xác nhận' : order.status == 'COMPLETED' ? 'Hoàn tất' : order.status}"></span></p><p class="muted" th:text="${order.addressSnapshot}"></p><strong>[[${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')}]] ₫</strong><form th:if="${order.status == 'PENDING'}" method="post" th:action="@{/orders/cancel}" class="mt-3"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${order.id}"><button class="btn btn-outline-danger" type="submit">Hủy đơn</button></form></article><p th:if="${#lists.isEmpty(orders)}" class="empty-state">Bạn chưa có đơn hàng.</p></div></section>
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <div class="section-heading"><div><p class="eyebrow">TÀI KHOẢN</p><h1>Đơn hàng của tôi</h1></div><a class="btn btn-outline-dark" th:href="@{/product}">Tiếp tục tìm sách</a></div>
+  <div class="shop-grid" th:if="${!#lists.isEmpty(orders)}">
+    <article class="form-card order-card" th:each="order : ${orders}">
+      <div class="d-flex justify-content-between gap-3 align-items-start"><div><small>Đơn hàng #[[${order.id}]] · <time th:text="${order.displayTime}"></time></small><h2 class="h4 mt-2" th:text="${order.shopName}"></h2></div><span class="status" th:text="${order.statusLabel}"></span></div>
+      <p class="muted" th:text="${order.address}"></p>
+      <div class="checkout-line total"><span>Tổng thanh toán</span><strong>[[${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')}]] ₫</strong></div>
+      <div class="d-flex flex-wrap gap-2 mt-3">
+        <a class="btn btn-forest" th:href="@{/orders/{id}(id=${order.id})}">Xem chi tiết</a>
+        <form th:if="${order.buyerCanCancel}" method="post" th:action="@{/orders/cancel}">
+          <input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${order.id}">
+          <button class="btn btn-outline-danger" type="submit">Hủy đơn</button>
+        </form>
+      </div>
+    </article>
+  </div>
+  <div th:if="${#lists.isEmpty(orders)}" class="empty-catalog"><h2>Chưa có đơn hàng</h2><p>Khi bạn đặt sách, hành trình của đơn sẽ xuất hiện tại đây.</p><a class="btn btn-forest" th:href="@{/product}">Khám phá tủ sách</a></div>
+</section>

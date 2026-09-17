@@ -1,8 +1,16 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content(products)">
 <div class="book-grid"><th:block th:each="book : ${products}"><article class="book-card" th:data-product-id="${book.id}">
-
-<a class="book-art" th:href="@{/product/detail(id=${book.id})}" th:aria-label="'Xem chi tiết: ' + ${book.title}">
-<th:block th:if="${!#strings.isEmpty(book.image)}"><img th:src="@{${book.image}}" th:alt="'Bìa sách ' + ${book.title}" loading="lazy"></th:block><th:block th:unless="${!#strings.isEmpty(book.image)}"><div class="typographic-cover"><small>GÓC SÁCH / TUYỂN CHỌN</small><span>[[${book.title}]]</span><em>[[${book.author}]]</em></div></th:block></a>
-<p class="book-category">[[${book.categoryName}]]</p><h3><a th:href="@{/product/detail(id=${book.id})}">[[${book.title}]]</a></h3><p class="book-author">[[${book.author}]]</p><p class="book-price">Từ [[${#numbers.formatDecimal(book.price, 1, 'POINT', 0, 'COMMA')}]] ₫</p></article></th:block></div>
-<th:block th:if="${#lists.isEmpty(products)}"><div class="empty-catalog"><h3>Những trang sách đang được chuẩn bị.</h3><p>Không có đầu sách đang sẵn bán phù hợp. Bạn có thể đổi từ khóa hoặc quay lại sau.</p></div></th:block>
+  <a class="book-art" th:href="@{/product/detail(id=${book.id})}" th:aria-label="'Xem chi tiết: ' + ${book.title}">
+    <th:block th:if="${!#strings.isEmpty(book.image)}"><img th:src="@{${book.image}}" th:alt="'Bìa sách ' + ${book.title}" loading="lazy"></th:block>
+    <th:block th:unless="${!#strings.isEmpty(book.image)}"><div class="typographic-cover"><small>GÓC SÁCH / TUYỂN CHỌN</small><span>[[${book.title}]]</span><em>[[${book.author}]]</em></div></th:block>
+  </a>
+  <div class="book-card-body"><p class="book-category" th:text="${book.categoryName}"></p><h3><a th:href="@{/product/detail(id=${book.id})}" th:text="${book.title}"></a></h3>
+    <p class="book-author" th:text="${book.author}"></p><div class="book-card-meta">
+      <p class="book-price" th:if="${book.price != null}">Từ [[${#numbers.formatDecimal(book.price, 1, 'POINT', 0, 'COMMA')}]] ₫</p>
+      <p class="book-price muted" th:if="${book.price == null}">Tạm hết hàng</p>
+      <span class="book-stock" th:if="${book.stock > 0}">[[${book.stock}]] cuốn đang bán</span>
+    </div>
+  </div>
+</article></th:block></div>
+<th:block th:if="${#lists.isEmpty(products)}"><div class="empty-catalog"><h3>Chưa tìm thấy cuốn sách phù hợp</h3><p>Thử đổi từ khóa hoặc bỏ bớt bộ lọc để xem thêm sách.</p><a class="btn btn-outline-dark" th:href="@{/product}">Xem toàn bộ tủ sách</a></div></th:block>
 </th:block>

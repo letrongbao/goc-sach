@@ -1,0 +1,9 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+<section class="container section public-shop-page">
+  <a class="back-link" th:href="@{/product}">← Khám phá toàn bộ tủ sách</a>
+  <header class="shop-hero panel"><p class="eyebrow">CỬA HÀNG TRÊN GÓC SÁCH</p><h1 th:text="${shop.name}"></h1><p class="muted" th:text="${shop.address}"></p><p>[[${catalog.total}]] đầu sách đang sẵn bán</p></header>
+  <div class="section-heading"><div><p class="eyebrow">TỦ SÁCH CỦA CỬA HÀNG</p><h2>Những cuốn đang chờ người đọc mới</h2></div></div>
+  <th:block th:replace="~{book-cards :: content(products=${catalog.items})}"></th:block>
+  <nav class="page-nav" aria-label="Phân trang sách của cửa hàng" th:if="${catalog.pages > 1}"><th:block th:each="n : ${#numbers.sequence((catalog.number > 2 ? catalog.number - 2 : 1), (catalog.pages < catalog.number + 2 ? catalog.pages : catalog.number + 2))}"><a th:href="@{/shops/{slug}(slug=${shop.slug},page=${n})}" th:class="${n == catalog.number ? 'selected' : ''}" th:aria-label="'Trang ' + ${n}" th:attr="aria-current=${n == catalog.number ? 'page' : null}">[[${n}]]</a></th:block><span>Trang [[${catalog.number}]] / [[${catalog.pages}]]</span></nav>
+</section>
+</th:block>

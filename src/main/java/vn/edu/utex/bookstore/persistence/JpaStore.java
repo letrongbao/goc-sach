@@ -43,13 +43,36 @@ public class JpaStore implements Store {
       for (Throwable cause = e; cause != null; cause = cause.getCause()) {
         if (cause instanceof java.sql.SQLException sql) {
           if ("23505".equals(sql.getSQLState()))
-            throw new Problem(409, "Tên hoặc email đã tồn tại.");
+            throw uniqueViolation(e);
           if ("23503".equals(sql.getSQLState()))
             throw new Problem(409, "Dữ liệu đang được sử dụng, không thể xóa.");
         }
       }
       throw new IllegalStateException("Lỗi truy cập database.", e);
     }
+  }
+
+  private static Problem uniqueViolation(Throwable error) {
+    String constraint = "";
+    for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+      if (cause instanceof org.hibernate.exception.ConstraintViolationException violation) {
+        constraint = Objects.toString(violation.getConstraintName(), "").toLowerCase(Locale.ROOT);
+        break;
+      }
+    }
+    if (constraint.contains("users_username"))
+      return new Problem(409, "Tên đăng nhập đã tồn tại.");
+    if (constraint.contains("users_email"))
+      return new Problem(409, "Email đã được sử dụng.");
+    if (constraint.contains("categories_name"))
+      return new Problem(409, "Tên danh mục đã tồn tại.");
+    if (constraint.contains("products_code"))
+      return new Problem(409, "Mã sách đã tồn tại.");
+    if (constraint.contains("book_copies_code"))
+      return new Problem(409, "Mã cuốn sách đã tồn tại.");
+    if (constraint.contains("shops_slug"))
+      return new Problem(409, "Đường dẫn cửa hàng đã tồn tại.");
+    return new Problem(409, "Dữ liệu đã tồn tại hoặc thao tác này đã được xử lý.");
   }
 
   @Override
@@ -64,17 +87,17 @@ public class JpaStore implements Store {
       this.em = em;
     }
 
-    public List<Product> catalogProducts(String query, int offset, int limit) {
-      return em.createQuery(CatalogQueries.PRODUCTS, Product.class).setParameter("q", query.toLowerCase(Locale.ROOT))
+    public List<Product> catalogProducts(CatalogRepository.Filter filter, int offset, int limit) {
+      return filtered(em.createQuery(CatalogQueries.PRODUCTS, Product.class), filter)
           .setFirstResult(offset).setMaxResults(limit).getResultList();
     }
-    public long catalogCount(String query) {
-      return em.createQuery(CatalogQueries.COUNT, Long.class)
-          .setParameter("q", query.toLowerCase(Locale.ROOT)).getSingleResult();
+    public long catalogCount(CatalogRepository.Filter filter) {
+      return filtered(em.createQuery(CatalogQueries.COUNT, Long.class), filter).getSingleResult();
     }
-    public Map<Long, CatalogRepository.Stock> catalogStock(List<Long> ids) {
+    public Map<Long, CatalogRepository.Stock> catalogStock(List<Long> ids, CatalogRepository.Filter filter) {
       if (ids.isEmpty()) return Map.of();
-      var rows = em.createQuery(CatalogQueries.STOCK, Object[].class).setParameter("ids", ids).getResultList();
+      var rows = offerFiltered(em.createQuery(CatalogQueries.STOCK, Object[].class).setParameter("ids", ids), filter)
+          .getResultList();
       Map<Long, CatalogRepository.Stock> result = new HashMap<>();
       for (Object[] row : rows) result.put((Long) row[0], new CatalogRepository.Stock((Long) row[0], (Long) row[1], (java.math.BigDecimal) row[2]));
       return result;
@@ -84,6 +107,25 @@ public class JpaStore implements Store {
           .setFirstResult(offset).setMaxResults(limit).getResultList().stream()
           .map(r -> new CatalogRepository.Offer((Long) r[0], (Long) r[1], (String) r[2], (String) r[3],
               (String) r[4], (String) r[5], (java.math.BigDecimal) r[6])).toList();
+    }
+    public List<CatalogRepository.ShopOption> catalogShops() {
+      return em.createQuery(CatalogQueries.SHOPS, Object[].class).getResultList().stream()
+          .map(r -> new CatalogRepository.ShopOption((Long) r[0], (String) r[1], (String) r[2])).toList();
+    }
+    public CatalogRepository.ShopOption catalogShop(long shopId) {
+      return em.createQuery(CatalogQueries.SHOP, Object[].class).setParameter("shop", shopId)
+          .getResultStream().findFirst()
+          .map(r -> new CatalogRepository.ShopOption((Long) r[0], (String) r[1], (String) r[2])).orElse(null);
+    }
+    private <T> TypedQuery<T> filtered(TypedQuery<T> query, CatalogRepository.Filter filter) {
+      return query.setParameter("q", filter.query().toLowerCase(Locale.ROOT))
+          .setParameter("category", filter.categoryId()).setParameter("shop", filter.shopId())
+          .setParameter("condition", filter.condition()).setParameter("minimum", filter.minimumPrice())
+          .setParameter("maximum", filter.maximumPrice());
+    }
+    private <T> TypedQuery<T> offerFiltered(TypedQuery<T> query, CatalogRepository.Filter filter) {
+      return query.setParameter("shop", filter.shopId()).setParameter("condition", filter.condition())
+          .setParameter("minimum", filter.minimumPrice()).setParameter("maximum", filter.maximumPrice());
     }
 
     public BookCopy copy(long id, boolean lock) {
@@ -190,6 +232,10 @@ public class JpaStore implements Store {
 
     public Category category(long id) {
       return em.find(Category.class, id);
+    }
+
+    public Category category(long id, boolean lock) {
+      return lock ? em.find(Category.class, id, LockModeType.PESSIMISTIC_WRITE) : em.find(Category.class, id);
     }
 
     public List<Category> categories(String query) {
@@ -309,16 +355,21 @@ public class JpaStore implements Store {
     public CartItem cartItem(long cartId,long copyId){return em.createQuery("select i from CartItem i where i.cartId=:cart and i.copyId=:copy",CartItem.class).setParameter("cart",cartId).setParameter("copy",copyId).getResultStream().findFirst().orElse(null);}
     public CartItem saveCartItem(CartItem i){if(i.id==null){em.persist(i);return i;}return em.merge(i);}
     public void deleteCartItem(long cartId,long copyId){em.createQuery("delete from CartItem i where i.cartId=:cart and i.copyId=:copy").setParameter("cart",cartId).setParameter("copy",copyId).executeUpdate();}
-    public Order orderByKey(long userId,String key){return em.createQuery("select o from Order o where o.userId=:user and o.idempotencyKey=:key",Order.class).setParameter("user",userId).setParameter("key",key).getResultStream().findFirst().orElse(null);}
+    public CheckoutGroup checkoutGroup(long id,boolean lock){return lock ? em.find(CheckoutGroup.class,id,LockModeType.PESSIMISTIC_WRITE) : em.find(CheckoutGroup.class,id);}
+    public Order orderByKey(long userId,String key){return ordersByKey(userId,key).stream().findFirst().orElse(null);}
+    public List<Order> ordersByKey(long userId,String key){return em.createQuery("select o from Order o where o.userId=:user and o.idempotencyKey=:key order by o.id",Order.class).setParameter("user",userId).setParameter("key",key).getResultList();}
     public Order order(long id, boolean lock){return lock ? em.find(Order.class,id,LockModeType.PESSIMISTIC_WRITE) : em.find(Order.class,id);}
     public CheckoutGroup saveCheckoutGroup(CheckoutGroup g){if(g.id==null){em.persist(g);return g;}return em.merge(g);}
     public Order saveOrder(Order o){if(o.id==null){em.persist(o);return o;}return em.merge(o);}
     public OrderItem saveOrderItem(OrderItem i){if(i.id==null){em.persist(i);return i;}return em.merge(i);}
     public OrderStatusHistory saveOrderStatus(OrderStatusHistory h){if(h.id==null){em.persist(h);return h;}return em.merge(h);}
     public InventoryReservation saveReservation(InventoryReservation r){if(r.id==null){em.persist(r);return r;}return em.merge(r);}
-    public List<InventoryReservation> reservationsForOrder(long orderId){return em.createQuery("select r from InventoryReservation r where r.orderId=:order",InventoryReservation.class).setParameter("order",orderId).getResultList();}
+    public List<InventoryReservation> reservationsForOrder(long orderId){return em.createQuery("select r from InventoryReservation r where r.orderId=:order order by r.copyId,r.id",InventoryReservation.class).setParameter("order",orderId).getResultList();}
     public List<Order> ordersFor(long userId){return em.createQuery("select o from Order o where o.userId=:user order by o.createdAt desc,o.id desc",Order.class).setParameter("user",userId).getResultList();}
-    public List<OrderItem> orderItems(long orderId){return em.createQuery("select i from OrderItem i where i.orderId=:order order by i.id",OrderItem.class).setParameter("order",orderId).getResultList();}
+    public List<Order> ordersForShop(long shopId){return em.createQuery("select o from Order o where o.shopId=:shop order by o.createdAt desc,o.id desc",Order.class).setParameter("shop",shopId).getResultList();}
+    public List<Order> ordersForGroup(long groupId){return em.createQuery("select o from Order o where o.checkoutGroupId=:group order by o.id",Order.class).setParameter("group",groupId).getResultList();}
+    public List<OrderItem> orderItems(long orderId){return em.createQuery("select i from OrderItem i where i.orderId=:order order by i.copyId,i.id",OrderItem.class).setParameter("order",orderId).getResultList();}
+    public List<OrderStatusHistory> orderStatuses(long orderId){return em.createQuery("select h from OrderStatusHistory h where h.orderId=:order order by h.createdAt,h.id",OrderStatusHistory.class).setParameter("order",orderId).getResultList();}
     public boolean deliveredPurchase(long userId,long productId){return em.createQuery("select count(i) from OrderItem i, Order o where i.orderId=o.id and o.userId=:user and i.productId=:product and o.status='COMPLETED'",Long.class).setParameter("user",userId).setParameter("product",productId).getSingleResult()>0;}
     public long completedOrderFor(long userId,long productId){return em.createQuery("select o.id from OrderItem i, Order o where i.orderId=o.id and o.userId=:user and i.productId=:product and o.status='COMPLETED' order by o.createdAt desc,o.id desc",Long.class).setParameter("user",userId).setParameter("product",productId).setMaxResults(1).getResultStream().findFirst().orElse(0L);}
     public Review review(long userId,long productId){return em.createQuery("select r from Review r where r.userId=:user and r.productId=:product",Review.class).setParameter("user",userId).setParameter("product",productId).getResultStream().findFirst().orElse(null);}

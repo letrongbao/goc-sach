@@ -137,7 +137,8 @@ public final class OtpService {
 
   private void verify(String email, String code, String purpose, String newHash) {
     String address = email(email);
-    if (code == null || !code.matches("[0-9]{6}")) throw Problem.invalid("Mã OTP gồm 6 chữ số.");
+    if (code == null || !code.matches("[0-9]{6}"))
+      throw Problem.invalid("Mã xác nhận gồm 6 chữ số.");
     boolean valid =
         store.tx(
             d -> {
@@ -205,6 +206,6 @@ public final class OtpService {
 
   private static void purpose(String purpose) {
     if (!ACTIVATE.equals(purpose) && !RESET.equals(purpose))
-      throw Problem.invalid("Mục đích OTP không hợp lệ.");
+      throw Problem.invalid("Yêu cầu xác nhận không hợp lệ.");
   }
 }

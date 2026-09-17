@@ -1,32 +1,34 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-<section class="container section"><a class="back-link" th:href="@{/product}">← Khám phá tủ sách</a>
+<section class="container section"><a class="back-link" th:href="@{/product}">← Quay lại tủ sách</a>
   <div class="detail-grid"><div class="detail-art">
     <img th:if="${!#strings.isEmpty(product.image)}" th:src="@{${product.image}}" th:alt="'Bìa sách ' + ${product.title}">
     <div th:if="${#strings.isEmpty(product.image)}" class="typographic-cover"><small>GÓC SÁCH / TUYỂN CHỌN</small><span th:text="${product.title}"></span><em th:text="${product.author}"></em></div>
   </div><div class="detail-info"><p class="eyebrow" th:text="${product.categoryName}"></p><h1 th:text="${product.title}"></h1>
-    <p class="muted">Tác giả: [[${product.author}]] · Mã đầu sách: #[[${product.id}]]</p>
+    <p class="book-byline">Tác giả <strong th:text="${product.author}"></strong></p>
     <div class="detail-price" th:if="${product.price != null}">Từ [[${#numbers.formatDecimal(product.price, 1, 'POINT', 0, 'COMMA')}]] ₫</div>
-    <p class="status stock-label">[[${product.stock > 0 ? 'Còn sách' : 'Chưa có bản sẵn bán'}]] · [[${product.stock}]] cuốn</p>
-    <h3>Về cuốn sách</h3><p class="description" th:text="${product.description}"></p>
-    <p class="form-note">Giá tùy tình trạng từng bản. Chọn đúng bản sách bên dưới để thêm vào giỏ.</p>
+    <p class="status stock-label">[[${product.stock > 0 ? product.stock + ' cuốn đang sẵn bán' : 'Hiện chưa có cuốn sẵn bán'}]]</p>
+    <div class="detail-actions" th:if="${identity != null}">
+      <form th:if="${!favorite}" method="post" th:action="@{/favorites/add}"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="productId" th:value="${product.id}"><button class="btn btn-outline-dark" type="submit">Lưu vào yêu thích</button></form>
+      <a th:if="${favorite}" class="btn btn-outline-dark" th:href="@{/favorites}">Đã lưu trong yêu thích</a>
+    </div>
+    <h2 class="h4">Giới thiệu sách</h2><p class="description" th:text="${product.description}"></p>
+    <dl class="book-facts" th:if="${product.isbn != null or product.publisher != null or product.publishedYear != null or product.language != null}">
+      <div th:if="${product.publisher != null}"><dt>Nhà xuất bản</dt><dd th:text="${product.publisher}"></dd></div><div th:if="${product.publishedYear != null}"><dt>Năm xuất bản</dt><dd th:text="${product.publishedYear}"></dd></div>
+      <div th:if="${product.language != null}"><dt>Ngôn ngữ</dt><dd th:text="${product.language}"></dd></div><div th:if="${product.isbn != null}"><dt>ISBN</dt><dd th:text="${product.isbn}"></dd></div>
+    </dl>
+    <p class="form-note">Mỗi cuốn sách cũ có tình trạng và giá riêng. Hãy chọn cuốn phù hợp bên dưới.</p>
   </div></div>
-  <div class="section shop-data"><h2>Những bản sách đang sẵn bán</h2>
-    <p th:if="${#lists.isEmpty(offers)}" class="muted">Hiện chưa có bản sách phù hợp để mua. Bạn có thể quay lại sau.</p>
-    <div class="shop-grid"><article class="form-card" th:each="offer : ${offers}" th:data-copy-id="${offer.id}">
-      <h3 th:text="${offer.shopName}"></h3><small th:text="${offer.code}"></small>
-      <p th:text="${offer.condition == 'LIKE_NEW' ? 'Như mới' : offer.condition == 'GOOD' ? 'Tốt' : 'Đọc được'}"></p>
-      <p class="description" th:text="${offer.defects}"></p>
-      <strong>[[${#numbers.formatDecimal(offer.price, 1, 'POINT', 0, 'COMMA')}]] ₫</strong>
-      <form th:if="${identity != null}" method="post" th:action="@{/cart/items/add}" class="mt-3">
-        <input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="copyId" th:value="${offer.id}">
-        <button class="btn btn-forest" type="submit">Thêm bản này vào giỏ</button>
-      </form>
+  <div class="section shop-data"><div class="section-heading"><div><p class="eyebrow">CHỌN CUỐN PHÙ HỢP</p><h2>Những cuốn đang sẵn bán</h2></div></div>
+    <div th:if="${#lists.isEmpty(offers)}" class="empty-state"><h3>Cuốn sách này đang tạm hết hàng</h3><p>Bạn có thể lưu vào yêu thích và quay lại sau.</p></div>
+    <div class="shop-grid offer-grid"><article class="form-card offer-card" th:each="offer : ${offers}" th:data-copy-id="${offer.id}">
+      <div><a class="offer-shop" th:href="@{/shops/{slug}(slug=${offer.shopSlug})}" th:text="${offer.shopName}"></a>
+        <span class="condition-badge" th:text="${offer.condition == 'LIKE_NEW' ? 'Như mới' : offer.condition == 'GOOD' ? 'Tốt' : 'Đọc được'}"></span></div>
+      <small class="offer-copy-code">Mã cuốn: [[${offer.code}]]</small>
+      <p class="description" th:text="${#strings.isEmpty(offer.defects) ? 'Cửa hàng chưa ghi nhận khuyết điểm đáng chú ý.' : offer.defects}"></p>
+      <strong class="offer-price">[[${#numbers.formatDecimal(offer.price, 1, 'POINT', 0, 'COMMA')}]] ₫</strong>
+      <form th:if="${identity != null}" method="post" th:action="@{/cart/items/add}" class="mt-3"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="copyId" th:value="${offer.id}"><button class="btn btn-forest" type="submit">Thêm cuốn này vào giỏ</button></form>
       <a th:if="${identity == null}" class="btn btn-outline-dark mt-3" th:href="@{/auth/login}">Đăng nhập để mua</a>
     </article></div>
-    <nav class="shop-toolbar mt-3" aria-label="Phân trang bản sách" th:if="${offerPages > 1}">
-      <a th:if="${offerPage > 1}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage - 1})}">← Trang trước</a>
-      <span>Trang [[${offerPage}]] / [[${offerPages}]]</span>
-      <a th:if="${offerPage < offerPages}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage + 1})}">Trang sau →</a>
-    </nav>
+    <nav class="shop-toolbar offer-pagination mt-3" aria-label="Phân trang các cuốn đang bán" th:if="${offerPages > 1}"><a th:if="${offerPage > 1}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage - 1})}">← Trang trước</a><span aria-current="page">Trang [[${offerPage}]] / [[${offerPages}]]</span><a th:if="${offerPage < offerPages}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage + 1})}">Trang sau →</a></nav>
   </div>
 </section></th:block>

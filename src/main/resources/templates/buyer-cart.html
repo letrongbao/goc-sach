@@ -1,17 +1,13 @@
-<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
-  <p class="eyebrow">MUA SÁCH</p><h1>Giỏ hàng</h1>
-  <div class="table-responsive panel" th:if="${!#lists.isEmpty(cartLines)}">
-    <table class="table align-middle"><thead><tr><th>Sách</th><th>Cửa hàng</th><th>Giá</th><th><span class="visually-hidden">Thao tác</span></th></tr></thead>
-      <tbody><tr th:each="line : ${cartLines}" th:classappend="${!line.sellable} ? 'table-warning'">
-        <td data-label="Sách"><a class="cart-title" th:href="@{/product/detail(id=${line.productId})}" th:text="${line.title}"></a><small class="d-block">Mã bản #[[${line.copyId}]]</small><span th:if="${!line.sellable}" class="text-danger small">Bản này không còn sẵn bán</span></td>
-        <td data-label="Cửa hàng" th:text="${line.shopName}"></td><td data-label="Giá">[[${#numbers.formatDecimal(line.price,1,'POINT',0,'COMMA')}]] ₫</td>
-        <td data-label="Thao tác"><form method="post" th:action="@{/cart/items/remove}"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="copyId" th:value="${line.copyId}"><button class="link-button danger" type="submit" th:attr="aria-label=${'Bỏ ' + line.title + ' khỏi giỏ'}">Bỏ</button></form></td>
-      </tr></tbody>
-    </table>
-  </div>
-  <div th:if="${#lists.isEmpty(cartLines)}" class="empty-catalog"><h2>Giỏ hàng đang trống</h2><p>Chọn một bản sách phù hợp trong tủ sách để bắt đầu.</p><a class="btn btn-forest" th:href="@{/product}">Khám phá tủ sách</a></div>
-  <div class="cart-summary" th:if="${!#lists.isEmpty(cartLines)}"><span>Tạm tính</span><strong>[[${#numbers.formatDecimal(cartSubtotal,1,'POINT',0,'COMMA')}]] ₫</strong></div>
-  <p class="form-note" th:if="${!#lists.isEmpty(cartLines)}">Giá và tình trạng được kiểm tra lại khi đặt hàng. Phí giao hàng tính theo từng cửa hàng.</p>
-  <a class="btn btn-forest" th:if="${cartReady}" th:href="@{/checkout}">Tiếp tục đặt hàng</a>
-  <p class="alert alert-warning" th:if="${!#lists.isEmpty(cartLines) and !cartReady}">Hãy bỏ các bản không còn sẵn bán trước khi tiếp tục.</p>
+<section class="container section cart-page" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <div class="section-heading"><div><p class="eyebrow">MUA SÁCH</p><h1>Giỏ hàng</h1><p class="muted" th:if="${!#lists.isEmpty(cartLines)}">Mỗi cuốn sách cũ là một bản riêng. Giá được kiểm tra lại trước khi đặt hàng.</p></div></div>
+  <div class="cart-layout" th:if="${!#lists.isEmpty(cartLines)}"><div class="cart-groups">
+    <section class="cart-shop panel" th:each="group : ${cartGroups}"><header class="cart-shop-heading"><div><p class="eyebrow">CỬA HÀNG</p><h2 class="h4"><a th:if="${!#strings.isEmpty(group.shopSlug)}" th:href="@{/shops/{slug}(slug=${group.shopSlug})}" th:text="${group.shopName}"></a><span th:if="${#strings.isEmpty(group.shopSlug)}" th:text="${group.shopName}"></span></h2></div><strong>[[${#numbers.formatDecimal(group.subtotal,1,'POINT',0,'COMMA')}]] ₫</strong></header>
+      <article class="cart-line" th:each="line : ${group.lines}" th:classappend="${!line.sellable} ? ' is-unavailable'">
+        <a class="cart-line-cover" th:href="@{/product/detail(id=${line.productId})}"><img th:if="${!#strings.isEmpty(line.image)}" th:src="${line.image}" th:alt="'Bìa sách ' + ${line.title}" loading="lazy"><span th:if="${#strings.isEmpty(line.image)}" aria-hidden="true">SÁCH</span></a>
+        <div class="cart-line-info"><h3 class="h5"><a th:href="@{/product/detail(id=${line.productId})}" th:text="${line.title}"></a></h3><p class="muted" th:text="${line.author}"></p><span class="condition-badge" th:text="${line.condition == 'LIKE_NEW' ? 'Như mới' : line.condition == 'GOOD' ? 'Tốt' : 'Đọc được'}"></span><p th:if="${!line.sellable}" class="text-danger">Cuốn này không còn sẵn bán. Hãy bỏ khỏi giỏ để tiếp tục.</p></div>
+        <div class="cart-line-actions"><strong>[[${#numbers.formatDecimal(line.price,1,'POINT',0,'COMMA')}]] ₫</strong><form method="post" th:action="@{/cart/items/remove}"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="copyId" th:value="${line.copyId}"><button class="link-button danger" type="submit" th:attr="aria-label=${'Bỏ ' + line.title + ' khỏi giỏ'}">Bỏ khỏi giỏ</button></form></div>
+      </article>
+    </section>
+  </div><aside class="cart-summary panel"><p class="eyebrow">TÓM TẮT</p><div><span>Tiền sách</span><strong>[[${#numbers.formatDecimal(cartSubtotal,1,'POINT',0,'COMMA')}]] ₫</strong></div><p class="form-note">Phí giao hàng sẽ được hiển thị đầy đủ ở bước tiếp theo.</p><a class="btn btn-forest w-100" th:if="${cartReady}" th:href="@{/checkout}">Tiếp tục đặt hàng</a><p class="alert alert-warning" th:if="${!cartReady}">Hãy bỏ các cuốn không còn sẵn bán trước khi tiếp tục.</p></aside></div>
+  <div th:if="${#lists.isEmpty(cartLines)}" class="empty-catalog"><h2>Giỏ hàng đang trống</h2><p>Chọn một cuốn sách phù hợp để bắt đầu đơn hàng.</p><a class="btn btn-forest" th:href="@{/product}">Khám phá tủ sách</a></div>
 </section>

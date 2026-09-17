@@ -74,6 +74,7 @@ public final class InventoryController {
     }
     if (submitted) for (String key : List.of("id", "version", "productId", "condition", "status", "price", "defects", "reason"))
       form.put(key, Objects.toString(req.getParameter(key), ""));
+    if (!editing) req.setAttribute("productOptions", app.products.options());
     req.setAttribute("copyForm", form); req.setAttribute("editing", editing);
     req.setAttribute("view", "copy-form");
   }

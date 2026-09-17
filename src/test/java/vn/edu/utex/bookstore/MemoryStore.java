@@ -18,17 +18,18 @@ public class MemoryStore implements Store, Store.Data {
         && shops.containsKey(c.shopId) && "ACTIVE".equals(shops.get(c.shopId).status)
         && products.containsKey(c.productId) && products.get(c.productId).category.active;
   }
-  public List<vn.edu.utex.bookstore.product.Product> catalogProducts(String query, int offset, int limit) {
-    String q = query.toLowerCase(Locale.ROOT);
+  public List<vn.edu.utex.bookstore.product.Product> catalogProducts(CatalogRepository.Filter filter, int offset, int limit) {
+    String q = filter.query().toLowerCase(Locale.ROOT);
     return products(0, Integer.MAX_VALUE).stream().filter(p -> p.category.active
+        && (filter.categoryId() == 0 || p.category.id == filter.categoryId())
         && (p.title.toLowerCase(Locale.ROOT).contains(q) || p.author.toLowerCase(Locale.ROOT).contains(q))
-        && copies.values().stream().anyMatch(c -> c.productId == p.id && sellable(c)))
+        && copies.values().stream().anyMatch(c -> c.productId == p.id && matches(c, filter)))
         .skip(offset).limit(limit).toList();
   }
-  public long catalogCount(String query) { return catalogProducts(query, 0, Integer.MAX_VALUE).size(); }
-  public Map<Long, CatalogRepository.Stock> catalogStock(List<Long> ids) {
+  public long catalogCount(CatalogRepository.Filter filter) { return catalogProducts(filter, 0, Integer.MAX_VALUE).size(); }
+  public Map<Long, CatalogRepository.Stock> catalogStock(List<Long> ids, CatalogRepository.Filter filter) {
     Map<Long, CatalogRepository.Stock> stock = new HashMap<>();
-    for (BookCopy c : copies.values()) if (ids.contains(c.productId) && sellable(c)) {
+    for (BookCopy c : copies.values()) if (ids.contains(c.productId) && matches(c, filter)) {
       var previous = stock.get(c.productId);
       stock.put(c.productId, new CatalogRepository.Stock(c.productId, previous == null ? 1 : previous.available() + 1,
           previous == null ? c.price : previous.minimumPrice().min(c.price)));
@@ -39,6 +40,23 @@ public class MemoryStore implements Store, Store.Data {
     return copies.values().stream().filter(c -> c.productId == id && sellable(c))
         .sorted(Comparator.comparing((BookCopy c) -> c.price).thenComparing(c -> c.id)).skip(offset).limit(limit)
         .map(c -> new CatalogRepository.Offer(c.id, c.shopId, shops.get(c.shopId).name, c.code, c.condition, c.defects, c.price)).toList();
+  }
+  public List<CatalogRepository.ShopOption> catalogShops() {
+    return shops.values().stream().filter(s -> "ACTIVE".equals(s.status)
+        && copies.values().stream().anyMatch(c -> c.shopId == s.id && sellable(c)))
+        .sorted(Comparator.comparing((Shop s) -> s.name).thenComparing(s -> s.id))
+        .map(s -> new CatalogRepository.ShopOption(s.id, s.name, s.address)).toList();
+  }
+  public CatalogRepository.ShopOption catalogShop(long shopId) {
+    Shop shop = shops.get(shopId);
+    return shop == null || !"ACTIVE".equals(shop.status) ? null
+        : new CatalogRepository.ShopOption(shop.id, shop.name, shop.address);
+  }
+  private boolean matches(BookCopy copy, CatalogRepository.Filter filter) {
+    return sellable(copy) && (filter.shopId() == 0 || copy.shopId == filter.shopId())
+        && (filter.condition().isEmpty() || filter.condition().equals(copy.condition))
+        && copy.price.compareTo(filter.minimumPrice()) >= 0
+        && copy.price.compareTo(filter.maximumPrice()) <= 0;
   }
   public final Map<Long, BookCopy> copies = new LinkedHashMap<>();
   public final List<InventoryMovement> movements = new ArrayList<>();
@@ -249,8 +267,10 @@ public class MemoryStore implements Store, Store.Data {
   public final Map<Long,InventoryReservation> reservationRows = new LinkedHashMap<>();
   private long nextOrder=1,nextOrderItem=1,nextOrderStatus=1,nextReservation=1;
   public final Map<Long,CheckoutGroup> checkoutGroups = new LinkedHashMap<>(); private long nextCheckoutGroup=1;
+  public CheckoutGroup checkoutGroup(long id,boolean lock){return checkoutGroups.get(id);}
   public CheckoutGroup saveCheckoutGroup(CheckoutGroup g){if(g.id==null)g.id=nextCheckoutGroup++;checkoutGroups.put(g.id,g);return g;}
-  public Order orderByKey(long userId,String key){return orders.values().stream().filter(o->o.userId==userId&&key.equals(o.idempotencyKey)).findFirst().orElse(null);}
+  public Order orderByKey(long userId,String key){return ordersByKey(userId,key).stream().findFirst().orElse(null);}
+  public List<Order> ordersByKey(long userId,String key){return orders.values().stream().filter(o->o.userId==userId&&key.equals(o.idempotencyKey)).sorted(Comparator.comparing(o->o.id)).toList();}
   public Order order(long id, boolean lock){return orders.get(id);}
   public Order saveOrder(Order o){if(o.id==null)o.id=nextOrder++;orders.put(o.id,o);return o;}
   public OrderItem saveOrderItem(OrderItem i){if(i.id==null)i.id=nextOrderItem++;orderItemRows.put(i.id,i);return i;}
@@ -258,7 +278,10 @@ public class MemoryStore implements Store, Store.Data {
   public InventoryReservation saveReservation(InventoryReservation r){if(r.id==null)r.id=nextReservation++;reservationRows.put(r.id,r);return r;}
   public List<InventoryReservation> reservationsForOrder(long orderId){return reservationRows.values().stream().filter(r->r.orderId==orderId).sorted(Comparator.comparing(r->r.id)).toList();}
   public List<Order> ordersFor(long userId){return orders.values().stream().filter(o->o.userId==userId).sorted(Comparator.comparing((Order o)->o.createdAt).reversed().thenComparing(o->o.id,Comparator.reverseOrder())).toList();}
-  public List<OrderItem> orderItems(long orderId){return orderItemRows.values().stream().filter(i->i.orderId==orderId).sorted(Comparator.comparing(i->i.id)).toList();}
+  public List<Order> ordersForShop(long shopId){return orders.values().stream().filter(o->o.shopId==shopId).sorted(Comparator.comparing((Order o)->o.createdAt).reversed().thenComparing(o->o.id,Comparator.reverseOrder())).toList();}
+  public List<Order> ordersForGroup(long groupId){return orders.values().stream().filter(o->o.checkoutGroupId==groupId).sorted(Comparator.comparing(o->o.id)).toList();}
+  public List<OrderItem> orderItems(long orderId){return orderItemRows.values().stream().filter(i->i.orderId==orderId).sorted(Comparator.comparingLong((OrderItem i)->i.copyId).thenComparing(i->i.id)).toList();}
+  public List<OrderStatusHistory> orderStatuses(long orderId){return orderStatusRows.values().stream().filter(h->h.orderId==orderId).sorted(Comparator.comparing((OrderStatusHistory h)->h.createdAt).thenComparing(h->h.id)).toList();}
   public final Map<Long,Review> reviews = new LinkedHashMap<>(); private long nextReview=1;
   public boolean deliveredPurchase(long userId,long productId){return orders.values().stream().filter(o->o.userId==userId&&"COMPLETED".equals(o.status)).flatMap(o->orderItemRows.values().stream().filter(i->i.orderId==o.id)).anyMatch(i->i.productId==productId);}
   public long completedOrderFor(long userId,long productId){return orders.values().stream().filter(o->o.userId==userId&&"COMPLETED".equals(o.status)).filter(o->orderItemRows.values().stream().anyMatch(i->i.orderId==o.id&&i.productId==productId)).sorted(Comparator.comparing((Order o)->o.createdAt).reversed().thenComparing(o->o.id,Comparator.reverseOrder())).map(o->o.id).findFirst().orElse(0L);}

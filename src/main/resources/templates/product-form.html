@@ -11,5 +11,5 @@
 <label for="publisher">Nhà xuất bản</label><input id="publisher" name="publisher" class="form-control" maxlength="200" th:value="${product.publisher}">
 <label for="publishedYear">Năm xuất bản</label><input id="publishedYear" name="publishedYear" class="form-control" type="number" min="1000" max="3000" th:value="${product.publishedYear}">
 <label for="language">Ngôn ngữ</label><input id="language" name="language" class="form-control" maxlength="50" th:value="${product.language}">
-<label for="upload">Tải ảnh bìa mới</label><input id="upload" name="upload" class="form-control" type="file" accept="image/jpeg,image/png,image/webp"><p class="form-note">JPEG, PNG, WebP · Tối đa 5 MB / 20 megapixel. Ảnh được tải qua máy chủ lên Cloudinary.</p><button class="btn btn-forest">Lưu sách</button></form></section>
+<label for="upload">Tải ảnh bìa mới</label><input id="upload" name="upload" class="form-control" type="file" accept="image/jpeg,image/png,image/webp"><p class="form-note">Chọn ảnh JPEG, PNG hoặc WebP, dung lượng tối đa 5 MB.</p><button class="btn btn-forest">Lưu sách</button></form></section>
 </th:block>

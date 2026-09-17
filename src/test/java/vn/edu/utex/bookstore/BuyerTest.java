@@ -5,6 +5,8 @@ import java.time.*;
 import org.junit.jupiter.api.Test;
 import vn.edu.utex.bookstore.auth.Identity;
 import vn.edu.utex.bookstore.buyer.BuyerService;
+import vn.edu.utex.bookstore.common.FormProblem;
+import vn.edu.utex.bookstore.common.Problem;
 
 class BuyerTest {
   @Test
@@ -65,8 +67,37 @@ class BuyerTest {
     var line = buyer.cart(reader.id()).getFirst();
     assertFalse(line.title().isBlank());
     assertFalse(line.shopName().isBlank());
+    assertFalse(line.shopSlug().isBlank());
+    assertFalse(line.author().isBlank());
+    assertEquals("GOOD", line.condition());
     assertTrue(line.sellable());
+    assertEquals(1, buyer.groupCart(buyer.cart(reader.id())).size());
     copy.status = "SOLD";
     assertFalse(buyer.cart(reader.id()).getFirst().sellable());
+  }
+
+  @Test
+  void hiddenBooksStayOutOfFavoritesAndRecentViews() {
+    MemoryStore store = DemoFixtures.store();
+    Identity reader = Identity.of(store.findLogin("reader"));
+    BuyerService buyer = new BuyerService(store, Clock.systemUTC());
+    buyer.addFavorite(reader.id(), 1);
+    buyer.recordViewed(reader.id(), 1);
+    store.products.get(1L).category.active = false;
+    assertTrue(buyer.favoriteBooks(reader.id()).isEmpty());
+    assertTrue(buyer.recentlyViewedBooks(reader.id(), 20).isEmpty());
+    assertEquals(404, assertThrows(Problem.class, () -> buyer.addFavorite(reader.id(), 1)).status);
+    assertEquals(404, assertThrows(Problem.class, () -> buyer.recordViewed(reader.id(), 1)).status);
+  }
+
+  @Test
+  void addressValidationIdentifiesTheFieldAndCartRequiresAUser() {
+    MemoryStore store = DemoFixtures.store();
+    Identity reader = Identity.of(store.findLogin("reader"));
+    BuyerService buyer = new BuyerService(store, Clock.systemUTC());
+    FormProblem failure = assertThrows(FormProblem.class, () -> buyer.saveAddress(reader.id(), null,
+        "", "Bạn đọc", "0900000000", "1 Đường Sách", "", "", "TP HCM", true));
+    assertEquals("label", failure.field);
+    assertEquals(404, assertThrows(Problem.class, () -> buyer.removeFromCart(9999, 1)).status);
   }
 }

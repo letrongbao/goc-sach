@@ -1,9 +1,10 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-<section class="container section narrow"><a class="back-link" th:href="@{/admin/categories}">← Danh mục sách</a><h1>[[${#strings.isEmpty(category.id) ? 'Thêm danh mục' : 'Chỉnh sửa danh mục'}]]</h1>
-<form class="panel edit-form" method="post" enctype="multipart/form-data" th:action="@{/admin/category/save}">
-<input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${category.id}">
-<label for="name">Tên danh mục</label><input id="name" class="form-control" name="name" required maxlength="100" th:value="${category.name}">
-<label for="upload">Tải ảnh danh mục mới</label><input id="upload" class="form-control" type="file" name="upload" accept="image/jpeg,image/png,image/webp"><small>JPEG, PNG, WebP · Tối đa 5 MB. Ảnh được tải qua máy chủ lên Cloudinary.</small>
-<label class="check-label"><input type="checkbox" name="active" th:checked="${category.active}"> Danh mục đang mở</label>
-<button class="btn btn-forest">Lưu danh mục</button></form></section>
+  <section class="container section narrow"><a class="back-link" th:href="@{/admin/categories}">← Quay lại danh mục</a><div class="page-intro"><p class="eyebrow">QUẢN TRỊ NỘI DUNG</p><h1 th:text="${#strings.isEmpty(category.id) ? 'Thêm danh mục' : 'Chỉnh sửa danh mục'}"></h1><p class="muted">Tên rõ ràng và ảnh phù hợp sẽ giúp người đọc nhận ra chủ đề nhanh hơn.</p></div>
+    <form class="panel edit-form" method="post" enctype="multipart/form-data" th:action="@{/admin/category/save}"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${category.id}">
+      <div class="form-field"><label for="name">Tên danh mục</label><input id="name" class="form-control" name="name" required maxlength="100" th:value="${category.name}" autofocus></div>
+      <div class="form-field"><label for="upload">Ảnh đại diện</label><input id="upload" class="form-control" type="file" name="upload" accept="image/jpeg,image/png,image/webp" aria-describedby="upload-help"><small id="upload-help">Chọn ảnh JPEG, PNG hoặc WebP, dung lượng không quá 5 MB. Bỏ trống nếu muốn giữ ảnh hiện tại.</small></div>
+      <label class="check-label"><input type="checkbox" name="active" th:checked="${category.active}"> <span><strong>Hiển thị danh mục</strong><small>Người đọc có thể thấy các sách thuộc danh mục này.</small></span></label>
+      <div class="form-actions"><a class="btn btn-outline-dark" th:href="@{/admin/categories}">Hủy</a><button class="btn btn-forest" type="submit">Lưu danh mục</button></div>
+    </form>
+  </section>
 </th:block>

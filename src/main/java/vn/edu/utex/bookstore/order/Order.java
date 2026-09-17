@@ -6,7 +6,7 @@ import java.time.Instant;
 public class Order {
   public Long id;
   public long userId, shopId, checkoutGroupId;
-  public String idempotencyKey, status, recipientName, phone, addressSnapshot;
+  public String idempotencyKey, status, shopNameSnapshot, recipientName, phone, addressSnapshot;
   public BigDecimal subtotal, shippingFee, total;
   public Instant createdAt, updatedAt;
 }

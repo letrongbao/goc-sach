@@ -461,7 +461,7 @@ class WebTest {
     app.shops.setSuspended(admin, 1, true, "Testing catalog withdrawal");
     assertEquals(0, countCards(get("/").body()));
     var withdrawn = get("/product/detail?id=1");
-    assertTrue(withdrawn.body().contains("Chưa có bản sẵn bán"));
+    assertTrue(withdrawn.body().contains("Cuốn sách này đang tạm hết hàng"));
     assertFalse(withdrawn.body().contains("data-copy-id="));
     assertFalse(withdrawn.body().contains("class=\"detail-price\""));
     assertEquals(302, post("/auth/login", "_csrf=" + csrf("/auth/login")
@@ -587,12 +587,12 @@ class WebTest {
     assertEquals(302, post("/account/address/save", "_csrf=" + token
         + "&label=Nhà&recipientName=Bạn+đọc&phone=0900000000&line1=1+Đường+Sách&city=TP+HCM&defaultAddress=on").statusCode());
     var addresses = get("/account/addresses");
-    assertTrue(addresses.body().contains("Mặc định"));
+    assertTrue(addresses.body().contains("Địa chỉ mặc định"));
     long copyId = memory.copies.values().iterator().next().id;
     assertEquals(302, post("/cart/items/add", "_csrf=" + csrf("/product/detail?id=1") + "&copyId=" + copyId).statusCode());
     var cart = get("/cart");
     assertEquals(200, cart.statusCode());
-    assertTrue(cart.body().contains("Tạm tính"));
+    assertTrue(cart.body().contains("Tiền sách"));
     assertFalse(cart.body().contains("Đầu sách</th>"));
     var checkout = get("/checkout");
     assertEquals(200, checkout.statusCode(), checkout.body());
@@ -601,5 +601,20 @@ class WebTest {
     assertTrue(key.find(), checkout.body());
     var secondView = get("/checkout");
     assertTrue(secondView.body().contains("value=\"" + key.group(1) + "\""));
+    var fingerprint = java.util.regex.Pattern.compile("name=\"quoteFingerprint\" value=\"([^\"]+)\"")
+        .matcher(checkout.body());
+    assertTrue(fingerprint.find(), checkout.body());
+    long addressId = memory.addresses(2).getFirst().id;
+    var placed = post("/checkout", "_csrf=" + csrf("/checkout") + "&addressId=" + addressId
+        + "&idempotencyKey=" + key.group(1) + "&quoteFingerprint=" + fingerprint.group(1));
+    assertEquals(302, placed.statusCode(), placed.body());
+    long orderId = memory.orders.values().iterator().next().id;
+    assertEquals(200, get("/orders/" + orderId).statusCode());
+    assertEquals(200, get("/seller/orders").statusCode());
+    assertEquals(200, get("/seller/orders/" + orderId).statusCode());
+    assertEquals(403, post("/seller/orders/" + orderId + "/status", "status=CONFIRMED").statusCode());
+    assertEquals(302, post("/seller/orders/" + orderId + "/status",
+        "_csrf=" + csrf("/seller/orders/" + orderId) + "&status=CONFIRMED").statusCode());
+    assertEquals("CONFIRMED", memory.orders.get(orderId).status);
   }
 }

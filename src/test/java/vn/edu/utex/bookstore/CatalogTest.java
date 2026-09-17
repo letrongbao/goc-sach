@@ -106,4 +106,19 @@ class CatalogTest {
     offer(1, "40000");
     assertEquals(new BigDecimal("40000.00"), catalog.detail(1, null).product().price());
   }
+
+  @Test void filtersAndPublicShopUseOnlyMatchingSellableCopies() {
+    offer(1, "40000");
+    long good = offer(3, "80000");
+    store.copy(good, false).condition = "LIKE_NEW";
+    assertEquals(1, catalog.page("1", "", "1", "30000", "50000", "GOOD", Long.toString(shop)).total());
+    assertEquals(1, catalog.page("1", "", "3", "70000", "90000", "LIKE_NEW", Long.toString(shop)).total());
+    assertEquals(0, catalog.page("1", "", null, null, "39999", null, null).total());
+    var publicShop = catalog.shop("cua-hang-thu-" + shop, "1");
+    assertEquals("Cửa hàng thử", publicShop.shop().name());
+    assertEquals(2, publicShop.catalog().total());
+    shops.setSuspended(admin, shop, true, "Tạm khóa để kiểm tra");
+    assertEquals(404, assertThrows(Problem.class,
+        () -> catalog.shop("cua-hang-thu-" + shop, "1")).status);
+  }
 }

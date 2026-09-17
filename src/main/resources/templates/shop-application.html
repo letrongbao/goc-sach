@@ -1,23 +1,14 @@
 <section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
-  <p class="eyebrow">ĐỒNG HÀNH CÙNG GÓC SÁCH</p><h1>Đăng ký cửa hàng</h1>
-  <p class="muted">Gửi thông tin cửa hàng của bạn. Cửa hàng chỉ hoạt động sau khi được quản trị viên duyệt.</p>
-  <div class="shop-grid">
-    <form class="form-card" method="post" th:action="@{/account/shop/apply}">
-      <input type="hidden" name="_csrf" th:value="${csrf}">
-      <label class="form-label" for="shop-name">Tên cửa hàng</label>
-      <input class="form-control mb-3" id="shop-name" name="name" minlength="3" maxlength="150" required th:value="${shopForm.name}">
-      <label class="form-label" for="shop-address">Địa chỉ kinh doanh</label>
-      <input class="form-control mb-3" id="shop-address" name="address" minlength="10" maxlength="300" required th:value="${shopForm.address}">
-      <button class="btn btn-forest">Gửi yêu cầu xét duyệt</button>
+  <div class="section-heading"><div><p class="eyebrow">ĐỒNG HÀNH CÙNG GÓC SÁCH</p><h1>Đăng ký cửa hàng</h1><p class="muted">Chia sẻ thông tin cơ bản để Góc Sách xem xét và hỗ trợ bạn bắt đầu bán sách.</p></div></div>
+  <div class="shop-grid application-layout">
+    <form class="form-card" method="post" th:action="@{/account/shop/apply}"><input type="hidden" name="_csrf" th:value="${csrf}"><h2>Thông tin cửa hàng</h2>
+      <div class="form-field"><label for="shop-name">Tên cửa hàng</label><input class="form-control" id="shop-name" name="name" minlength="3" maxlength="150" required th:value="${shopForm.name}" placeholder="Ví dụ: Góc Nhỏ Sài Gòn" autofocus></div>
+      <div class="form-field"><label for="shop-address">Địa chỉ kinh doanh</label><input class="form-control" id="shop-address" name="address" minlength="10" maxlength="300" required th:value="${shopForm.address}" placeholder="Số nhà, đường, phường/xã, tỉnh/thành"></div>
+      <p class="field-help">Cửa hàng chỉ bắt đầu hoạt động sau khi thông tin được duyệt.</p><button class="btn btn-forest" type="submit">Gửi yêu cầu</button>
     </form>
-    <div><h2>Yêu cầu của bạn</h2>
-      <p class="muted" th:if="${#lists.isEmpty(applications)}">Bạn chưa gửi yêu cầu nào.</p>
-      <article class="form-card mb-3 shop-data" th:each="a : ${applications}">
-        <h3 th:text="${a.name}"></h3><p th:text="${a.address}"></p>
-        <p><span class="badge bg-secondary" th:text="${a.status == 'PENDING' ? 'Chờ duyệt' : (a.status == 'APPROVED' ? 'Đã duyệt' : 'Từ chối')}"></span></p>
-        <p th:if="${!#strings.isEmpty(a.reviewNote)}">Lý do: <span th:text="${a.reviewNote}"></span></p>
-        <a th:if="${a.shopId != null}" th:href="@{/seller/shop(id=${a.shopId})}">Đến cửa hàng →</a>
-      </article>
+    <div><div class="subsection-heading"><div><h2>Yêu cầu của bạn</h2><p class="muted">Theo dõi kết quả và những thông tin cần bổ sung.</p></div></div>
+      <div class="empty-state panel" th:if="${#lists.isEmpty(applications)}"><strong>Bạn chưa gửi yêu cầu nào</strong><p>Điền biểu mẫu để bắt đầu mở cửa hàng.</p></div>
+      <article class="form-card mb-3 shop-data" th:each="a : ${applications}"><div class="card-heading"><h3 th:text="${a.name}"></h3><span class="status-pill" th:classappend="${a.status == 'PENDING'} ? ' status-waiting' : (${a.status == 'APPROVED'} ? ' status-active' : ' status-paused')" th:text="${a.status == 'PENDING' ? 'Đang xem xét' : (a.status == 'APPROVED' ? 'Đã duyệt' : 'Cần bổ sung')}"></span></div><p class="address-line" th:text="${a.address}"></p><p class="review-note" th:if="${!#strings.isEmpty(a.reviewNote)}"><strong>Phản hồi:</strong> <span th:text="${a.reviewNote}"></span></p><a class="text-link" th:if="${a.shopId != null}" th:href="@{/seller/shop(id=${a.shopId})}">Quản lý cửa hàng →</a></article>
     </div>
   </div>
 </section>

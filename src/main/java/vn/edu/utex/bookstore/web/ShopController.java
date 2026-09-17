@@ -14,6 +14,20 @@ public final class ShopController {
   private final App app;
   public ShopController(App app) { this.app = app; }
 
+  @GetMapping("/shops/{slug}")
+  public ModelAndView publicShop(@PathVariable String slug, @RequestParam(required = false) String page,
+      HttpServletRequest request, HttpServletResponse response) {
+    try {
+      var result = app.catalog.shop(slug, page);
+      request.setAttribute("shop", result.shop());
+      request.setAttribute("catalog", result.catalog());
+      request.setAttribute("view", "public-shop");
+    } catch (Problem problem) {
+      error(request, response, problem);
+    }
+    return Web.result(request, response);
+  }
+
   @GetMapping({"/account/shops", "/seller/shops", "/seller/shop", "/admin/shops"})
   public ModelAndView page(HttpServletRequest request, HttpServletResponse response) throws Exception {
     try { populate(request); }

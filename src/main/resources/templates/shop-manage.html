@@ -1,28 +1,13 @@
 <section class="container section shop-data" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
-  <a th:href="@{/seller/shops}">← Cửa hàng của tôi</a>
-  <h1 class="mt-3" th:text="${shop.name}"></h1><p class="muted" th:text="${shop.address}"></p>
-  <p th:if="${shop.status == 'SUSPENDED'}" class="alert alert-warning">Cửa hàng đang tạm khóa. Không thể thay đổi thành viên lúc này.</p>
-  <p th:if="${shop.status == 'ACTIVE'}" class="badge bg-success">Đang hoạt động</p>
-  <p><a class="btn btn-forest" th:href="@{/seller/inventory(shopId=${shop.id})}">Kho sách cũ →</a></p>
-  <p class="muted">Quản lý từng bản sách trong kho. Đơn hàng và doanh thu đang được phát triển.</p>
-  <th:block th:if="${shop.canManageMembers}">
-    <h2 class="mt-4">Thành viên</h2>
-    <div class="table-responsive"><table class="table align-middle">
-      <thead><tr><th>Tài khoản</th><th>Vai trò</th><th>Trạng thái</th></tr></thead>
-      <tbody><tr th:each="member : ${members}">
-        <td><span th:text="${member.username}"></span> <span th:if="${member.owner}" class="badge bg-secondary">Chủ cửa hàng</span></td>
-        <td th:text="${member.role == 'MANAGER' ? 'Quản lý' : 'Người bán'}"></td>
-        <td th:text="${member.active ? 'Được cấp quyền' : 'Đã thu hồi'}"></td>
-      </tr></tbody>
-    </table></div>
-    <form class="form-card" method="post" th:action="@{/seller/shop/member}" th:if="${shop.status == 'ACTIVE'}">
-      <h3>Cấp hoặc thu hồi quyền</h3>
-      <input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="shopId" th:value="${shop.id}">
-      <label class="form-label" for="member-login">Tên đăng nhập hoặc email</label><input class="form-control mb-3" id="member-login" name="login" maxlength="254" required>
-      <label class="form-label" for="member-role">Vai trò</label>
-      <select class="form-select mb-3" id="member-role" name="role"><option value="SELLER">Người bán</option><option th:if="${identity.admin}" value="MANAGER">Quản lý</option></select>
-      <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="member-active" name="active" checked><label class="form-check-label" for="member-active">Cho phép hoạt động (bỏ chọn để thu hồi)</label></div>
-      <button class="btn btn-forest">Lưu quyền thành viên</button>
+  <a class="back-link" th:href="@{/seller/shops}">← Cửa hàng của tôi</a>
+  <div class="section-heading shop-heading"><div><p class="eyebrow">QUẢN LÝ CỬA HÀNG</p><h1 th:text="${shop.name}"></h1><p class="muted address-line" th:text="${shop.address}"></p></div><span class="status-pill" th:classappend="${shop.status == 'ACTIVE'} ? ' status-active' : ' status-paused'" th:text="${shop.status == 'ACTIVE' ? 'Đang hoạt động' : 'Đang tạm khóa'}"></span></div>
+  <div class="alert alert-warning" th:if="${shop.status == 'SUSPENDED'}" role="alert">Cửa hàng đang tạm khóa. Bạn vẫn có thể xem thông tin nhưng chưa thể thay đổi kho hoặc thành viên.</div>
+  <div class="management-actions"><a class="management-card" th:href="@{/seller/inventory(shopId=${shop.id})}"><span class="management-icon" aria-hidden="true">01</span><span><strong>Kho sách cũ</strong><small>Xem và cập nhật từng cuốn sách đang có tại cửa hàng.</small></span><span aria-hidden="true">→</span></a><a class="management-card" th:href="@{/seller/orders(shopId=${shop.id})}"><span class="management-icon" aria-hidden="true">02</span><span><strong>Đơn hàng cửa hàng</strong><small>Xác nhận, chuẩn bị và theo dõi các đơn đang giao.</small></span><span aria-hidden="true">→</span></a></div>
+  <section class="content-section" th:if="${shop.canManageMembers}" aria-labelledby="shop-members"><div class="subsection-heading"><div><h2 id="shop-members">Thành viên cửa hàng</h2><p class="muted">Theo dõi người đang được phép hỗ trợ quản lý và bán sách.</p></div></div>
+    <div class="table-responsive panel"><table class="table align-middle"><thead><tr><th>Tài khoản</th><th>Vai trò</th><th>Quyền hoạt động</th></tr></thead><tbody><tr th:each="member : ${members}"><td data-label="Tài khoản"><strong th:text="${member.username}"></strong> <span th:if="${member.owner}" class="status-pill status-neutral">Chủ cửa hàng</span></td><td data-label="Vai trò" th:text="${member.role == 'MANAGER' ? 'Quản lý' : 'Người bán'}"></td><td data-label="Quyền hoạt động"><span class="status-pill" th:classappend="${member.active} ? ' status-active' : ' status-paused'" th:text="${member.active ? 'Đang được cấp quyền' : 'Đã thu hồi'}"></span></td></tr><tr th:if="${#lists.isEmpty(members)}"><td colspan="3"><div class="empty-state"><strong>Chưa có thành viên</strong></div></td></tr></tbody></table></div>
+    <form class="form-card member-form" method="post" th:action="@{/seller/shop/member}" th:if="${shop.status == 'ACTIVE'}"><h3>Cấp hoặc thu hồi quyền</h3><p class="muted">Nhập đúng tài khoản và chọn phạm vi phù hợp với công việc của thành viên.</p><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="shopId" th:value="${shop.id}">
+      <div class="form-grid"><div class="form-field"><label for="member-login">Tên đăng nhập hoặc email</label><input class="form-control" id="member-login" name="login" maxlength="254" required></div><div class="form-field"><label for="member-role">Vai trò</label><select class="form-select" id="member-role" name="role"><option value="SELLER">Người bán</option><option th:if="${identity.admin}" value="MANAGER">Quản lý</option></select></div></div>
+      <label class="check-label"><input type="checkbox" id="member-active" name="active" checked><span><strong>Cho phép hoạt động</strong><small>Bỏ chọn để thu hồi quyền của thành viên.</small></span></label><button class="btn btn-forest" type="submit">Lưu quyền thành viên</button>
     </form>
-  </th:block>
+  </section>
 </section>

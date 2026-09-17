@@ -1,3 +1,8 @@
-<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org"><p class="eyebrow">TÀI KHOẢN</p><h1>Đã xem gần đây</h1>
-  <div class="shop-grid"><article class="form-card saved-book" th:each="item : ${recentlyViewed}"><p class="eyebrow">VỪA XEM</p><h3 th:text="${item.title}"></h3><p class="muted" th:text="${item.author}"></p><a th:href="@{/product/detail(id=${item.productId})}">Xem lại →</a></article><p th:if="${#lists.isEmpty(recentlyViewed)}" class="empty-state">Chưa có lịch sử xem.</p></div>
+<section class="container section account-page" th:fragment="content" xmlns:th="http://www.thymeleaf.org"><div class="section-heading"><div><p class="eyebrow">TÀI KHOẢN</p><h1>Sách đã xem gần đây</h1><p class="muted">Tiếp tục từ những cuốn bạn vừa ghé qua.</p></div></div>
+  <div class="saved-book-grid"><article class="saved-book-card" th:each="book : ${recentlyViewed}">
+    <a class="saved-book-cover" th:href="@{/product/detail(id=${book.productId})}"><img th:if="${!#strings.isEmpty(book.image)}" th:src="${book.image}" th:alt="'Bìa sách ' + ${book.title}" loading="lazy"><span th:if="${#strings.isEmpty(book.image)}" class="typographic-cover"><small>GÓC SÁCH</small><span th:text="${book.title}"></span></span></a>
+    <div class="saved-book-content"><p class="eyebrow" th:text="${book.categoryName}"></p><h2 class="h4"><a th:href="@{/product/detail(id=${book.productId})}" th:text="${book.title}"></a></h2><p class="muted" th:text="${book.author}"></p>
+      <p class="book-price" th:if="${book.price != null}">Từ [[${#numbers.formatDecimal(book.price,1,'POINT',0,'COMMA')}]] ₫</p><p class="text-danger" th:if="${book.stock == 0}">Hiện đang tạm hết hàng</p><a th:href="@{/product/detail(id=${book.productId})}">Xem lại cuốn sách →</a>
+    </div></article></div>
+  <div th:if="${#lists.isEmpty(recentlyViewed)}" class="empty-catalog"><h2>Bạn chưa xem cuốn sách nào</h2><p>Khám phá tủ sách, lịch sử gần đây sẽ xuất hiện ở đây.</p><a class="btn btn-forest" th:href="@{/product}">Khám phá tủ sách</a></div>
 </section>

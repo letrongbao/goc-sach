@@ -37,9 +37,16 @@ public final class ProductController {
     String path = req.getServletPath();
     try {
       if (!post && (path.equals("/product") || path.equals("/admin/products"))) {
-        req.setAttribute("catalog", path.startsWith("/admin/") ? app.products.page(req.getParameter("page"))
-            : app.catalog.page(req.getParameter("page"), req.getParameter("q")));
-        req.setAttribute("adminView", path.startsWith("/admin/"));
+        boolean admin = path.startsWith("/admin/");
+        if (admin) req.setAttribute("catalog", app.products.page(req.getParameter("page")));
+        else {
+          req.setAttribute("catalog", app.catalog.page(req.getParameter("page"), req.getParameter("q"),
+              req.getParameter("category"), req.getParameter("minPrice"), req.getParameter("maxPrice"),
+              req.getParameter("condition"), req.getParameter("shop")));
+          req.setAttribute("categories", app.categories.list("").stream().filter(c -> c.active).toList());
+          req.setAttribute("catalogShops", app.catalog.shops());
+        }
+        req.setAttribute("adminView", admin);
         Web.view(req, res, "products");
         return;
       }
@@ -50,7 +57,10 @@ public final class ProductController {
         req.setAttribute("offerPage", detail.number());
         req.setAttribute("offerPages", detail.pages());
         Identity identity = (Identity) req.getAttribute("identity");
-        if (identity != null) buyer.recordViewed(identity.id(), detail.product().id());
+        if (identity != null) {
+          buyer.recordViewed(identity.id(), detail.product().id());
+          req.setAttribute("favorite", buyer.isFavorite(identity.id(), detail.product().id()));
+        }
         Web.view(req, res, "product-detail");
         return;
       }

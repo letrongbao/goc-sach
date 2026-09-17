@@ -36,6 +36,13 @@ public final class ProductService {
     return store.tx(d -> d.products(0, 10).stream().map(ProductView::from).toList());
   }
 
+  /** Compact choices for seller forms; inactive categories cannot receive new sale stock. */
+  public List<ProductView> options() {
+    return store.tx(d -> d.products(0, Math.toIntExact(d.productCount())).stream()
+        .filter(product -> product.category != null && product.category.active)
+        .map(ProductView::from).toList());
+  }
+
   public Page page(String raw) {
     int number;
     try {

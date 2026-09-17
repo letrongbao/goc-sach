@@ -1,9 +1,7 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-<section class="container section auth-narrow"><div class="form-card"><p class="eyebrow">GÓC SÁCH / TÀI KHOẢN</p><h1>Quên mật khẩu?</h1><p class="muted">Mã xác minh có hiệu lực 10 phút và chỉ dùng một lần.</p>
-<form method="post" th:action="@{/auth/forgot}"><input type="hidden" name="_csrf" th:value="${csrf}">
-
-<label for="email">Email</label><input id="email" name="email" class="form-control" type="email" required maxlength="254" autocomplete="email" th:value="${!#strings.isEmpty(form.email) ? form.email : pendingEmail}">
-<button class="btn btn-forest w-100 mt-4">Gửi mã đặt lại mật khẩu</button>
-</form>
-<div class="auth-links"><a th:href="@{/auth/login}">Về đăng nhập</a></div></div></section>
+  <section class="container section auth-narrow"><div class="form-card auth-card">
+    <p class="eyebrow">GÓC SÁCH / KHÔI PHỤC TÀI KHOẢN</p><h1>Quên mật khẩu?</h1><p class="muted">Nhập email đã đăng ký. Nếu thông tin phù hợp, bạn sẽ nhận được mã xác nhận để đặt mật khẩu mới.</p>
+    <form method="post" th:action="@{/auth/forgot}"><input type="hidden" name="_csrf" th:value="${csrf}"><div class="form-field"><label for="email">Email</label><input id="email" name="email" class="form-control" type="email" required maxlength="254" autocomplete="email" th:value="${!#strings.isEmpty(form.email) ? form.email : pendingEmail}" autofocus></div><button class="btn btn-forest w-100" type="submit">Nhận mã xác nhận</button></form>
+    <div class="auth-links"><a th:href="@{/auth/login}">Nhớ mật khẩu? Đăng nhập</a></div>
+  </div></section>
 </th:block>

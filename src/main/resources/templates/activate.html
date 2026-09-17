@@ -1,9 +1,10 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-<section class="container section auth-narrow"><div class="form-card"><p class="eyebrow">GÓC SÁCH / TÀI KHOẢN</p><h1>Kích hoạt tài khoản</h1><p class="muted">Mã xác minh có hiệu lực 10 phút và chỉ dùng một lần.</p>
-<form method="post" th:action="@{/auth/activate}"><input type="hidden" name="_csrf" th:value="${csrf}">
-
-<label for="email">Email</label><input id="email" name="email" class="form-control" type="email" required maxlength="254" autocomplete="email" th:value="${!#strings.isEmpty(form.email) ? form.email : pendingEmail}">
-<label for="code">Mã OTP</label><input id="code" name="code" class="form-control otp-input" required pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="one-time-code"><button class="btn btn-forest w-100 mt-4">Xác minh & kích hoạt</button>
-<button class="btn btn-outline-dark w-100 mt-2" th:formaction="@{/auth/resend}" formnovalidate>Gửi lại mã (sau 60 giây)</button></form>
-<div class="auth-links"><a th:href="@{/auth/login}">Về đăng nhập</a></div></div></section>
+  <section class="container section auth-narrow"><div class="form-card auth-card">
+    <p class="eyebrow">GÓC SÁCH / XÁC NHẬN EMAIL</p><h1>Kích hoạt tài khoản</h1><p class="muted">Nhập mã gồm 6 số đã được gửi đến email của bạn. Mã có hiệu lực trong 10 phút và chỉ dùng một lần.</p>
+    <form method="post" th:action="@{/auth/activate}"><input type="hidden" name="_csrf" th:value="${csrf}">
+      <div class="form-field"><label for="email">Email</label><input id="email" name="email" class="form-control" type="email" required maxlength="254" autocomplete="email" th:value="${!#strings.isEmpty(form.email) ? form.email : pendingEmail}"></div>
+      <div class="form-field"><label for="code">Mã xác nhận</label><input id="code" name="code" class="form-control otp-input" required pattern="[0-9]{6}" maxlength="6" inputmode="numeric" autocomplete="one-time-code" aria-describedby="code-help" autofocus><small id="code-help">Gồm đúng 6 chữ số.</small></div>
+      <button class="btn btn-forest w-100" type="submit">Kích hoạt tài khoản</button><button class="btn btn-outline-dark w-100 mt-2" type="submit" th:formaction="@{/auth/resend}" formnovalidate>Nhận lại mã xác nhận</button>
+    </form><div class="auth-links"><a th:href="@{/auth/login}">Về trang đăng nhập</a></div>
+  </div></section>
 </th:block>

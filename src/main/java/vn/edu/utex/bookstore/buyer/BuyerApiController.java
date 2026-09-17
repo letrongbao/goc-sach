@@ -28,7 +28,7 @@ public final class BuyerApiController {
   }
 
   @GetMapping("/favorites")
-  public ResponseEntity<?> favorites(JwtAuthenticationToken auth) { return ResponseEntity.ok(buyer.favorites(userId(auth))); }
+  public ResponseEntity<?> favorites(JwtAuthenticationToken auth) { return ResponseEntity.ok(buyer.favoriteBooks(userId(auth))); }
 
   @PutMapping("/favorites/{productId}")
   public ResponseEntity<?> addFavorite(JwtAuthenticationToken auth, @PathVariable long productId) {
@@ -47,13 +47,14 @@ public final class BuyerApiController {
 
   @GetMapping("/recent-views")
   public ResponseEntity<?> recent(JwtAuthenticationToken auth, @RequestParam(defaultValue="20") int limit) {
-    return ResponseEntity.ok(buyer.recentlyViewed(userId(auth), limit));
+    return ResponseEntity.ok(buyer.recentlyViewedBooks(userId(auth), limit));
   }
 
   public record CartRequest(long copyId) {}
   private static long userId(JwtAuthenticationToken auth) {
     Object value = auth.getToken().getClaim("user_id");
-    if (!(value instanceof Number number) || number.longValue() <= 0) throw new IllegalStateException("JWT user_id không hợp lệ.");
+    if (!(value instanceof Number number) || number.longValue() <= 0)
+      throw new vn.edu.utex.bookstore.common.Problem(401, "Phiên đăng nhập không hợp lệ.");
     return number.longValue();
   }
 }

@@ -1,37 +1,13 @@
-<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
-  <p class="eyebrow">QUẢN TRỊ</p><h1>Quản lý cửa hàng</h1>
-  <h2 class="mt-4">Yêu cầu xét duyệt</h2><p class="muted" th:if="${#lists.isEmpty(applications)}">Chưa có yêu cầu.</p>
-  <div class="shop-grid">
-    <article class="form-card shop-data" th:each="a : ${applications}">
-      <h3 th:text="${a.name}"></h3><p th:text="${a.address}"></p>
-      <p th:text="${a.status == 'PENDING' ? 'Chờ duyệt' : (a.status == 'APPROVED' ? 'Đã duyệt' : 'Đã từ chối')}"></p>
-      <p th:if="${!#strings.isEmpty(a.reviewNote)}" th:text="${a.reviewNote}"></p>
-      <th:block th:if="${a.status == 'PENDING'}">
-        <form method="post" th:action="@{/admin/shop/approve}" class="mb-3">
-          <input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${a.id}">
-          <button class="btn btn-forest">Duyệt và mở cửa hàng</button>
-        </form>
-        <form method="post" th:action="@{/admin/shop/reject}">
-          <input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${a.id}">
-          <label class="form-label" th:for="${'reject-' + a.id}">Lý do từ chối</label>
-          <input class="form-control mb-2" th:id="${'reject-' + a.id}" name="reason" minlength="5" maxlength="500" required>
-          <button class="btn btn-outline-danger">Từ chối yêu cầu</button>
-        </form>
-      </th:block>
-    </article>
-  </div>
-  <h2 class="mt-5">Các cửa hàng</h2><p class="muted" th:if="${#lists.isEmpty(shops)}">Chưa có cửa hàng được duyệt.</p>
-  <div class="shop-grid">
-    <article class="form-card shop-data" th:each="shop : ${shops}">
-      <h3><a th:href="@{/seller/shop(id=${shop.id})}" th:text="${shop.name}"></a></h3>
-      <p th:text="${shop.status == 'ACTIVE' ? 'Đang hoạt động' : 'Tạm khóa'}"></p>
-      <form method="post" th:action="@{/admin/shop/status}">
-        <input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="shopId" th:value="${shop.id}">
-        <input type="hidden" name="status" th:value="${shop.status == 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE'}">
-        <label class="form-label" th:for="${'status-' + shop.id}">Lý do thay đổi</label>
-        <input class="form-control mb-2" th:id="${'status-' + shop.id}" name="reason" minlength="5" maxlength="500" required>
-        <button class="btn btn-outline-dark" th:text="${shop.status == 'ACTIVE' ? 'Tạm khóa cửa hàng' : 'Mở lại cửa hàng'}"></button>
-      </form>
-    </article>
-  </div>
+<section class="container section admin-section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <div class="section-heading"><div><p class="eyebrow">QUẢN TRỊ CỬA HÀNG</p><h1>Quản lý cửa hàng</h1><p class="muted">Xem thông tin đăng ký, duyệt cửa hàng mới và quản lý trạng thái hoạt động.</p></div></div>
+  <section class="content-section" aria-labelledby="pending-shops"><div class="subsection-heading"><div><h2 id="pending-shops">Yêu cầu đang chờ</h2><p class="muted">Kiểm tra tên và địa chỉ trước khi chấp thuận.</p></div></div>
+    <div class="empty-state panel" th:if="${#lists.isEmpty(applications)}"><strong>Không có yêu cầu mới</strong><p>Các yêu cầu đăng ký sẽ xuất hiện tại đây.</p></div>
+    <div class="shop-grid"><article class="form-card shop-data" th:each="a : ${applications}"><div class="card-heading"><div><p class="eyebrow">YÊU CẦU MỞ CỬA HÀNG</p><h3 th:text="${a.name}"></h3></div><span class="status-pill" th:classappend="${a.status == 'PENDING'} ? ' status-waiting' : (${a.status == 'APPROVED'} ? ' status-active' : ' status-paused')" th:text="${a.status == 'PENDING' ? 'Chờ duyệt' : (a.status == 'APPROVED' ? 'Đã duyệt' : 'Đã từ chối')}"></span></div><p class="address-line" th:text="${a.address}"></p><p class="review-note" th:if="${!#strings.isEmpty(a.reviewNote)}"><strong>Ghi chú:</strong> <span th:text="${a.reviewNote}"></span></p>
+      <div th:if="${a.status == 'PENDING'}" class="review-actions"><form method="post" th:action="@{/admin/shop/approve}"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${a.id}"><button class="btn btn-forest" type="submit">Duyệt cửa hàng</button></form><form method="post" th:action="@{/admin/shop/reject}" class="reject-form"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${a.id}"><label th:for="${'reject-' + a.id}">Lý do từ chối</label><input class="form-control" th:id="${'reject-' + a.id}" name="reason" minlength="5" maxlength="500" required placeholder="Nêu rõ thông tin cần bổ sung"><button class="btn btn-outline-danger" type="submit">Từ chối yêu cầu</button></form></div>
+    </article></div>
+  </section>
+  <section class="content-section" aria-labelledby="approved-shops"><div class="subsection-heading"><div><h2 id="approved-shops">Cửa hàng đã duyệt</h2><p class="muted">Tạm khóa khi cần kiểm tra và mở lại sau khi vấn đề được giải quyết.</p></div></div>
+    <div class="empty-state panel" th:if="${#lists.isEmpty(shops)}"><strong>Chưa có cửa hàng</strong><p>Cửa hàng được duyệt sẽ xuất hiện tại đây.</p></div>
+    <div class="shop-grid"><article class="form-card shop-data" th:each="shop : ${shops}"><div class="card-heading"><h3><a th:href="@{/seller/shop(id=${shop.id})}" th:text="${shop.name}"></a></h3><span class="status-pill" th:classappend="${shop.status == 'ACTIVE'} ? ' status-active' : ' status-paused'" th:text="${shop.status == 'ACTIVE' ? 'Đang hoạt động' : 'Đang tạm khóa'}"></span></div><form method="post" th:action="@{/admin/shop/status}" class="status-form"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="shopId" th:value="${shop.id}"><input type="hidden" name="status" th:value="${shop.status == 'ACTIVE' ? 'SUSPENDED' : 'ACTIVE'}"><label th:for="${'status-' + shop.id}">Lý do thay đổi</label><input class="form-control" th:id="${'status-' + shop.id}" name="reason" minlength="5" maxlength="500" required placeholder="Ghi rõ lý do để dễ theo dõi"><button class="btn btn-outline-dark" type="submit" th:text="${shop.status == 'ACTIVE' ? 'Tạm khóa cửa hàng' : 'Mở lại cửa hàng'}"></button></form></article></div>
+  </section>
 </section>

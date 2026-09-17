@@ -108,6 +108,11 @@ class JwtWebTest {
     return client.send(HttpRequest.newBuilder(URI.create(base + path)).header("Authorization", "Bearer " + token)
         .build(), HttpResponse.BodyHandlers.ofString());
   }
+  HttpResponse<String> apiPost(String token, String path, String body) throws Exception {
+    return client.send(HttpRequest.newBuilder(URI.create(base + path))
+        .header("Authorization", "Bearer " + token).header("Content-Type", "application/json")
+        .POST(HttpRequest.BodyPublishers.ofString(body)).build(), HttpResponse.BodyHandlers.ofString());
+  }
   String resign(String raw, java.util.function.Consumer<Map<String, Object>> edit) {
     var decoder = NimbusJwtDecoder.withPublicKey((RSAPublicKey) pair.getPublic()).build();
     Map<String, Object> claims = new HashMap<>(decoder.decode(raw).getClaims());
@@ -186,5 +191,24 @@ class JwtWebTest {
     token();
     for (int i = 0; i < 7; i++) token();
     assertEquals(429, post("/auth/api-token", "_csrf=" + csrf()).statusCode());
+  }
+
+  @Test void businessFailuresKeepTheirJsonHttpStatus() throws Exception {
+    login("session");
+    String raw = token();
+    var missingOrder = api(raw, "/api/orders/999999");
+    assertEquals(404, missingOrder.statusCode(), missingOrder.body());
+    assertTrue(missingOrder.headers().firstValue("Content-Type").orElse("").contains("application/json"));
+    assertEquals("no-store", missingOrder.headers().firstValue("Cache-Control").orElseThrow());
+    assertEquals("Không tìm thấy dữ liệu.", json.readTree(missingOrder.body()).get("error").asText());
+
+    var unavailableCopy = apiPost(raw, "/api/cart/items", "{\"copyId\":999999}");
+    assertEquals(409, unavailableCopy.statusCode(), unavailableCopy.body());
+    assertNotNull(json.readTree(unavailableCopy.body()).get("error"));
+
+    var invalidCheckout = apiPost(raw, "/api/checkout",
+        "{\"addressId\":1,\"idempotencyKey\":\"short\",\"quoteFingerprint\":\"missing\"}");
+    assertEquals(400, invalidCheckout.statusCode(), invalidCheckout.body());
+    assertNotNull(json.readTree(invalidCheckout.body()).get("error"));
   }
 }

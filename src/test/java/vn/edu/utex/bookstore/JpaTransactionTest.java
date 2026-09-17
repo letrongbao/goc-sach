@@ -111,8 +111,12 @@ class JpaTransactionTest {
               .addResource("META-INF/orm.xml")
               .addResource("META-INF/shop-orm.xml")
               .addResource("META-INF/inventory-orm.xml")
+              .addResource("META-INF/buyer-orm.xml")
+              .addResource("META-INF/order-orm.xml")
+              .addResource("META-INF/review-orm.xml")
+              .addResource("META-INF/media-orm.xml")
               .buildMetadata();
-      assertEquals(11, metadata.getEntityBindings().size());
+      assertEquals(24, metadata.getEntityBindings().size());
     } finally {
       org.hibernate.boot.registry.StandardServiceRegistryBuilder.destroy(registry);
     }

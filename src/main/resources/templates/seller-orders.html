@@ -1,0 +1,9 @@
+<section class="container section shop-data" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <a class="back-link" th:href="@{/seller/shops}">← Cửa hàng của tôi</a>
+  <div class="section-heading"><div><p class="eyebrow">NGƯỜI BÁN</p><h1>Đơn hàng cửa hàng</h1></div></div>
+  <form method="get" th:action="@{/seller/orders}" class="panel p-3 mb-4"><label for="shopId" class="mt-0">Chọn cửa hàng</label><div class="seller-order-filter-fields"><select id="shopId" name="shopId" class="form-select"><option value="">Tất cả cửa hàng</option><option th:each="shop : ${sellerShops}" th:value="${shop.id}" th:text="${shop.name}" th:selected="${selectedShopId == shop.id}"></option></select><button class="btn btn-forest" type="submit">Xem đơn</button></div></form>
+  <div class="table-responsive panel" th:if="${!#lists.isEmpty(sellerOrders)}"><table class="table align-middle"><thead><tr><th>Đơn hàng</th><th>Người nhận</th><th>Trạng thái</th><th>Tổng tiền</th><th></th></tr></thead><tbody>
+    <tr th:each="order : ${sellerOrders}"><td data-label="Đơn hàng"><strong>#[[${order.id}]]</strong><br><small th:text="${order.shopName}"></small><br><small><time th:text="${order.displayTime}"></time></small></td><td data-label="Người nhận"><span th:text="${order.recipientName}"></span><br><small th:text="${order.phone}"></small></td><td data-label="Trạng thái"><span class="status" th:text="${order.statusLabel}"></span></td><td data-label="Tổng tiền"><strong>[[${#numbers.formatDecimal(order.total,1,'POINT',0,'COMMA')}]] ₫</strong></td><td data-label="Thao tác"><a th:href="@{/seller/orders/{id}(id=${order.id})}">Xử lý đơn →</a></td></tr>
+  </tbody></table></div>
+  <div th:if="${#lists.isEmpty(sellerOrders)}" class="empty-catalog"><h2>Chưa có đơn hàng</h2><p>Đơn mới của cửa hàng sẽ xuất hiện tại đây.</p></div>
+</section>

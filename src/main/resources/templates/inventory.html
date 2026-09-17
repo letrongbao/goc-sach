@@ -1,22 +1,8 @@
 <section class="container section shop-data" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
-  <a th:href="@{/seller/shop(id=${shop.id})}">← Quản lý cửa hàng</a>
-  <div class="shop-toolbar mt-3"><div><p class="eyebrow" th:text="${shop.name}"></p><h1>Kho sách cũ</h1></div>
-    <a class="btn btn-forest" th:if="${shop.status == 'ACTIVE'}" th:href="@{/seller/copy/add(shopId=${shop.id})}">+ Nhập một bản sách</a></div>
-  <p class="muted">Mỗi dòng là một cuốn sách vật lý. Mã sách và lịch sử được giữ lại khi ngừng bán.</p>
-  <p class="alert alert-warning" th:if="${shop.status == 'SUSPENDED'}">Cửa hàng đang tạm khóa. Kho chỉ được xem, không thể chỉnh sửa.</p>
-  <p th:if="${inventoryPage.total == 0}" class="alert alert-light">Kho chưa có bản sách nào.</p>
-  <div class="table-responsive" th:if="${inventoryPage.total > 0}"><table class="table align-middle">
-    <thead><tr><th>Đầu sách / mã bản</th><th>Tình trạng</th><th>Giá</th><th>Trạng thái</th><th></th></tr></thead>
-    <tbody><tr th:each="item : ${inventoryPage.items}">
-      <td><strong th:text="${item.title}"></strong><br><small th:text="${item.code}"></small></td>
-      <td th:text="${item.condition == 'UNCLASSIFIED' ? 'Chưa phân loại' : item.condition == 'LIKE_NEW' ? 'Như mới' : item.condition == 'GOOD' ? 'Tốt' : 'Đọc được'}"></td>
-      <td>[[${#numbers.formatDecimal(item.price, 1, 'POINT', 0, 'COMMA')}]] ₫</td>
-      <td th:text="${item.status == 'AVAILABLE' ? 'Sẵn bán' : item.status == 'UNAVAILABLE' ? 'Ngừng bán' : item.status == 'RESERVED' ? 'Đang giữ' : 'Đã bán'}"></td>
-      <td><a th:href="@{/seller/copy/edit(shopId=${shop.id},id=${item.id})}">Chi tiết</a></td>
-    </tr></tbody></table></div>
-  <nav class="shop-toolbar" aria-label="Phân trang kho" th:if="${inventoryPage.pages > 1}">
-    <a th:if="${inventoryPage.number > 1}" th:href="@{/seller/inventory(shopId=${shop.id},page=${inventoryPage.number - 1})}">← Trang trước</a>
-    <span>Trang [[${inventoryPage.number}]] / [[${inventoryPage.pages}]]</span>
-    <a th:if="${inventoryPage.number < inventoryPage.pages}" th:href="@{/seller/inventory(shopId=${shop.id},page=${inventoryPage.number + 1})}">Trang sau →</a>
-  </nav>
+  <a class="back-link" th:href="@{/seller/shop(id=${shop.id})}">← Quản lý cửa hàng</a>
+  <div class="section-heading"><div><p class="eyebrow" th:text="${shop.name}"></p><h1>Kho sách cũ</h1><p class="muted">Mỗi dòng tương ứng với một cuốn sách thực tế tại cửa hàng.</p></div><a class="btn btn-forest" th:if="${shop.status == 'ACTIVE'}" th:href="@{/seller/copy/add(shopId=${shop.id})}">Nhập sách vào kho</a></div>
+  <div class="alert alert-warning" th:if="${shop.status == 'SUSPENDED'}" role="alert">Cửa hàng đang tạm khóa. Bạn có thể xem kho nhưng chưa thể thay đổi thông tin.</div>
+  <div class="empty-state panel" th:if="${inventoryPage.total == 0}"><strong>Kho sách đang trống</strong><p th:if="${shop.status == 'ACTIVE'}">Hãy nhập cuốn sách đầu tiên để bắt đầu quản lý kho.</p></div>
+  <div class="table-responsive panel" th:if="${inventoryPage.total > 0}"><table class="table align-middle"><thead><tr><th>Sách</th><th>Tình trạng</th><th>Giá bán</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody><tr th:each="item : ${inventoryPage.items}"><td data-label="Sách"><strong th:text="${item.title}"></strong><small class="d-block">Mã cuốn: [[${item.code}]]</small></td><td data-label="Tình trạng" th:text="${item.condition == 'UNCLASSIFIED' ? 'Chưa phân loại' : item.condition == 'LIKE_NEW' ? 'Như mới' : item.condition == 'GOOD' ? 'Tốt' : 'Đọc được'}"></td><td data-label="Giá bán"><strong>[[${#numbers.formatDecimal(item.price, 1, 'POINT', 0, 'COMMA')}]] ₫</strong></td><td data-label="Trạng thái"><span class="status-pill" th:classappend="${item.status == 'AVAILABLE'} ? ' status-active' : (${item.status == 'RESERVED'} ? ' status-waiting' : ' status-paused')" th:text="${item.status == 'AVAILABLE' ? 'Sẵn bán' : item.status == 'UNAVAILABLE' ? 'Ngừng bán' : item.status == 'RESERVED' ? 'Đang giữ cho khách' : 'Đã bán'}"></span></td><td data-label="Thao tác"><a class="text-link" th:href="@{/seller/copy/edit(shopId=${shop.id},id=${item.id})}">Xem chi tiết</a></td></tr></tbody></table></div>
+  <nav class="page-nav simple-page-nav" aria-label="Phân trang kho" th:if="${inventoryPage.pages > 1}"><a th:if="${inventoryPage.number > 1}" th:href="@{/seller/inventory(shopId=${shop.id},page=${inventoryPage.number - 1})}">← Trang trước</a><span>Trang [[${inventoryPage.number}]] / [[${inventoryPage.pages}]]</span><a th:if="${inventoryPage.number < inventoryPage.pages}" th:href="@{/seller/inventory(shopId=${shop.id},page=${inventoryPage.number + 1})}">Trang sau →</a></nav>
 </section>

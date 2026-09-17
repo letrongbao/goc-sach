@@ -118,7 +118,7 @@ public final class FrontController {
     } catch (IllegalStateException e) {
       req.getServletContext().log("Request failed", e);
       res.setStatus(503);
-      req.setAttribute("error", "Dịch vụ tạm thời chưa sẵn sàng. Kiểm tra cấu hình/database.");
+      req.setAttribute("error", "Góc Sách đang tạm thời gián đoạn. Vui lòng thử lại sau ít phút.");
       Web.view(req, res, "error");
     }
   }
