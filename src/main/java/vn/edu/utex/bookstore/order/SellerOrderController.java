@@ -12,9 +12,11 @@ import vn.edu.utex.bookstore.web.Web;
 @Controller
 public final class SellerOrderController {
   private final OrderService orders;
+  private final vn.edu.utex.bookstore.payment.PaymentService payments;
 
-  public SellerOrderController(OrderService orders) {
+  public SellerOrderController(OrderService orders, vn.edu.utex.bookstore.payment.PaymentService payments) {
     this.orders = orders;
+    this.payments = payments;
   }
 
   @GetMapping("/seller/orders")
@@ -55,7 +57,7 @@ public final class SellerOrderController {
   @PostMapping("/seller/orders/{id}/cancel")
   public ModelAndView cancel(@PathVariable long id, @RequestParam String reason,
       HttpServletRequest request, HttpServletResponse response) {
-    return change(id, request, response, () -> orders.sellerCancel(identity(request), id, reason),
+    return change(id, request, response, () -> payments.sellerCancel(identity(request), id, reason),
         "Đã hủy đơn và trả sách về kho.");
   }
 

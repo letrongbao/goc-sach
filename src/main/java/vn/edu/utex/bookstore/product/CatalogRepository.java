@@ -4,8 +4,14 @@ import java.math.BigDecimal;
 import java.util.*;
 
 public interface CatalogRepository {
+  enum Sort { NEWEST, PRICE_ASC, PRICE_DESC, FAVORITES }
   record Filter(String query, long categoryId, BigDecimal minimumPrice, BigDecimal maximumPrice,
-      String condition, long shopId) {}
+      String condition, long shopId, Sort sort, boolean favoritesOnly) {
+    public Filter(String query, long categoryId, BigDecimal minimumPrice, BigDecimal maximumPrice,
+        String condition, long shopId) {
+      this(query, categoryId, minimumPrice, maximumPrice, condition, shopId, Sort.NEWEST, false);
+    }
+  }
   record Stock(long productId, long available, BigDecimal minimumPrice) {}
   record Offer(long id, long shopId, String shopName, String code, String condition, String defects, BigDecimal price) {}
   record ShopOption(long id, String name, String address) {}

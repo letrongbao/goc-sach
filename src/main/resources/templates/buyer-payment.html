@@ -1,0 +1,53 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <a class="back-link" th:href="@{/orders/{id}(id=${payment.orderId})}">← Chi tiết đơn hàng</a>
+  <div class="section-heading">
+    <div><p class="eyebrow">ĐƠN HÀNG #[[${payment.orderId}]]</p><h1>Thanh toán đơn hàng</h1><p class="muted" th:text="${orderDetail.order.shopName}"></p></div>
+    <span class="status" th:text="${payment.statusLabel}"></span>
+  </div>
+  <div class="row g-4 align-items-start">
+    <div class="col-lg-7">
+      <div class="panel p-4">
+        <h2>Sách trong đơn</h2>
+        <article class="checkout-line order-item-row" th:each="item : ${orderDetail.items}">
+          <a class="order-item-cover" th:href="@{/product/detail(id=${item.productId})}"><img th:if="${!#strings.isEmpty(item.coverUrl)}" th:src="${item.coverUrl}" th:alt="${'Bìa sách ' + item.title}" loading="lazy"><span th:if="${#strings.isEmpty(item.coverUrl)}" aria-hidden="true">SÁCH</span></a>
+          <div class="order-item-info"><strong th:text="${item.title}"></strong><small>[[${item.conditionLabel}]] · Mã cuốn: [[${item.copyCode}]]</small></div>
+          <strong class="order-item-price">[[${#numbers.formatDecimal(item.price,1,'POINT',0,'COMMA')}]] ₫</strong>
+        </article>
+        <div class="checkout-line"><span>Tiền sách</span><span>[[${#numbers.formatDecimal(orderDetail.order.subtotal,1,'POINT',0,'COMMA')}]] ₫</span></div>
+        <div class="checkout-line"><span>Phí giao hàng</span><span>[[${#numbers.formatDecimal(orderDetail.order.shippingFee,1,'POINT',0,'COMMA')}]] ₫</span></div>
+        <div class="checkout-line total"><span>Tổng thanh toán</span><strong>[[${#numbers.formatDecimal(orderDetail.order.total,1,'POINT',0,'COMMA')}]] ₫</strong></div>
+      </div>
+    </div>
+    <div class="col-lg-5">
+      <div class="panel p-4 payment-panel">
+        <h2>Chuyển khoản qua payOS</h2>
+        <p th:if="${payment.status == 'PAID'}" class="alert alert-success">Đơn đã được xác nhận thanh toán. Bạn có thể theo dõi quá trình chuẩn bị và giao sách trong chi tiết đơn hàng.</p>
+        <p th:if="${payment.status == 'REVIEW_REQUIRED'}" class="alert alert-warning">Khoản thanh toán đang được kiểm tra. Vui lòng không chuyển tiền thêm cho đơn này. Liên hệ Góc Sách để được hỗ trợ.</p>
+        <p th:if="${payment.status == 'CANCELLED' or payment.status == 'EXPIRED'}" class="alert alert-warning">Đơn này không còn tiếp nhận thanh toán. Bạn có thể quay lại tìm sách và tạo đơn mới nếu sách vẫn còn bán.</p>
+        <div th:if="${payment.canStart}">
+          <p>Chọn thanh toán để mở trang payOS, sau đó quét mã QR hoặc làm theo hướng dẫn chuyển khoản của ngân hàng.</p>
+          <p class="payment-expiry" th:if="${payment.expiresAt != null}">Sách được giữ đến <strong><time th:datetime="${payment.expiresAt}" th:text="${payment.displayExpiresAt}"></time></strong>.</p>
+          <form method="post" th:action="@{/orders/{id}/payment/start(id=${payment.orderId})}">
+            <input type="hidden" name="_csrf" th:value="${csrf}">
+            <button class="btn btn-forest w-100" type="submit">Thanh toán qua payOS</button>
+          </form>
+          <a class="text-link d-block mt-3" th:if="${!#strings.isEmpty(payment.checkoutUrl)}" th:href="${payment.checkoutUrl}" rel="noopener noreferrer">Mở lại trang thanh toán payOS →</a>
+        </div>
+        <p class="form-note" th:if="${payment.status == 'UNPAID' or payment.status == 'PENDING'}">Sau khi chuyển khoản, chọn “Kiểm tra thanh toán”. Trạng thái sẽ được cập nhật khi khoản tiền được xác nhận.</p>
+        <form method="post" th:action="@{/orders/{id}/payment/refresh(id=${payment.orderId})}" class="mt-3" th:if="${payment.status == 'UNPAID' or payment.status == 'PENDING' or payment.status == 'REVIEW_REQUIRED'}">
+          <input type="hidden" name="_csrf" th:value="${csrf}">
+          <button class="btn btn-outline-dark w-100" type="submit">Kiểm tra thanh toán</button>
+        </form>
+        <a class="btn btn-outline-dark w-100 mt-3" th:href="@{/orders/{id}(id=${payment.orderId})}">Xem chi tiết đơn hàng</a>
+      </div>
+      <div class="panel p-4 mt-4" th:if="${payment.canCancel}">
+        <h2 class="h4">Không tiếp tục mua sách?</h2>
+        <p class="muted">Hủy đơn sẽ đóng yêu cầu thanh toán và trả sách về cửa hàng. Nếu vừa chuyển tiền, hãy kiểm tra thanh toán trước.</p>
+        <form method="post" th:action="@{/orders/{id}/payment/cancel(id=${payment.orderId})}">
+          <input type="hidden" name="_csrf" th:value="${csrf}">
+          <button class="btn btn-outline-danger" type="submit">Hủy đơn và thanh toán</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>

@@ -41,7 +41,15 @@ public class JpaStore implements Store {
     } catch (RuntimeException e) {
       if (e instanceof Problem) throw e;
       for (Throwable cause = e; cause != null; cause = cause.getCause()) {
+        if (cause instanceof OptimisticLockException || cause instanceof PessimisticLockException
+            || cause instanceof LockTimeoutException
+            || cause instanceof org.springframework.dao.ConcurrencyFailureException
+            || cause instanceof org.hibernate.StaleStateException
+            || cause instanceof org.hibernate.exception.LockAcquisitionException)
+          throw concurrentChange();
         if (cause instanceof java.sql.SQLException sql) {
+          if (Set.of("40001", "40P01", "55P03").contains(Objects.toString(sql.getSQLState(), "")))
+            throw concurrentChange();
           if ("23505".equals(sql.getSQLState()))
             throw uniqueViolation(e);
           if ("23503".equals(sql.getSQLState()))
@@ -50,6 +58,10 @@ public class JpaStore implements Store {
       }
       throw new IllegalStateException("Lỗi truy cập database.", e);
     }
+  }
+
+  private static Problem concurrentChange() {
+    return new Problem(409, "Dữ liệu vừa thay đổi hoặc đang được xử lý. Vui lòng tải lại rồi thử lại.");
   }
 
   private static Problem uniqueViolation(Throwable error) {
@@ -87,12 +99,25 @@ public class JpaStore implements Store {
       this.em = em;
     }
 
+    private <T> T find(Class<T> type, long id, boolean lock) {
+      T entity = em.find(type, id);
+      if (entity != null && lock) {
+        LockModeType current = em.getLockMode(entity);
+        // Refresh atomically with the lock, unless this transaction already owns it.
+        // A nested service must retain changes made after the first locked read.
+        if (current != LockModeType.PESSIMISTIC_WRITE
+            && current != LockModeType.PESSIMISTIC_FORCE_INCREMENT)
+          em.refresh(entity, LockModeType.PESSIMISTIC_WRITE);
+      }
+      return entity;
+    }
+
     public List<Product> catalogProducts(CatalogRepository.Filter filter, int offset, int limit) {
-      return filtered(em.createQuery(CatalogQueries.PRODUCTS, Product.class), filter)
+      return filtered(em.createQuery(CatalogQueries.products(filter), Product.class), filter)
           .setFirstResult(offset).setMaxResults(limit).getResultList();
     }
     public long catalogCount(CatalogRepository.Filter filter) {
-      return filtered(em.createQuery(CatalogQueries.COUNT, Long.class), filter).getSingleResult();
+      return filtered(em.createQuery(CatalogQueries.count(filter), Long.class), filter).getSingleResult();
     }
     public Map<Long, CatalogRepository.Stock> catalogStock(List<Long> ids, CatalogRepository.Filter filter) {
       if (ids.isEmpty()) return Map.of();
@@ -129,7 +154,7 @@ public class JpaStore implements Store {
     }
 
     public BookCopy copy(long id, boolean lock) {
-      return lock ? em.find(BookCopy.class, id, LockModeType.PESSIMISTIC_WRITE) : em.find(BookCopy.class, id);
+      return find(BookCopy.class, id, lock);
     }
     public BookCopy saveCopy(BookCopy copy) {
       if (copy.id == null) { em.persist(copy); return copy; }
@@ -154,7 +179,7 @@ public class JpaStore implements Store {
     }
 
     public Shop shop(long id, boolean lock) {
-      return lock ? em.find(Shop.class, id, LockModeType.PESSIMISTIC_WRITE) : em.find(Shop.class, id);
+      return find(Shop.class, id, lock);
     }
 
     public List<Shop> shopsFor(long userId, boolean all) {
@@ -210,7 +235,7 @@ public class JpaStore implements Store {
     }
 
     public User lockUser(long id) {
-      return em.find(User.class, id, LockModeType.PESSIMISTIC_WRITE);
+      return find(User.class, id, true);
     }
 
     public User findLogin(String login) {
@@ -235,7 +260,7 @@ public class JpaStore implements Store {
     }
 
     public Category category(long id, boolean lock) {
-      return lock ? em.find(Category.class, id, LockModeType.PESSIMISTIC_WRITE) : em.find(Category.class, id);
+      return find(Category.class, id, lock);
     }
 
     public List<Category> categories(String query) {
@@ -355,10 +380,10 @@ public class JpaStore implements Store {
     public CartItem cartItem(long cartId,long copyId){return em.createQuery("select i from CartItem i where i.cartId=:cart and i.copyId=:copy",CartItem.class).setParameter("cart",cartId).setParameter("copy",copyId).getResultStream().findFirst().orElse(null);}
     public CartItem saveCartItem(CartItem i){if(i.id==null){em.persist(i);return i;}return em.merge(i);}
     public void deleteCartItem(long cartId,long copyId){em.createQuery("delete from CartItem i where i.cartId=:cart and i.copyId=:copy").setParameter("cart",cartId).setParameter("copy",copyId).executeUpdate();}
-    public CheckoutGroup checkoutGroup(long id,boolean lock){return lock ? em.find(CheckoutGroup.class,id,LockModeType.PESSIMISTIC_WRITE) : em.find(CheckoutGroup.class,id);}
+    public CheckoutGroup checkoutGroup(long id,boolean lock){return find(CheckoutGroup.class,id,lock);}
     public Order orderByKey(long userId,String key){return ordersByKey(userId,key).stream().findFirst().orElse(null);}
     public List<Order> ordersByKey(long userId,String key){return em.createQuery("select o from Order o where o.userId=:user and o.idempotencyKey=:key order by o.id",Order.class).setParameter("user",userId).setParameter("key",key).getResultList();}
-    public Order order(long id, boolean lock){return lock ? em.find(Order.class,id,LockModeType.PESSIMISTIC_WRITE) : em.find(Order.class,id);}
+    public Order order(long id, boolean lock){return find(Order.class,id,lock);}
     public CheckoutGroup saveCheckoutGroup(CheckoutGroup g){if(g.id==null){em.persist(g);return g;}return em.merge(g);}
     public Order saveOrder(Order o){if(o.id==null){em.persist(o);return o;}return em.merge(o);}
     public OrderItem saveOrderItem(OrderItem i){if(i.id==null){em.persist(i);return i;}return em.merge(i);}
@@ -372,8 +397,40 @@ public class JpaStore implements Store {
     public List<OrderStatusHistory> orderStatuses(long orderId){return em.createQuery("select h from OrderStatusHistory h where h.orderId=:order order by h.createdAt,h.id",OrderStatusHistory.class).setParameter("order",orderId).getResultList();}
     public boolean deliveredPurchase(long userId,long productId){return em.createQuery("select count(i) from OrderItem i, Order o where i.orderId=o.id and o.userId=:user and i.productId=:product and o.status='COMPLETED'",Long.class).setParameter("user",userId).setParameter("product",productId).getSingleResult()>0;}
     public long completedOrderFor(long userId,long productId){return em.createQuery("select o.id from OrderItem i, Order o where i.orderId=o.id and o.userId=:user and i.productId=:product and o.status='COMPLETED' order by o.createdAt desc,o.id desc",Long.class).setParameter("user",userId).setParameter("product",productId).setMaxResults(1).getResultStream().findFirst().orElse(0L);}
+    public vn.edu.utex.bookstore.payment.PaymentAttempt paymentForOrder(long orderId, boolean lock) {
+      var query = em.createQuery("select p from PaymentAttempt p where p.orderId=:order", vn.edu.utex.bookstore.payment.PaymentAttempt.class).setParameter("order", orderId);
+      if (lock) query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+      return query.getResultStream().findFirst().orElse(null);
+    }
+    public vn.edu.utex.bookstore.payment.PaymentAttempt paymentByCode(long code) {
+      return em.createQuery("select p from PaymentAttempt p where p.orderCode=:code", vn.edu.utex.bookstore.payment.PaymentAttempt.class).setParameter("code", code).getResultStream().findFirst().orElse(null);
+    }
+    public vn.edu.utex.bookstore.payment.PaymentAttempt savePayment(vn.edu.utex.bookstore.payment.PaymentAttempt p) {
+      if (p.id == null) { em.persist(p); return p; } return em.merge(p);
+    }
+    public vn.edu.utex.bookstore.payment.PaymentEvent paymentEvent(String reference) {
+      return em.createQuery("select e from PaymentEvent e where e.reference=:reference", vn.edu.utex.bookstore.payment.PaymentEvent.class).setParameter("reference", reference).getResultStream().findFirst().orElse(null);
+    }
+    public vn.edu.utex.bookstore.payment.PaymentEvent savePaymentEvent(vn.edu.utex.bookstore.payment.PaymentEvent e) {
+      if (e.id == null) { em.persist(e); return e; } return em.merge(e);
+    }
+    public List<Long> dueOnlineOrders(java.time.Instant now, int limit) {
+      // Query only, no schema creation or expiry side effects.
+      return em.createQuery(PaymentQueries.DUE_ORDERS, Long.class).setParameter("now", now).setMaxResults(limit).getResultList();
+    }
+    public List<Long> openPaymentOrders(int limit, long afterOrderId) {
+      return em.createQuery(PaymentQueries.OPEN_ORDERS, Long.class).setParameter("after", afterOrderId).setMaxResults(limit).getResultList();
+    }
+    public List<vn.edu.utex.bookstore.payment.PaymentEvent> paymentEvents(long attemptId) {
+      return em.createQuery("select e from PaymentEvent e where e.attemptId=:attempt order by e.id", vn.edu.utex.bookstore.payment.PaymentEvent.class).setParameter("attempt", attemptId).getResultList();
+    }
+    public List<vn.edu.utex.bookstore.payment.PaymentAttempt> paymentsNeedingReview(int limit) {
+      return em.createQuery("select p from PaymentAttempt p where p.status='REVIEW_REQUIRED' order by p.updatedAt,p.id", vn.edu.utex.bookstore.payment.PaymentAttempt.class).setMaxResults(limit).getResultList();
+    }
     public Review review(long userId,long productId){return em.createQuery("select r from Review r where r.userId=:user and r.productId=:product",Review.class).setParameter("user",userId).setParameter("product",productId).getResultStream().findFirst().orElse(null);}
     public Review saveReview(Review r){if(r.id==null){em.persist(r);return r;}return em.merge(r);}
     public List<Review> reviews(long productId){return em.createQuery("select r from Review r where r.productId=:product and r.status='PUBLISHED' order by r.createdAt desc,r.id desc",Review.class).setParameter("product",productId).getResultList();}
+    public List<Review> reviews(long productId,int offset,int limit){return em.createQuery("select r from Review r where r.productId=:product and r.status='PUBLISHED' order by r.createdAt desc,r.id desc",Review.class).setParameter("product",productId).setFirstResult(offset).setMaxResults(limit).getResultList();}
+    public ReviewRepository.ReviewStats reviewStats(long productId){Object[] row=em.createQuery("select count(r),avg(r.rating) from Review r where r.productId=:product and r.status='PUBLISHED'",Object[].class).setParameter("product",productId).getSingleResult();return new ReviewRepository.ReviewStats((Long)row[0],row[1]==null?0:((Number)row[1]).doubleValue());}
   }
 }

@@ -429,13 +429,22 @@ class WebTest {
   @Test
   void catalogPagesAndDetailsRender() throws Exception {
     DemoFixtures.catalogStock((MemoryStore) context.getBean(App.class).store);
-    assertEquals(13, countCards(get("/").body()));
+    assertEquals(5, countCards(get("/").body()));
     var page = get("/product?page=1");
     assertEquals(200, page.statusCode(), page.body());
     assertEquals(13, countCards(page.body()));
     var search = get("/product?q=" + URLEncoder.encode("Lập trình", java.nio.charset.StandardCharsets.UTF_8));
     assertEquals(200, search.statusCode(), search.body());
     assertEquals(1, countCards(search.body()));
+    var cheapest = get("/product?sort=price_asc&minPrice=80000&maxPrice=90000&condition=GOOD");
+    assertEquals(200, cheapest.statusCode(), cheapest.body());
+    assertEquals(3, countCards(cheapest.body()));
+    assertTrue(cheapest.body().indexOf("Những ngày có nắng") < cheapest.body().indexOf("Một hành trình nhỏ"));
+    assertTrue(cheapest.body().contains("value=\"price_asc\" selected=\"selected\""));
+    var expensive = get("/product?sort=price_desc&minPrice=80000&maxPrice=90000&condition=GOOD");
+    assertEquals(200, expensive.statusCode(), expensive.body());
+    assertTrue(expensive.body().indexOf("Một hành trình nhỏ") < expensive.body().indexOf("Những ngày có nắng"));
+    assertEquals(400, get("/product?sort=unknown").statusCode());
     var detail = get("/product/detail?id=13");
     assertEquals(200, detail.statusCode(), detail.body());
     assertTrue(detail.body().contains("Một đời đáng đọc"));

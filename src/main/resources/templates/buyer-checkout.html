@@ -34,10 +34,22 @@
               th:selected="${address.defaultAddress}"></option>
           </select>
           <p th:if="${#lists.isEmpty(addresses)}" class="alert alert-warning mt-3">Bạn cần <a th:href="@{/account/addresses}"><u>thêm địa chỉ</u></a> trước khi đặt hàng.</p>
+          <fieldset class="mode-options payment-methods">
+            <legend>Phương thức thanh toán</legend>
+            <label class="choice-card" for="payment-cod">
+              <input id="payment-cod" type="radio" name="paymentMethod" value="COD" th:checked="${paymentMethod == null or paymentMethod == 'COD'}" required>
+              <span><strong>Thanh toán khi nhận hàng</strong><small>Trả tiền khi sách được giao đến bạn.</small></span>
+            </label>
+            <label class="choice-card" for="payment-payos" th:if="${payosEnabled}">
+              <input id="payment-payos" type="radio" name="paymentMethod" value="PAYOS" th:checked="${paymentMethod == 'PAYOS'}">
+              <span><strong>Chuyển khoản qua payOS</strong><small>Thanh toán bằng mã QR hoặc ứng dụng ngân hàng. Sách được giữ tối đa 15 phút để bạn thanh toán.</small></span>
+            </label>
+          </fieldset>
+          <p class="field-help" th:if="${payosEnabled}">Sách từ mỗi cửa hàng được tạo thành một đơn riêng. Nếu chọn chuyển khoản, bạn thanh toán lần lượt từng đơn sau khi đặt hàng.</p>
           <div class="checkout-line mt-4"><span>Tiền sách</span><strong>[[${#numbers.formatDecimal(checkoutQuote.subtotal,1,'POINT',0,'COMMA')}]] ₫</strong></div>
           <div class="checkout-line"><span>Phí giao hàng</span><strong>[[${#numbers.formatDecimal(checkoutQuote.shippingFee,1,'POINT',0,'COMMA')}]] ₫</strong></div>
           <div class="checkout-line total"><span>Tổng thanh toán</span><strong>[[${#numbers.formatDecimal(checkoutQuote.total,1,'POINT',0,'COMMA')}]] ₫</strong></div>
-          <p class="form-note">Thanh toán khi nhận hàng. Giá và tình trạng sách sẽ được kiểm tra lại khi bạn đặt hàng.</p>
+          <p class="form-note">Giá và tình trạng sách sẽ được kiểm tra lại khi bạn đặt hàng. Bạn có thể xem phương thức và tình trạng thanh toán trong chi tiết đơn.</p>
           <button class="btn btn-forest w-100 mt-3" type="submit"
             th:disabled="${#lists.isEmpty(addresses) or !checkoutQuote.ready}">Đặt hàng</button>
         </form>

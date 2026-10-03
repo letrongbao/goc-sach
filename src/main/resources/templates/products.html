@@ -2,13 +2,16 @@
 <section class="container section catalog-page"><div class="section-heading"><div>
   <p class="eyebrow" th:text="${adminView ? 'KHÔNG GIAN QUẢN TRỊ' : 'TỦ SÁCH GÓC'}"></p>
   <h1 th:text="${adminView ? 'Quản lý đầu sách' : 'Tìm cuốn sách dành cho bạn.'}"></h1>
-  <p class="muted" th:if="${!adminView}">[[${catalog.total}]] kết quả · Sách mới được giới thiệu trước</p>
+  <p class="muted" th:if="${!adminView}">Từ một tựa sách bạn nhớ, đến một câu chuyện chưa từng biết.</p>
   <p class="muted" th:if="${adminView}">[[${catalog.total}]] đầu sách · 6 đầu sách mỗi trang</p>
 </div><a th:if="${adminView}" class="btn btn-forest" th:href="@{/admin/product/add}">Thêm đầu sách</a></div>
 
-<form th:unless="${adminView}" class="catalog-filters panel" method="get" th:action="@{/product}">
+<div th:class="${adminView ? '' : 'catalog-workspace'}">
+<details th:unless="${adminView}" class="catalog-filter-panel panel" open>
+<summary><span>Bộ lọc sách</span><span aria-hidden="true">⌄</span></summary>
+<form id="catalog-filter-form" class="catalog-filters" method="get" th:action="@{/product}">
   <div class="catalog-filter-main"><label for="catalog-q">Tên sách hoặc tác giả</label>
-    <input class="form-control" id="catalog-q" name="q" maxlength="100" th:value="${catalog.filters.query}" placeholder="Ví dụ: văn học, Nguyễn Nhật Ánh…">
+    <input class="form-control" id="catalog-q" name="q" type="search" maxlength="100" th:value="${catalog.filters.query}" placeholder="Ví dụ: Nguyễn Nhật Ánh…">
   </div>
   <div><label for="catalog-category">Danh mục</label><select class="form-select" id="catalog-category" name="category">
     <option value="">Tất cả danh mục</option><option th:each="category : ${categories}" th:value="${category.id}" th:text="${category.name}" th:selected="${catalog.filters.categoryId == category.id}"></option>
@@ -20,10 +23,23 @@
   <div><label for="catalog-shop">Cửa hàng</label><select class="form-select" id="catalog-shop" name="shop">
     <option value="">Tất cả cửa hàng</option><option th:each="shop : ${catalogShops}" th:value="${shop.id}" th:text="${shop.name}" th:selected="${catalog.filters.shopId == shop.id}"></option>
   </select></div>
-  <div><label for="catalog-min-price">Giá từ</label><input class="form-control" id="catalog-min-price" name="minPrice" type="number" min="0" step="1000" th:value="${catalog.filters.minimumPrice}" placeholder="0"></div>
-  <div><label for="catalog-max-price">Giá đến</label><input class="form-control" id="catalog-max-price" name="maxPrice" type="number" min="0" step="1000" th:value="${catalog.filters.maximumPrice}" placeholder="Không giới hạn"></div>
+  <div class="filter-price-pair"><div><label for="catalog-min-price">Giá từ (₫)</label><input class="form-control" id="catalog-min-price" name="minPrice" type="number" min="0" step="0.01" th:value="${catalog.filters.minimumPrice}" placeholder="0"></div>
+  <div><label for="catalog-max-price">Giá đến (₫)</label><input class="form-control" id="catalog-max-price" name="maxPrice" type="number" min="0" step="0.01" th:value="${catalog.filters.maximumPrice}" placeholder="Tối đa"></div></div>
   <div class="catalog-filter-actions"><button class="btn btn-forest" type="submit">Xem kết quả</button><a class="btn btn-link" th:href="@{/product}">Bỏ bộ lọc</a></div>
 </form>
+<a class="filter-guide" th:href="@{/guide#condition-guide}">Hiểu tình trạng sách cũ ↗</a>
+</details>
+<div class="catalog-results">
+<th:block th:unless="${adminView}">
+  <div class="catalog-results-toolbar"><p><strong>[[${catalog.total}]]</strong> tựa sách phù hợp</p><div class="catalog-sort"><label for="catalog-sort">Sắp xếp</label><select id="catalog-sort" name="sort" class="form-select" form="catalog-filter-form"><option value="newest" th:selected="${catalog.filters.sort == 'newest'}">Mới nhất</option><option value="price_asc" th:selected="${catalog.filters.sort == 'price_asc'}">Giá thấp đến cao</option><option value="price_desc" th:selected="${catalog.filters.sort == 'price_desc'}">Giá cao đến thấp</option><option value="favorites" th:selected="${catalog.filters.sort == 'favorites'}">Được yêu thích</option></select><button class="btn btn-outline-dark" type="submit" form="catalog-filter-form">Áp dụng</button></div></div>
+  <div class="active-filters" aria-label="Bộ lọc đang áp dụng">
+    <a class="filter-chip" th:if="${!#strings.isEmpty(catalog.filters.query)}" th:href="@{/product(category=${catalog.filters.categoryId},minPrice=${catalog.filters.minimumPrice},maxPrice=${catalog.filters.maximumPrice},condition=${catalog.filters.condition},shop=${catalog.filters.shopId},sort=${catalog.filters.sort})}" th:aria-label="'Bỏ từ khóa ' + ${catalog.filters.query}">“[[${catalog.filters.query}]]” <span aria-hidden="true">×</span></a>
+    <th:block th:each="category : ${categories}"><a class="filter-chip" th:if="${catalog.filters.categoryId == category.id}" th:href="@{/product(q=${catalog.filters.query},minPrice=${catalog.filters.minimumPrice},maxPrice=${catalog.filters.maximumPrice},condition=${catalog.filters.condition},shop=${catalog.filters.shopId},sort=${catalog.filters.sort})}" th:aria-label="'Bỏ danh mục ' + ${category.name}">[[${category.name}]] <span aria-hidden="true">×</span></a></th:block>
+    <a class="filter-chip" th:if="${!#strings.isEmpty(catalog.filters.condition)}" th:href="@{/product(q=${catalog.filters.query},category=${catalog.filters.categoryId},minPrice=${catalog.filters.minimumPrice},maxPrice=${catalog.filters.maximumPrice},shop=${catalog.filters.shopId},sort=${catalog.filters.sort})}" aria-label="Bỏ lọc tình trạng">[[${catalog.filters.condition == 'LIKE_NEW' ? 'Như mới' : catalog.filters.condition == 'GOOD' ? 'Tốt' : 'Đọc được'}]] <span aria-hidden="true">×</span></a>
+    <th:block th:each="shop : ${catalogShops}"><a class="filter-chip" th:if="${catalog.filters.shopId == shop.id}" th:href="@{/product(q=${catalog.filters.query},category=${catalog.filters.categoryId},minPrice=${catalog.filters.minimumPrice},maxPrice=${catalog.filters.maximumPrice},condition=${catalog.filters.condition},sort=${catalog.filters.sort})}" th:aria-label="'Bỏ cửa hàng ' + ${shop.name}">[[${shop.name}]] <span aria-hidden="true">×</span></a></th:block>
+    <a class="filter-chip" th:if="${catalog.filters.minimumPrice != null or catalog.filters.maximumPrice != null}" th:href="@{/product(q=${catalog.filters.query},category=${catalog.filters.categoryId},condition=${catalog.filters.condition},shop=${catalog.filters.shopId},sort=${catalog.filters.sort})}" aria-label="Bỏ lọc khoảng giá"><span th:if="${catalog.filters.minimumPrice != null}">Từ [[${#numbers.formatDecimal(catalog.filters.minimumPrice,1,'POINT',0,'COMMA')}]] ₫</span><span th:if="${catalog.filters.maximumPrice != null}">Đến [[${#numbers.formatDecimal(catalog.filters.maximumPrice,1,'POINT',0,'COMMA')}]] ₫</span><span aria-hidden="true">×</span></a>
+  </div>
+</th:block>
 
 <div th:if="${adminView}" class="table-responsive panel"><table class="table align-middle">
   <thead><tr><th>Mã</th><th>Đầu sách</th><th>Danh mục</th><th>Thao tác</th></tr></thead>
@@ -39,7 +55,8 @@
   <a th:href="@{/admin/products(page=${n})}" th:class="${n == catalog.number ? 'selected' : ''}" th:aria-label="'Trang ' + ${n}" th:attr="aria-current=${n == catalog.number ? 'page' : null}">[[${n}]]</a>
 </th:block><span>Trang [[${catalog.number}]] / [[${catalog.pages}]]</span></nav>
 <nav class="page-nav" aria-label="Phân trang" th:if="${!adminView and catalog.pages > 1}"><th:block th:each="n : ${#numbers.sequence((catalog.number > 2 ? catalog.number - 2 : 1), (catalog.pages < catalog.number + 2 ? catalog.pages : catalog.number + 2))}">
-  <a th:href="@{/product(page=${n},q=${catalog.filters.query},category=${catalog.filters.categoryId},minPrice=${catalog.filters.minimumPrice},maxPrice=${catalog.filters.maximumPrice},condition=${catalog.filters.condition},shop=${catalog.filters.shopId})}" th:class="${n == catalog.number ? 'selected' : ''}" th:aria-label="'Trang ' + ${n}" th:attr="aria-current=${n == catalog.number ? 'page' : null}">[[${n}]]</a>
+  <a th:href="@{/product(page=${n},q=${catalog.filters.query},category=${catalog.filters.categoryId},minPrice=${catalog.filters.minimumPrice},maxPrice=${catalog.filters.maximumPrice},condition=${catalog.filters.condition},shop=${catalog.filters.shopId},sort=${catalog.filters.sort})}" th:class="${n == catalog.number ? 'selected' : ''}" th:aria-label="'Trang ' + ${n}" th:attr="aria-current=${n == catalog.number ? 'page' : null}">[[${n}]]</a>
 </th:block><span>Trang [[${catalog.number}]] / [[${catalog.pages}]]</span></nav>
+</div></div>
 </section>
 </th:block>

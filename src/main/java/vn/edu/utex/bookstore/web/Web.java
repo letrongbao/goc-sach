@@ -68,6 +68,27 @@ public final class Web {
     model.put("pendingEmail", req.getSession().getAttribute("pendingEmail"));
     model.put("preview", Boolean.TRUE.equals(req.getServletContext().getAttribute("preview")));
     model.put("selectedCategoryId", req.getAttribute("selectedCategoryId"));
+    String pageTitle = switch (req.getAttribute("view").toString()) {
+      case "products" -> Boolean.TRUE.equals(req.getAttribute("adminView")) ? "Quản lý đầu sách" : "Khám phá tủ sách";
+      case "product-detail" -> req.getAttribute("product") instanceof vn.edu.utex.bookstore.product.ProductView book ? book.title() : "Chi tiết sách";
+      case "reading-guide" -> "Cẩm nang mua sách cũ";
+      case "buyer-profile" -> "Thông tin cá nhân";
+      case "buyer-addresses" -> "Địa chỉ nhận hàng";
+      case "buyer-favorites" -> "Sách yêu thích";
+      case "buyer-recent" -> "Sách đã xem";
+      case "buyer-cart" -> "Giỏ hàng";
+      case "buyer-checkout" -> "Kiểm tra và đặt hàng";
+      case "buyer-orders" -> "Đơn hàng của tôi";
+      case "buyer-order-detail" -> "Chi tiết đơn hàng";
+      case "buyer-payment" -> "Thanh toán đơn hàng";
+      case "review-form" -> "Cảm nhận sau khi đọc";
+      case "login" -> "Đăng nhập";
+      case "register" -> "Tạo tài khoản";
+      case "seller-orders" -> "Đơn hàng cửa hàng";
+      case "error", "http-error", "forbidden" -> "Thông báo";
+      default -> "Trao sách cũ, mở câu chuyện mới";
+    };
+    model.put("pageTitle", pageTitle);
     return new org.springframework.web.servlet.ModelAndView("layout", model);
   }
 

@@ -20,11 +20,24 @@ public class MemoryStore implements Store, Store.Data {
   }
   public List<vn.edu.utex.bookstore.product.Product> catalogProducts(CatalogRepository.Filter filter, int offset, int limit) {
     String q = filter.query().toLowerCase(Locale.ROOT);
+    var stock = catalogStock(new ArrayList<>(products.keySet()), filter);
+    Comparator<vn.edu.utex.bookstore.product.Product> newest = Comparator
+        .comparing((vn.edu.utex.bookstore.product.Product p) -> p.createdAt).reversed()
+        .thenComparing(p -> p.id, Comparator.reverseOrder());
+    Comparator<vn.edu.utex.bookstore.product.Product> ordering = switch (filter.sort()) {
+      case NEWEST -> newest;
+      case PRICE_ASC -> Comparator.comparing((vn.edu.utex.bookstore.product.Product p) -> stock.get(p.id).minimumPrice()).thenComparing(newest);
+      case PRICE_DESC -> Comparator.comparing((vn.edu.utex.bookstore.product.Product p) -> stock.get(p.id).minimumPrice()).reversed().thenComparing(newest);
+      case FAVORITES -> Comparator.comparingLong((vn.edu.utex.bookstore.product.Product p) -> favoriteCount(p.id)).reversed().thenComparing(newest);
+    };
     return products(0, Integer.MAX_VALUE).stream().filter(p -> p.category.active
         && (filter.categoryId() == 0 || p.category.id == filter.categoryId())
         && (p.title.toLowerCase(Locale.ROOT).contains(q) || p.author.toLowerCase(Locale.ROOT).contains(q))
-        && copies.values().stream().anyMatch(c -> c.productId == p.id && matches(c, filter)))
-        .skip(offset).limit(limit).toList();
+        && stock.containsKey(p.id) && (!filter.favoritesOnly() || favoriteCount(p.id) > 0))
+        .sorted(ordering).skip(offset).limit(limit).toList();
+  }
+  private long favoriteCount(long productId) {
+    return favoriteRows.values().stream().filter(favorite -> favorite.productId == productId).count();
   }
   public long catalogCount(CatalogRepository.Filter filter) { return catalogProducts(filter, 0, Integer.MAX_VALUE).size(); }
   public Map<Long, CatalogRepository.Stock> catalogStock(List<Long> ids, CatalogRepository.Filter filter) {
@@ -282,10 +295,33 @@ public class MemoryStore implements Store, Store.Data {
   public List<Order> ordersForGroup(long groupId){return orders.values().stream().filter(o->o.checkoutGroupId==groupId).sorted(Comparator.comparing(o->o.id)).toList();}
   public List<OrderItem> orderItems(long orderId){return orderItemRows.values().stream().filter(i->i.orderId==orderId).sorted(Comparator.comparingLong((OrderItem i)->i.copyId).thenComparing(i->i.id)).toList();}
   public List<OrderStatusHistory> orderStatuses(long orderId){return orderStatusRows.values().stream().filter(h->h.orderId==orderId).sorted(Comparator.comparing((OrderStatusHistory h)->h.createdAt).thenComparing(h->h.id)).toList();}
+  public final Map<Long,vn.edu.utex.bookstore.payment.PaymentAttempt> payments = new LinkedHashMap<>();
+  public final Map<Long,vn.edu.utex.bookstore.payment.PaymentEvent> paymentEvents = new LinkedHashMap<>();
+  private long nextPayment=1, nextPaymentEvent=1;
+  public vn.edu.utex.bookstore.payment.PaymentAttempt paymentForOrder(long orderId, boolean lock) { return payments.values().stream().filter(p -> p.orderId==orderId).findFirst().orElse(null); }
+  public vn.edu.utex.bookstore.payment.PaymentAttempt paymentByCode(long code) { return payments.values().stream().filter(p -> p.orderCode==code).findFirst().orElse(null); }
+  public vn.edu.utex.bookstore.payment.PaymentAttempt savePayment(vn.edu.utex.bookstore.payment.PaymentAttempt p) { if(p.id==null)p.id=nextPayment++; payments.put(p.id,p); return p; }
+  public vn.edu.utex.bookstore.payment.PaymentEvent paymentEvent(String reference) { return paymentEvents.values().stream().filter(e -> e.reference.equals(reference)).findFirst().orElse(null); }
+  public vn.edu.utex.bookstore.payment.PaymentEvent savePaymentEvent(vn.edu.utex.bookstore.payment.PaymentEvent e) { if(e.id==null)e.id=nextPaymentEvent++; paymentEvents.put(e.id,e);return e; }
+  public List<Long> dueOnlineOrders(java.time.Instant now,int limit) { return orders.values().stream().filter(o -> "PAYOS".equals(o.paymentMethod) && "PENDING".equals(o.status) && java.util.Set.of("UNPAID","PENDING").contains(o.paymentStatus) && o.paymentExpiresAt!=null && !o.paymentExpiresAt.isAfter(now)).sorted(Comparator.comparing((Order o)->o.paymentExpiresAt).thenComparing(o->o.id)).limit(limit).map(o->o.id).toList(); }
+  public List<Long> openPaymentOrders(int limit, long afterOrderId) {
+    return orders.values().stream().filter(o -> o.id > afterOrderId && "PAYOS".equals(o.paymentMethod) && "PENDING".equals(o.status))
+        .filter(o -> {
+          var payment = paymentForOrder(o.id, false);
+          return java.util.Set.of("UNPAID", "PENDING").contains(o.paymentStatus) && payment != null
+              && java.util.Set.of("CREATING", "PENDING", "PROCESSING").contains(payment.status)
+              || java.util.Set.of("CANCELLED", "EXPIRED").contains(o.paymentStatus)
+              && (payment == null || java.util.Set.of("CANCELLED", "EXPIRED").contains(payment.status));
+        }).sorted(Comparator.comparing(o -> o.id)).limit(limit).map(o -> o.id).toList();
+  }
   public final Map<Long,Review> reviews = new LinkedHashMap<>(); private long nextReview=1;
+  public List<vn.edu.utex.bookstore.payment.PaymentEvent> paymentEvents(long attemptId) { return paymentEvents.values().stream().filter(e->e.attemptId==attemptId).toList(); }
+  public List<vn.edu.utex.bookstore.payment.PaymentAttempt> paymentsNeedingReview(int limit) { return payments.values().stream().filter(p->"REVIEW_REQUIRED".equals(p.status)).limit(limit).toList(); }
   public boolean deliveredPurchase(long userId,long productId){return orders.values().stream().filter(o->o.userId==userId&&"COMPLETED".equals(o.status)).flatMap(o->orderItemRows.values().stream().filter(i->i.orderId==o.id)).anyMatch(i->i.productId==productId);}
   public long completedOrderFor(long userId,long productId){return orders.values().stream().filter(o->o.userId==userId&&"COMPLETED".equals(o.status)).filter(o->orderItemRows.values().stream().anyMatch(i->i.orderId==o.id&&i.productId==productId)).sorted(Comparator.comparing((Order o)->o.createdAt).reversed().thenComparing(o->o.id,Comparator.reverseOrder())).map(o->o.id).findFirst().orElse(0L);}
   public Review review(long userId,long productId){return reviews.values().stream().filter(r->r.userId==userId&&r.productId==productId).findFirst().orElse(null);}
   public Review saveReview(Review r){if(r.id==null)r.id=nextReview++;reviews.put(r.id,r);return r;}
   public List<Review> reviews(long productId){return reviews.values().stream().filter(r->r.productId==productId&&"PUBLISHED".equals(r.status)).sorted(Comparator.comparing((Review r)->r.createdAt).reversed().thenComparing(r->r.id,Comparator.reverseOrder())).toList();}
+  public List<Review> reviews(long productId,int offset,int limit){return reviews(productId).stream().skip(offset).limit(limit).toList();}
+  public ReviewRepository.ReviewStats reviewStats(long productId){var published=reviews(productId);return new ReviewRepository.ReviewStats(published.size(),published.stream().mapToInt(r->r.rating).average().orElse(0));}
 }

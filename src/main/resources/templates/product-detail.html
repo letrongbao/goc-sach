@@ -1,15 +1,19 @@
 <th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
-<section class="container section"><a class="back-link" th:href="@{/product}">← Quay lại tủ sách</a>
+<section class="container section product-detail-page"><nav class="breadcrumbs" aria-label="Đường dẫn"><a th:href="@{/}">Trang chủ</a><span aria-hidden="true">/</span><a th:href="@{/product}">Tủ sách</a><span aria-hidden="true">/</span><a th:href="@{/product(category=${product.categoryId})}" th:text="${product.categoryName}"></a></nav>
   <div class="detail-grid"><div class="detail-art">
     <img th:if="${!#strings.isEmpty(product.image)}" th:src="@{${product.image}}" th:alt="'Bìa sách ' + ${product.title}">
     <div th:if="${#strings.isEmpty(product.image)}" class="typographic-cover"><small>GÓC SÁCH / TUYỂN CHỌN</small><span th:text="${product.title}"></span><em th:text="${product.author}"></em></div>
   </div><div class="detail-info"><p class="eyebrow" th:text="${product.categoryName}"></p><h1 th:text="${product.title}"></h1>
     <p class="book-byline">Tác giả <strong th:text="${product.author}"></strong></p>
+    <p class="detail-review-link" th:if="${productReviews.count > 0}"><span class="review-stars" aria-hidden="true">★</span> <strong>[[${#numbers.formatDecimal(productReviews.averageRating,1,1)}]] / 5</strong> · <a href="#reviews">[[${productReviews.count}]] cảm nhận sau mua</a></p>
+    <p class="detail-review-link muted" th:if="${productReviews.count == 0}">Chưa có đánh giá từ người mua.</p>
     <div class="detail-price" th:if="${product.price != null}">Từ [[${#numbers.formatDecimal(product.price, 1, 'POINT', 0, 'COMMA')}]] ₫</div>
     <p class="status stock-label">[[${product.stock > 0 ? product.stock + ' cuốn đang sẵn bán' : 'Hiện chưa có cuốn sẵn bán'}]]</p>
-    <div class="detail-actions" th:if="${identity != null}">
-      <form th:if="${!favorite}" method="post" th:action="@{/favorites/add}"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="productId" th:value="${product.id}"><button class="btn btn-outline-dark" type="submit">Lưu vào yêu thích</button></form>
-      <a th:if="${favorite}" class="btn btn-outline-dark" th:href="@{/favorites}">Đã lưu trong yêu thích</a>
+    <div class="detail-primary-actions">
+      <a class="btn btn-forest" href="#offers" th:if="${product.stock > 0}">Chọn cuốn đang bán ↓</a>
+      <form th:if="${identity != null and !favorite}" method="post" th:action="@{/favorites/add}"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="productId" th:value="${product.id}"><button class="btn btn-outline-dark" type="submit">♡ Lưu yêu thích</button></form>
+      <a th:if="${identity != null and favorite}" class="btn btn-outline-dark" th:href="@{/favorites}">Đã lưu trong yêu thích</a>
+      <a th:if="${identity == null}" class="btn btn-outline-dark" th:href="@{/auth/login}">Đăng nhập để lưu sách</a>
     </div>
     <h2 class="h4">Giới thiệu sách</h2><p class="description" th:text="${product.description}"></p>
     <dl class="book-facts" th:if="${product.isbn != null or product.publisher != null or product.publishedYear != null or product.language != null}">
@@ -17,8 +21,10 @@
       <div th:if="${product.language != null}"><dt>Ngôn ngữ</dt><dd th:text="${product.language}"></dd></div><div th:if="${product.isbn != null}"><dt>ISBN</dt><dd th:text="${product.isbn}"></dd></div>
     </dl>
     <p class="form-note">Mỗi cuốn sách cũ có tình trạng và giá riêng. Hãy chọn cuốn phù hợp bên dưới.</p>
+    <div class="detail-trust"><span aria-hidden="true">✳</span><span>Đọc rõ tình trạng · Chọn đúng cuốn · Theo dõi đơn hàng</span></div>
   </div></div>
-  <div class="section shop-data"><div class="section-heading"><div><p class="eyebrow">CHỌN CUỐN PHÙ HỢP</p><h2>Những cuốn đang sẵn bán</h2></div></div>
+  <nav class="detail-anchor-nav" aria-label="Nội dung chi tiết sách"><a href="#offers">Các cuốn đang bán</a><a href="#reviews">Cảm nhận bạn đọc ([[${productReviews.count}]])</a><a th:href="@{/guide#condition-guide}">Cẩm nang tình trạng sách ↗</a></nav>
+  <div id="offers" class="section shop-data"><div class="section-heading"><div><p class="eyebrow">CHỌN CUỐN PHÙ HỢP</p><h2>Những cuốn đang sẵn bán</h2><p class="muted">So sánh tình trạng, giá và mô tả của từng cuốn trước khi thêm vào giỏ.</p></div></div>
     <div th:if="${#lists.isEmpty(offers)}" class="empty-state"><h3>Cuốn sách này đang tạm hết hàng</h3><p>Bạn có thể lưu vào yêu thích và quay lại sau.</p></div>
     <div class="shop-grid offer-grid"><article class="form-card offer-card" th:each="offer : ${offers}" th:data-copy-id="${offer.id}">
       <div><a class="offer-shop" th:href="@{/shops/{slug}(slug=${offer.shopSlug})}" th:text="${offer.shopName}"></a>
@@ -29,6 +35,12 @@
       <form th:if="${identity != null}" method="post" th:action="@{/cart/items/add}" class="mt-3"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="copyId" th:value="${offer.id}"><button class="btn btn-forest" type="submit">Thêm cuốn này vào giỏ</button></form>
       <a th:if="${identity == null}" class="btn btn-outline-dark mt-3" th:href="@{/auth/login}">Đăng nhập để mua</a>
     </article></div>
-    <nav class="shop-toolbar offer-pagination mt-3" aria-label="Phân trang các cuốn đang bán" th:if="${offerPages > 1}"><a th:if="${offerPage > 1}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage - 1})}">← Trang trước</a><span aria-current="page">Trang [[${offerPage}]] / [[${offerPages}]]</span><a th:if="${offerPage < offerPages}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage + 1})}">Trang sau →</a></nav>
+    <nav class="shop-toolbar offer-pagination mt-3" aria-label="Phân trang các cuốn đang bán" th:if="${offerPages > 1}"><a th:if="${offerPage > 1}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage - 1},reviewPage=${productReviews.page})} + '#offers'">← Trang trước</a><span aria-current="page">Trang [[${offerPage}]] / [[${offerPages}]]</span><a th:if="${offerPage < offerPages}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage + 1},reviewPage=${productReviews.page})} + '#offers'">Trang sau →</a></nav>
   </div>
+  <section id="reviews" class="content-section" aria-labelledby="reviews-title"><div class="section-heading"><div><p class="eyebrow">TỪ NHỮNG NGƯỜI ĐÃ MUA</p><h2 id="reviews-title">Đọc rồi, kể Góc nghe.</h2><p class="muted">Những chia sẻ về nội dung và trải nghiệm nhận sách từ đơn đã hoàn tất.</p></div><a class="btn btn-forest" th:if="${productReviews.canReview or productReviews.alreadyReviewed}" th:href="@{/account/reviews/{id}(id=${product.id})}" th:text="${productReviews.alreadyReviewed ? 'Xem đánh giá của tôi' : 'Viết cảm nhận của bạn'}"></a></div>
+    <div class="review-summary" th:if="${productReviews.count > 0}"><strong class="review-score">[[${#numbers.formatDecimal(productReviews.averageRating,1,1)}]]<small> / 5</small></strong><div><span class="review-stars" aria-hidden="true">★</span><p>[[${productReviews.count}]] đánh giá từ người đã mua sách</p></div></div>
+    <div class="review-list"><article class="reader-review" th:each="review : ${productReviews.items}"><div class="reader-review-header"><div><strong th:text="${review.authorName}"></strong><time th:datetime="${review.createdAt}" th:text="${review.displayTime()}"></time></div><span class="review-stars" th:aria-label="${review.rating} + ' trên 5 sao'"><th:block th:each="star : ${#numbers.sequence(1,5)}"><span aria-hidden="true" th:text="${star <= review.rating ? '★' : '☆'}"></span></th:block></span></div><p class="description" th:text="${review.body}"></p><span class="verified-reader">✓ Đã mua sách · Đơn hàng hoàn tất</span></article></div>
+    <div class="empty-catalog" th:if="${productReviews.count == 0}"><h3>Một góc nhỏ đang chờ cảm nhận đầu tiên.</h3><p>Sau khi đơn hoàn tất, hãy trở lại chia sẻ điều bạn thích về cuốn sách này.</p></div>
+    <nav class="page-nav simple-page-nav" aria-label="Phân trang đánh giá" th:if="${productReviews.pages > 1}"><a th:if="${productReviews.page > 1}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage},reviewPage=${productReviews.page - 1})} + '#reviews'">← Trước</a><span>Trang [[${productReviews.page}]] / [[${productReviews.pages}]]</span><a th:if="${productReviews.page < productReviews.pages}" th:href="@{/product/detail(id=${product.id},offerPage=${offerPage},reviewPage=${productReviews.page + 1})} + '#reviews'">Tiếp →</a></nav>
+  </section>
 </section></th:block>

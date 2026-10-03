@@ -23,7 +23,7 @@ public class WebSecurityConfiguration {
         .logout(AbstractHttpConfigurer::disable).requestCache(AbstractHttpConfigurer::disable)
         .headers(headers -> headers.contentSecurityPolicy(csp -> csp.policyDirectives(
             "default-src 'self'; connect-src 'self' ws: wss:; style-src 'self'; img-src 'self' data: https://res.cloudinary.com; "
-            + "script-src 'self'; frame-ancestors 'none'; form-action 'self'; base-uri 'self'"))
+            + "script-src 'self'; frame-ancestors 'none'; form-action 'self' https://pay.payos.vn; base-uri 'self'"))
             .frameOptions(frame -> frame.deny())
             .referrerPolicy(referrer -> referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)));
   }
@@ -42,6 +42,16 @@ public class WebSecurityConfiguration {
             .accessDeniedHandler((req, res, ex) -> json(res, 403, "forbidden")))
         .oauth2ResourceServer(resource -> resource.jwt(jwt -> jwt.decoder(decoder).jwtAuthenticationConverter(converter))
             .authenticationEntryPoint((req, res, ex) -> json(res, 401, "invalid_token")));
+    return http.build();
+  }
+
+  @Bean @Order(0)
+  SecurityFilterChain payosWebhookSecurity(HttpSecurity http) throws Exception {
+    common(http);
+    http.securityMatcher("/payments/payos/webhook").csrf(AbstractHttpConfigurer::disable)
+        .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.POST, "/payments/payos/webhook").permitAll()
+            .anyRequest().denyAll());
     return http.build();
   }
 

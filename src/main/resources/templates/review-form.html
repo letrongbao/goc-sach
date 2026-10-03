@@ -1,0 +1,43 @@
+<section class="container section review-editor" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <nav class="breadcrumb-links" aria-label="Đường dẫn"><a th:href="@{/orders}">Đơn hàng của tôi</a><span aria-hidden="true">/</span><span>Đánh giá sách</span></nav>
+  <div class="section-heading"><div><p class="eyebrow">CẢM NHẬN SAU KHI ĐỌC</p><h1 th:text="${reviewEditor.existingReview == null ? 'Mỗi chia sẻ, thêm một người yêu sách.' : 'Cập nhật cảm nhận của bạn.'}">Chia sẻ cảm nhận</h1><p class="muted">Một trải nghiệm chân thành giúp cuốn sách tìm được bạn đọc tiếp theo.</p></div></div>
+  <div class="review-editor-grid">
+    <form th:if="${reviewEditor.editable}" class="form-card review-editor-form" method="post" th:action="@{/account/reviews/{id}(id=${reviewEditor.product.id})}">
+      <input type="hidden" name="_csrf" th:value="${csrf}">
+      <input type="hidden" name="mode" th:value="${reviewEditor.existingReview == null ? 'create' : 'update'}">
+      <fieldset class="review-rating-fieldset" aria-describedby="rating-hint rating-error">
+        <legend>Bạn thấy cuốn sách thế nào?</legend>
+        <p class="muted" id="rating-hint">Chọn từ 1 đến 5 sao, theo cảm nhận của riêng bạn.</p>
+        <div class="review-rating-options">
+          <label class="review-rating-option" th:each="score : ${#numbers.sequence(1,5)}" th:for="${'review-rating-' + score}">
+            <input type="radio" name="rating" th:id="${'review-rating-' + score}" th:value="${score}" th:checked="${reviewRating == #strings.toString(score)}" required th:attr="aria-invalid=${fieldErrors != null and fieldErrors['rating'] != null}">
+            <span class="review-rating-star" aria-hidden="true">★</span><span th:text="${score + ' sao'}"></span>
+          </label>
+        </div>
+        <p id="rating-error" class="field-error" th:if="${fieldErrors != null and fieldErrors['rating'] != null}" th:text="${fieldErrors['rating']}"></p>
+      </fieldset>
+      <label for="review-body">Chia sẻ trải nghiệm của bạn</label>
+      <textarea class="form-control" id="review-body" name="body" rows="8" minlength="50" maxlength="5000" required th:text="${reviewBody}" placeholder="Điều gì khiến bạn thích cuốn sách? Tình trạng sách nhận được có đúng mô tả? Bạn sẽ giới thiệu sách cho ai?" aria-describedby="review-body-hint review-body-error review-count" data-character-count="review-count" th:attr="aria-invalid=${fieldErrors != null and fieldErrors['body'] != null}"></textarea>
+      <output id="review-count" for="review-body" class="field-hint muted" th:text="${#strings.length(reviewBody) + ' / 5.000 ký tự'}"></output>
+      <p id="review-body-hint" class="field-hint muted">Từ 50 đến 5.000 ký tự. Tên hiển thị trong hồ sơ của bạn sẽ xuất hiện cùng đánh giá; nếu chưa đặt tên, chúng tôi dùng “Bạn đọc Góc Sách”.</p>
+      <p id="review-body-error" class="field-error" th:if="${fieldErrors != null and fieldErrors['body'] != null}" th:text="${fieldErrors['body']}"></p>
+      <div class="form-actions"><button class="btn btn-forest" type="submit" th:text="${reviewEditor.existingReview == null ? 'Đăng đánh giá' : 'Lưu thay đổi'}"></button><a class="btn btn-link" th:if="${reviewEditor.accessiblePublicProduct}" th:href="@{/product/detail(id=${reviewEditor.product.id})}">Quay lại cuốn sách</a><a class="btn btn-link" th:unless="${reviewEditor.accessiblePublicProduct}" th:href="@{/orders/{id}(id=${reviewEditor.orderId})}">Quay lại đơn hàng</a></div>
+    </form>
+    <div class="form-card" th:unless="${reviewEditor.editable}"><h2>Đánh giá đang được xem xét</h2><p>Bạn chưa thể chỉnh sửa đánh giá này. Cảm ơn bạn đã chia sẻ trải nghiệm.</p><a class="btn btn-outline-dark" th:href="@{/orders/{id}(id=${reviewEditor.orderId})}">Quay lại đơn hàng</a></div>
+    <aside class="review-context">
+      <article class="form-card">
+        <span class="badge text-bg-success">Đã mua sách</span>
+        <p class="eyebrow mt-3">CUỐN SÁCH CỦA BẠN</p>
+        <h2 class="h4" th:text="${reviewEditor.product.title}"></h2>
+        <p class="muted" th:text="${reviewEditor.product.author}"></p>
+        <p class="muted" th:unless="${reviewEditor.accessiblePublicProduct}">Cuốn sách hiện tạm ẩn khỏi tủ sách công khai. Bạn vẫn có thể lưu cảm nhận từ đơn hàng đã mua.</p>
+        <a th:href="@{/orders/{id}(id=${reviewEditor.orderId})}">Xem đơn hàng đã hoàn tất →</a>
+      </article>
+      <div class="review-guidance">
+        <h2 class="h5">Một vài gợi ý nhỏ</h2>
+        <ul><li>Chia sẻ điều bạn thích ở nội dung cuốn sách.</li><li>Mô tả tình trạng bản sách và cách đóng gói.</li><li>Tránh tiết lộ tình tiết quan trọng và thông tin riêng tư.</li></ul>
+        <p class="muted">Mỗi cuốn sách có một đánh giá từ bạn. Bạn có thể quay lại cập nhật cảm nhận sau này.</p>
+      </div>
+    </aside>
+  </div>
+</section>

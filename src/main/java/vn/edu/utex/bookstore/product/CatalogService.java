@@ -15,12 +15,13 @@ public final class CatalogService {
   private static final Pattern SHOP_ID = Pattern.compile("(?:^|.*-)([1-9][0-9]*)$");
 
   public record Criteria(String query, Long categoryId, BigDecimal minimumPrice,
-      BigDecimal maximumPrice, String condition, Long shopId) {
+      BigDecimal maximumPrice, String condition, Long shopId, String sort) {
     CatalogRepository.Filter repositoryFilter() {
       return new CatalogRepository.Filter(query, categoryId == null ? 0 : categoryId,
           minimumPrice == null ? BigDecimal.ZERO : minimumPrice,
           maximumPrice == null ? MAXIMUM_PRICE : maximumPrice,
-          condition == null ? "" : condition, shopId == null ? 0 : shopId);
+          condition == null ? "" : condition, shopId == null ? 0 : shopId,
+          CatalogRepository.Sort.valueOf(sort.toUpperCase(Locale.ROOT)), false);
     }
   }
   public record Page(List<ProductView> items, int number, int pages, long total, Criteria filters) {
@@ -36,9 +37,19 @@ public final class CatalogService {
   public CatalogService(Store store) { this.store = store; }
 
   public List<ProductView> latest() {
-    Criteria criteria = criteria("", null, null, null, null, null);
+    return shelf("newest", PAGE_SIZE);
+  }
+
+  public List<ProductView> shelf(String rawSort, int limit) {
+    Criteria criteria = criteria("", null, null, null, null, null, rawSort);
+    var filter = criteria.repositoryFilter();
+    if (filter.sort() == CatalogRepository.Sort.FAVORITES)
+      filter = new CatalogRepository.Filter(filter.query(), filter.categoryId(), filter.minimumPrice(),
+          filter.maximumPrice(), filter.condition(), filter.shopId(), filter.sort(), true);
+    CatalogRepository.Filter shelfFilter = filter;
+    int size = Math.max(1, Math.min(limit, PAGE_SIZE));
     return store.tx(data -> views(data,
-        data.catalogProducts(criteria.repositoryFilter(), 0, PAGE_SIZE), criteria.repositoryFilter()));
+        data.catalogProducts(shelfFilter, 0, size), shelfFilter));
   }
 
   public Page page(String rawPage, String rawQuery) {
@@ -47,12 +58,17 @@ public final class CatalogService {
 
   public Page page(String rawPage, String rawQuery, String rawCategory, String rawMinimum,
       String rawMaximum, String rawCondition, String rawShop) {
-    return page(number(rawPage), criteria(rawQuery, rawCategory, rawMinimum, rawMaximum, rawCondition, rawShop));
+    return page(rawPage, rawQuery, rawCategory, rawMinimum, rawMaximum, rawCondition, rawShop, null);
+  }
+
+  public Page page(String rawPage, String rawQuery, String rawCategory, String rawMinimum,
+      String rawMaximum, String rawCondition, String rawShop, String rawSort) {
+    return page(number(rawPage), criteria(rawQuery, rawCategory, rawMinimum, rawMaximum, rawCondition, rawShop, rawSort));
   }
 
   public Detail detail(long id, String rawPage) {
     int number = number(rawPage);
-    CatalogRepository.Filter allOffers = criteria("", null, null, null, null, null).repositoryFilter();
+    CatalogRepository.Filter allOffers = criteria("", null, null, null, null, null, null).repositoryFilter();
     return store.tx(data -> {
       Product product = data.product(id);
       if (product == null || !product.category.active) throw Problem.missing();
@@ -78,7 +94,7 @@ public final class CatalogService {
       if (option == null) throw Problem.missing();
       return publicShop(option);
     });
-    Criteria criteria = criteria("", null, null, null, null, Long.toString(id));
+    Criteria criteria = criteria("", null, null, null, null, Long.toString(id), null);
     return new ShopPage(shop, page(number(rawPage), criteria));
   }
 
@@ -97,7 +113,7 @@ public final class CatalogService {
   }
 
   private Criteria criteria(String rawQuery, String rawCategory, String rawMinimum,
-      String rawMaximum, String rawCondition, String rawShop) {
+      String rawMaximum, String rawCondition, String rawShop, String rawSort) {
     String query = rawQuery == null ? "" : rawQuery.strip();
     if (query.length() > 100) throw Problem.invalid("Từ khóa tối đa 100 ký tự.");
     Long category = optionalId(rawCategory, "Danh mục không hợp lệ.");
@@ -109,7 +125,10 @@ public final class CatalogService {
     String condition = rawCondition == null ? "" : rawCondition.strip();
     if (!condition.isEmpty() && !CONDITIONS.contains(condition))
       throw Problem.invalid("Tình trạng sách không hợp lệ.");
-    return new Criteria(query, category, minimum, maximum, condition, shop);
+    String sort = rawSort == null || rawSort.isBlank() ? "newest" : rawSort.strip();
+    if (!Set.of("newest", "price_asc", "price_desc", "favorites").contains(sort))
+      throw Problem.invalid("Cách sắp xếp sách không hợp lệ.");
+    return new Criteria(query, category, minimum, maximum, condition, shop, sort);
   }
 
   private List<ProductView> views(Store.Data data, List<Product> products,

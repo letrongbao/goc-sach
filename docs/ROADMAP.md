@@ -1,6 +1,8 @@
 # Kế hoạch hoàn thiện Góc Sách
 
-Cập nhật ngày 17/09/2026, sau khi đọc lại [quy định cuối khóa trên UTEx](https://utexlms.hcmute.edu.vn/mod/page/view.php?id=1452010) và đối chiếu source. Đây là kế hoạch, không phải danh sách tính năng đã hoàn thành.
+Cập nhật ngày 03/10/2026; yêu cầu gốc đã đối chiếu [quy định cuối khóa trên UTEx](https://utexlms.hcmute.edu.vn/mod/page/view.php?id=1452010). Đây là kế hoạch, không phải danh sách tính năng đã hoàn thành.
+
+Đợt UI/UX 03/10 bổ sung trang chủ khám phá, sort theo giá/yêu thích, cẩm nang và form tạo/sửa review sau mua. Chi tiết ở [UI_UX.md](UI_UX.md). Kệ giới thiệu 5 sách không thay yêu cầu bốn top 20; còn nghiệm thu query mới/review trên PostgreSQL, media, moderation và vận hành.
 
 Mục tiêu: phát triển các chức năng đang có thành website quản lý chuỗi cửa hàng sách cũ theo đề tài 14. Repo bài tập giữ nguyên. Không tạo lại dự án và không đưa submissions trở lại repo đồ án.
 
@@ -25,7 +27,7 @@ Mục tiêu: phát triển các chức năng đang có thành website quản lý
 | M3 — Cloudinary và tủ sách | Hoàn tất nghiệm thu upload Cloudinary, tìm kiếm/lọc, trang shop, danh sách mới/bán chạy/đánh giá/yêu thích | Ảnh vẫn còn sau khởi động lại; kết quả lọc/phân trang đúng và responsive | 3–4 |
 | M4 — Người mua | Hồ sơ, nhiều địa chỉ, yêu thích, đã xem, giỏ hàng DB; API tương tác dùng JWT | Đăng nhập lại còn giỏ; không sửa được dữ liệu người khác; giá tính ở server | 3–4 |
 | M5 — Đơn hàng COD | Tách đơn theo shop, vận chuyển, giữ/trừ tồn, lịch sử trạng thái, hủy | Mua hàng end-to-end; hai người tranh cuốn cuối chỉ một người mua được | 6–8 |
-| M6 — Thanh toán và vận hành | VNPAY sandbox, trả hàng/hoàn tiền, khuyến mãi, chiết khấu, quản lý người dùng/nhà vận chuyển, doanh thu | Callback trùng không xử lý hai lần; hoàn trả và số liệu đối soát được | 7–10 |
+| M6 — Thanh toán và vận hành | PayOS theo lựa chọn hiện tại, xác nhận với thầy về cổng thay thế; trả hàng/hoàn tiền, khuyến mãi, chiết khấu, quản lý người dùng/nhà vận chuyển, doanh thu | Webhook trùng không xử lý hai lần; hoàn trả và số liệu đối soát được; nghiệm thu giao dịch thật do chủ dự án thực hiện | 7–10 |
 | M7 — Đánh giá và realtime | Đánh giá sau mua, bình luận từ 50 ký tự, ảnh/video; thông báo WebSocket | Người chưa mua không đánh giá được; thông báo đúng người/shop, có phục hồi khi mất kết nối | 4–6 |
 | M8 — Nghiệm thu và bảo vệ | Test toàn bộ role, mobile, chạy máy sạch; báo cáo và demo | Các dòng yêu cầu bắt buộc đều có minh chứng; không có secret hoặc dữ liệu cá nhân thật trong demo | 6–10 |
 
@@ -35,6 +37,8 @@ Tiến độ 17/09: M1 còn chờ nghiệm thu PostgreSQL và gửi OTP thật. 
 
 Sau M7 có đủ các thành phần stack hoạt động; chỉ sau M8 mới xét hoàn thành đồ án. Mọi mốc có thay đổi schema đều phải dừng để chủ project kiểm tra và cho phép thực thi SQL.
 
+Tiến độ 02/10: đã bổ sung luồng PayOS từ đặt hàng, tạo link riêng từng đơn, xác minh webhook, kiểm tra lại kết quả, hủy chưa nhận tiền và đối chiếu khoản sai/đến muộn. SQL được chuẩn bị riêng, chưa tự chạy. Còn nghiệm thu database/webhook và giao dịch thật, cùng trả hàng/hoàn tiền, carrier/voucher và báo cáo. Trang quản trị chỉ xem khoản cần đối chiếu, chưa có hoàn tiền/payout tự động.
+
 ## Phạm vi mặc định để lập kế hoạch
 
 Các lựa chọn này là đề xuất triển khai, chưa thay cho xác nhận của thầy:
@@ -42,7 +46,7 @@ Các lựa chọn này là đề xuất triển khai, chưa thay cho xác nhận
 1. Góc Sách là một hệ thống nhiều cửa hàng. Người dùng được gửi yêu cầu mở/gia nhập shop, admin duyệt rồi mới có quyền Seller. Giữ chức năng Seller trong kế hoạch; hỏi thầy cách áp dụng với chuỗi nội bộ.
 2. Admin quản lý toàn hệ thống; Manager chỉ quản lý cửa hàng được giao; Seller quản lý shop được duyệt của mình. Không cấp quyền quản lý toàn hệ thống từ màn hình đăng ký.
 3. Mỗi cuốn sách cũ có mã riêng, tình trạng, ảnh, giá và cửa hàng. Thông tin đầu sách dùng chung. Cách này phù hợp các bản sách khác nhau về độ mới/giá.
-4. Làm COD và VNPAY sandbox; không làm đồng thời cả MOMO. Không giao dịch tiền thật trong kiểm thử.
+4. Làm COD và PayOS theo lựa chọn mới của chủ dự án. Đề gốc ghi VNPAY/MOMO nên cần hỏi thầy chấp nhận PayOS trước khi đánh dấu F07 hoàn tất. PayOS không có sandbox trong tài liệu hiện tại; test tự động dùng gateway giả, giao dịch thật do chủ dự án tự thực hiện khi nghiệm thu.
 5. Giỏ có thể chứa nhiều shop; checkout tạo nhóm mua và đơn con từng shop, mỗi đơn con có phí vận chuyển, trạng thái và thanh toán riêng.
 6. Shipper và luân chuyển kho nâng cao chỉ làm sau các chức năng bắt buộc. Không bổ sung microservices, ứng dụng mobile hoặc gợi ý AI trong phạm vi cơ bản.
 
@@ -53,6 +57,7 @@ Các lựa chọn này là đề xuất triển khai, chưa thay cho xác nhận
 - Câu Guest về “sản phẩm bán trên 10 sản phẩm” có nghĩa là các sách bán hơn 10 cuốn, hay số sản phẩm cần hiển thị? Tạm đề xuất hiển thị mục bán chạy có số lượng bán trên 10, sắp giảm dần, cùng mục sách mới riêng; cần xác nhận.
 - “20 sản phẩm ... nhất được phân trang” tạm hiểu là từng danh sách top 20 mới/bán chạy/đánh giá/yêu thích có phân trang. Không tự coi đây chỉ là page size 20.
 - Mức hoàn tiền qua cổng thanh toán và yêu cầu bắt buộc của ảnh/video bình luận.
+- Thầy có chấp nhận PayOS thay VNPAY/MOMO ở F07 không? Nếu yêu cầu đúng tên cổng, cần bổ sung cổng được chỉ định.
 
 File khảo sát/phân tích Word đính kèm UTEx hiện bị Chrome chặn tải trong lần đọc này; chưa xác minh nội dung file. Cần tải lại thủ công để đối chiếu trước M0 hoàn tất.
 

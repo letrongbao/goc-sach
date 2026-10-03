@@ -8,4 +8,8 @@ public interface ReviewRepository {
   Review review(long userId, long productId);
   Review saveReview(Review review);
   List<Review> reviews(long productId);
+  List<Review> reviews(long productId, int offset, int limit);
+  ReviewStats reviewStats(long productId);
+
+  record ReviewStats(long count, double averageRating) {}
 }

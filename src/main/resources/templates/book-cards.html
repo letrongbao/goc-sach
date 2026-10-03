@@ -10,6 +10,7 @@
       <p class="book-price muted" th:if="${book.price == null}">Tạm hết hàng</p>
       <span class="book-stock" th:if="${book.stock > 0}">[[${book.stock}]] cuốn đang bán</span>
     </div>
+    <a class="book-card-link" th:href="@{/product/detail(id=${book.id})}" th:aria-label="'Chọn cuốn đang bán: ' + ${book.title}">Chọn cuốn phù hợp <span aria-hidden="true">↗</span></a>
   </div>
 </article></th:block></div>
 <th:block th:if="${#lists.isEmpty(products)}"><div class="empty-catalog"><h3>Chưa tìm thấy cuốn sách phù hợp</h3><p>Thử đổi từ khóa hoặc bỏ bớt bộ lọc để xem thêm sách.</p><a class="btn btn-outline-dark" th:href="@{/product}">Xem toàn bộ tủ sách</a></div></th:block>

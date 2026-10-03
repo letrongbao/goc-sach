@@ -1,0 +1,10 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <div class="section-heading"><div><p class="eyebrow">QUẢN TRỊ</p><h1>Khoản chuyển cần kiểm tra</h1></div></div>
+  <p class="form-note">Kiểm tra giao dịch trong PayOS trước khi liên hệ khách hàng hoặc xử lý hoàn tiền. Trang này không tự chuyển hoặc hoàn tiền.</p>
+  <div class="shop-grid"><article class="form-card" th:each="payment : ${paymentReviews}">
+    <h2 class="h4">Đơn hàng #[[${payment.orderId}]]</h2><p>Mã thanh toán: [[${payment.orderCode}]]</p>
+    <p th:text="${payment.statusLabel}"></p><p>Số tiền của đơn: [[${#numbers.formatDecimal(payment.amount,1,'POINT',0,'COMMA')}]] ₫</p>
+    <a class="btn btn-forest" th:href="@{/seller/orders/{id}(id=${payment.orderId})}">Xem đơn hàng</a>
+  </article></div>
+  <div class="empty-catalog" th:if="${#lists.isEmpty(paymentReviews)}"><h2>Không có khoản chuyển cần kiểm tra</h2></div>
+</section>

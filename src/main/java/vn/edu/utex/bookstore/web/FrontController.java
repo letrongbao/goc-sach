@@ -98,7 +98,10 @@ public final class FrontController {
         return;
       }
       if (path.equals("/") && !post) {
-        req.setAttribute("products", app.catalog.latest());
+        req.setAttribute("products", app.catalog.shelf("newest", 5));
+        req.setAttribute("popularProducts", app.catalog.shelf("favorites", 5));
+        req.setAttribute("homeCategories", app.categories.list("").stream().filter(category -> category.active).toList());
+        req.setAttribute("homeShops", app.catalog.shops());
         Web.view(req, res, "catalog-home");
         return;
       }

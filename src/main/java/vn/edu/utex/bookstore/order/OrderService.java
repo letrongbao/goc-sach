@@ -20,7 +20,7 @@ import vn.edu.utex.bookstore.product.Product;
 import vn.edu.utex.bookstore.shop.Shop;
 import vn.edu.utex.bookstore.shop.ShopAccess;
 
-/** Creates COD orders and owns every allowed buyer/seller order transition. */
+/** Creates orders and owns every allowed buyer/seller fulfillment transition. */
 public final class OrderService {
   public static final BigDecimal SHIPPING_FEE_PER_SHOP = new BigDecimal("30000.00");
 
@@ -39,7 +39,9 @@ public final class OrderService {
   public record OrderSummary(long id, long shopId, String shopName, String status, String statusLabel,
       String recipientName, String phone, String address, BigDecimal subtotal, BigDecimal shippingFee,
       BigDecimal total, Instant createdAt, Instant updatedAt, boolean buyerCanCancel,
-      boolean sellerCanCancel, String nextStatus, String nextStatusLabel) {
+      boolean sellerCanCancel, String nextStatus, String nextStatusLabel,
+      String paymentMethod, String paymentMethodLabel, String paymentStatus, String paymentStatusLabel,
+      boolean paymentCanStart, Instant paymentExpiresAt) {
     public String displayTime() { return DISPLAY_TIME.format(createdAt); }
   }
   public record OrderDetail(OrderSummary order, List<OrderItemView> items, List<StatusView> history) {}
@@ -63,15 +65,20 @@ public final class OrderService {
 
   /** Compatibility entry point for older callers. New UI/API callers should submit the quote fingerprint. */
   public CheckoutResult checkout(long userId, long addressId, String rawKey) {
-    return checkout(userId, addressId, rawKey, null, false);
+    return checkout(userId, addressId, rawKey, null, false, "COD");
   }
 
   public CheckoutResult checkout(long userId, long addressId, String rawKey, String expectedFingerprint) {
-    return checkout(userId, addressId, rawKey, expectedFingerprint, true);
+    return checkout(userId, addressId, rawKey, expectedFingerprint, true, "COD");
+  }
+
+  public CheckoutResult checkout(long userId, long addressId, String rawKey, String expectedFingerprint, String method) {
+    return checkout(userId, addressId, rawKey, expectedFingerprint, true, method);
   }
 
   private CheckoutResult checkout(long userId, long addressId, String rawKey,
-      String expectedFingerprint, boolean requireFingerprint) {
+      String expectedFingerprint, boolean requireFingerprint, String method) {
+    if (!Set.of("COD", "PAYOS").contains(method)) throw Problem.invalid("Phương thức thanh toán không hợp lệ.");
     String key = rawKey == null ? "" : rawKey.trim();
     if (!key.matches("[A-Za-z0-9._-]{16,80}"))
       throw Problem.invalid("Phiên đặt hàng đã hết hạn. Vui lòng tải lại trang.");
@@ -79,12 +86,22 @@ public final class OrderService {
       User user = data.lockUser(userId);
       if (user == null || !user.active || user.blocked) throw Problem.missing();
       List<Order> previous = data.ordersByKey(userId, key);
-      if (!previous.isEmpty()) return new CheckoutResult(List.copyOf(previous));
+      if (!previous.isEmpty()) {
+        if (previous.stream().anyMatch(order -> !method.equals(order.paymentMethod)))
+          throw new Problem(409, "Đơn đã được tạo với phương thức thanh toán khác. Vui lòng xem Đơn hàng của tôi.");
+        return new CheckoutResult(List.copyOf(previous));
+      }
 
       Address address = data.address(addressId);
       if (address == null || address.userId != userId) throw Problem.missing();
       CheckoutQuote current = quote(data, userId, true);
       if (!current.ready()) throw new Problem(409, current.issues().getFirst());
+      if ("PAYOS".equals(method)) {
+        for (QuoteShop shop : current.shops()) {
+          try { if (shop.total().longValueExact() <= 0) throw new ArithmeticException(); }
+          catch (ArithmeticException invalidAmount) { throw Problem.invalid("Thanh toán chuyển khoản cần tổng tiền là số nguyên đồng và lớn hơn 0."); }
+        }
+      }
       String submitted = expectedFingerprint == null ? "" : expectedFingerprint.trim();
       if (requireFingerprint && submitted.isEmpty())
         throw Problem.invalid("Thông tin đơn hàng đã hết hạn. Vui lòng tải lại trang.");
@@ -117,6 +134,9 @@ public final class OrderService {
         order.checkoutGroupId = group.id;
         order.idempotencyKey = key;
         order.status = "PENDING";
+        order.paymentMethod = method;
+        order.paymentStatus = "UNPAID";
+        order.paymentExpiresAt = "PAYOS".equals(method) ? now.plusSeconds(900) : null;
         order.recipientName = address.recipientName;
         order.phone = address.phone;
         order.addressSnapshot = snapshot(address);
@@ -152,7 +172,7 @@ public final class OrderService {
           reservation.copyId = copy.id;
           reservation.status = "ACTIVE";
           reservation.createdAt = now;
-          reservation.expiresAt = null;
+          reservation.expiresAt = order.paymentExpiresAt;
           data.saveReservation(reservation);
         }
         recordStatus(data, order.id, "PENDING", "Đã tiếp nhận đơn hàng", now);
@@ -220,11 +240,12 @@ public final class OrderService {
 
   public void cancel(long userId, long orderId) {
     store.tx(data -> {
-      Order order = data.order(orderId, true);
+      Order order = lockedOrder(data, orderId);
       if (order == null || order.userId != userId) throw Problem.missing();
       if ("CANCELLED".equals(order.status)) return null;
       if (!"PENDING".equals(order.status))
         throw new Problem(409, "Đơn này đã được cửa hàng xử lý nên không thể hủy.");
+      requireSafeCancellation(data, order);
       cancel(data, order, "Khách hàng đã hủy đơn", clock.instant());
       return null;
     });
@@ -234,13 +255,14 @@ public final class OrderService {
     String reason = requiredText(rawReason, 5, 500, "Vui lòng ghi lý do hủy từ 5 đến 500 ký tự.");
     store.tx(data -> {
       requireActor(data, actor);
-      Order order = data.order(orderId, true);
+      Order order = lockedOrder(data, orderId);
       if (order == null) throw Problem.missing();
       // A suspended shop must still be able to settle orders accepted before suspension.
       ShopAccess.require(data, actor, order.shopId, false);
       if ("CANCELLED".equals(order.status)) return null;
       if (!Set.of("PENDING", "CONFIRMED").contains(order.status))
         throw new Problem(409, "Đơn đang giao hoặc đã kết thúc nên không thể hủy.");
+      requireSafeCancellation(data, order);
       cancel(data, order, "Cửa hàng hủy: " + reason, clock.instant());
       return null;
     });
@@ -250,16 +272,19 @@ public final class OrderService {
     String target = Objects.toString(requestedStatus, "").strip().toUpperCase(Locale.ROOT);
     store.tx(data -> {
       requireActor(data, actor);
-      Order order = data.order(orderId, true);
+      Order order = lockedOrder(data, orderId);
       if (order == null) throw Problem.missing();
       // Shop status blocks new sales, not the safe completion or cancellation of existing orders.
       ShopAccess.require(data, actor, order.shopId, false);
       if (target.equals(order.status)) return null;
+      if ("PAYOS".equals(order.paymentMethod) && !"PAID".equals(order.paymentStatus))
+        throw new Problem(409, "Đơn chưa được xác nhận thanh toán nên chưa thể xử lý.");
       String allowed = NEXT_STATUS.get(order.status);
       if (allowed == null || !allowed.equals(target))
         throw new Problem(409, "Trạng thái đơn đã thay đổi. Vui lòng tải lại trang.");
       Instant now = clock.instant();
       if ("COMPLETED".equals(target)) completeInventory(data, order, now);
+      if ("COMPLETED".equals(target) && "COD".equals(order.paymentMethod)) order.paymentStatus = "PAID";
       order.status = target;
       order.updatedAt = now;
       data.saveOrder(order);
@@ -363,11 +388,17 @@ public final class OrderService {
     String shopName = notBlank(order.shopNameSnapshot)
         ? order.shopNameSnapshot : shop == null ? "Cửa hàng" : shop.name;
     String next = NEXT_STATUS.getOrDefault(order.status, "");
+    boolean online = "PAYOS".equals(order.paymentMethod);
+    boolean settled = Set.of("PAID", "REVIEW_REQUIRED").contains(order.paymentStatus);
+    if (online && !"PAID".equals(order.paymentStatus)) next = "";
     return new OrderSummary(order.id, order.shopId, shopName, order.status, statusLabel(order.status),
         order.recipientName, order.phone, order.addressSnapshot, order.subtotal, order.shippingFee,
-        order.total, order.createdAt, order.updatedAt, "PENDING".equals(order.status),
-        Set.of("PENDING", "CONFIRMED").contains(order.status), next,
-        next.isEmpty() ? "" : statusLabel(next));
+        order.total, order.createdAt, order.updatedAt, "PENDING".equals(order.status) && (!online || !settled),
+        Set.of("PENDING", "CONFIRMED").contains(order.status) && (!online || !settled), next,
+        next.isEmpty() ? "" : statusLabel(next), order.paymentMethod,
+        online ? "Chuyển khoản qua PayOS" : "Thanh toán khi nhận hàng", order.paymentStatus,
+        vn.edu.utex.bookstore.payment.PaymentService.statusLabel(order.paymentStatus),
+        online && "PENDING".equals(order.status) && Set.of("UNPAID", "PENDING").contains(order.paymentStatus), order.paymentExpiresAt);
   }
 
   private OrderItemView itemView(Store.Data data, OrderItem item) {
@@ -384,6 +415,7 @@ public final class OrderService {
   private void cancel(Store.Data data, Order order, String note, Instant now) {
     releaseInventory(data, order, now);
     order.status = "CANCELLED";
+    if (!"EXPIRED".equals(order.paymentStatus)) order.paymentStatus = "CANCELLED";
     order.updatedAt = now;
     data.saveOrder(order);
     recordStatus(data, order.id, "CANCELLED", note, now);
@@ -462,6 +494,22 @@ public final class OrderService {
     User user = data.user(identity.id());
     if (user == null || !user.active || user.blocked || user.authVersion != identity.authVersion())
       throw new Problem(403, "Bạn không có quyền xem đơn hàng này.");
+  }
+
+  /** All changes to sibling orders take the checkout-group lock before the order lock. */
+  public static Order lockedOrder(Store.Data data, long id) {
+    Order observed = data.order(id, false);
+    if (observed == null) return null;
+    data.checkoutGroup(observed.checkoutGroupId, true);
+    return data.order(id, true);
+  }
+
+  private static void requireSafeCancellation(Store.Data data, Order order) {
+    if (!"PAYOS".equals(order.paymentMethod)) return;
+    if (Set.of("PAID", "REVIEW_REQUIRED").contains(order.paymentStatus))
+      throw new Problem(409, "Đơn đã nhận tiền hoặc cần kiểm tra thanh toán. Vui lòng liên hệ cửa hàng để xử lý hoàn tiền.");
+    if (data.paymentForOrder(order.id, false) != null && !Set.of("CANCELLED", "EXPIRED").contains(order.paymentStatus))
+      throw new Problem(409, "Vui lòng hủy qua trang thanh toán để kiểm tra kết quả chuyển khoản trước.");
   }
 
   private static String snapshot(Address address) {

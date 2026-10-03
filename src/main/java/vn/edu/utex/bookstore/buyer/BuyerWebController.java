@@ -19,10 +19,12 @@ public final class BuyerWebController {
   private static final String CHECKOUT_KEY = "checkoutIdempotencyKey";
   private final BuyerService buyer;
   private final OrderService orders;
+  private final vn.edu.utex.bookstore.payment.PaymentService payments;
 
-  public BuyerWebController(BuyerService buyer, OrderService orders) {
+  public BuyerWebController(BuyerService buyer, OrderService orders, vn.edu.utex.bookstore.payment.PaymentService payments) {
     this.buyer = buyer;
     this.orders = orders;
+    this.payments = payments;
   }
 
   @GetMapping("/account/profile")
@@ -199,6 +201,8 @@ public final class BuyerWebController {
     request.setAttribute("checkoutQuote", orders.quote(identity.id()));
     request.setAttribute("checkoutKey", key == null ? "" : key);
     request.setAttribute("addresses", buyer.addresses(identity.id()));
+    request.setAttribute("payosEnabled", payments.enabled());
+    request.setAttribute("paymentMethod", "PAYOS".equals(request.getParameter("paymentMethod")) ? "PAYOS" : "COD");
     request.setAttribute("view", "buyer-checkout");
     return Web.result(request, response);
   }
@@ -213,10 +217,14 @@ public final class BuyerWebController {
       String sessionKey = (String) request.getSession().getAttribute(CHECKOUT_KEY);
       if (sessionKey == null || !sessionKey.equals(submittedKey))
         throw Problem.invalid("Phiên đặt hàng đã hết hạn. Vui lòng tải lại trang.");
-      orders.checkout(identity.id(), address, submittedKey, request.getParameter("quoteFingerprint"));
+      var result = payments.checkout(identity.id(), address, submittedKey, request.getParameter("quoteFingerprint"), request.getParameter("paymentMethod"));
       request.getSession().removeAttribute(CHECKOUT_KEY);
       request.getSession().setAttribute(
-          "notice", "Đã đặt hàng. Cửa hàng sẽ sớm xác nhận đơn của bạn.");
+          "notice", "PAYOS".equals(result.orders().getFirst().paymentMethod)
+              ? "Đã tạo đơn. Vui lòng thanh toán từng đơn của cửa hàng trong thời gian giữ sách."
+              : "Đã đặt hàng. Cửa hàng sẽ sớm xác nhận đơn của bạn.");
+      if (result.orders().size() == 1 && "PAYOS".equals(result.orders().getFirst().paymentMethod))
+        return redirect(request, response, "/orders/" + result.orders().getFirst().id + "/payment");
       return redirect(request, response, "/orders");
     } catch (Problem problem) {
       return showProblem(request, response, problem, () -> checkout(request, response));
@@ -228,7 +236,7 @@ public final class BuyerWebController {
     Identity identity = identity(request);
     if (identity == null) return redirect(request, response, "/auth/login");
     try {
-      orders.cancel(identity.id(), Web.formId(request.getParameter("id"), true));
+      payments.cancel(identity.id(), Web.formId(request.getParameter("id"), true));
       request.getSession().setAttribute("notice", "Đã hủy đơn hàng.");
       return redirect(request, response, "/orders");
     } catch (Problem problem) {

@@ -9,4 +9,6 @@ public class Order {
   public String idempotencyKey, status, shopNameSnapshot, recipientName, phone, addressSnapshot;
   public BigDecimal subtotal, shippingFee, total;
   public Instant createdAt, updatedAt;
+  public String paymentMethod = "COD", paymentStatus = "UNPAID";
+  public Instant paymentExpiresAt;
 }

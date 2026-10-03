@@ -121,4 +121,57 @@ class CatalogTest {
     assertEquals(404, assertThrows(Problem.class,
         () -> catalog.shop("cua-hang-thu-" + shop, "1")).status);
   }
+
+  @Test void priceSortingUsesOnlyCopiesMatchingTheCurrentFilters() {
+    offer(1, "10000");
+    long firstMatchingCopy = offer(1, "90000");
+    store.copy(firstMatchingCopy, false).condition = "LIKE_NEW";
+    long secondMatchingCopy = offer(2, "50000");
+    store.copy(secondMatchingCopy, false).condition = "LIKE_NEW";
+    offer(3, "30000");
+    var page = catalog.page("1", "", null, "20000", "100000", "LIKE_NEW", Long.toString(shop), "price_asc");
+    assertEquals(List.of(2L, 1L), page.items().stream().map(ProductView::id).toList());
+    assertEquals(new BigDecimal("50000.00"), page.items().getFirst().price());
+    assertEquals(new BigDecimal("90000.00"), page.items().getLast().price());
+    assertEquals("price_asc", page.filters().sort());
+    assertEquals(2, page.total());
+    assertEquals(List.of(1L, 2L), catalog.page("1", "", null, "20000", "100000", "LIKE_NEW", Long.toString(shop), "price_desc")
+        .items().stream().map(ProductView::id).toList());
+  }
+
+  @Test void favoritesRankingAndShelfFollowRealFavoritesAndVisibility() {
+    offer(1, "40000"); offer(2, "30000"); offer(3, "50000");
+    var buyer = new vn.edu.utex.bookstore.buyer.BuyerService(store, Clock.systemUTC());
+    buyer.addFavorite(owner.id(), 1); buyer.addFavorite(admin.id(), 1); buyer.addFavorite(owner.id(), 2);
+    assertEquals(List.of(1L, 2L, 3L), catalog.page("1", "", null, null, null, null, null, "favorites")
+        .items().stream().map(ProductView::id).toList());
+    assertEquals(List.of(1L, 2L), catalog.shelf("favorites", 5).stream().map(ProductView::id).toList());
+    buyer.removeFavorite(owner.id(), 1); buyer.removeFavorite(admin.id(), 1);
+    assertEquals(List.of(2L), catalog.shelf("favorites", 5).stream().map(ProductView::id).toList());
+    store.product(2).category.active = false;
+    assertTrue(catalog.shelf("favorites", 5).isEmpty());
+    assertEquals(List.of(3L, 1L), catalog.page("1", "", null, null, null, null, null, "favorites")
+        .items().stream().map(ProductView::id).toList());
+  }
+
+  @Test void equalPriceAndFavoriteRanksHaveStablePageBoundaries() {
+    var products = new ProductService(store, Clock.fixed(Instant.parse("2026-09-03T00:00:00Z"), ZoneOffset.UTC));
+    for (int i = 14; i <= 21; i++) products.saveDetails(null, 1, "Sách " + i, "Tác giả", "", "");
+    for (long id = 1; id <= 21; id++) offer(id, "40000");
+    for (String sort : List.of("newest", "price_asc", "price_desc", "favorites")) {
+      var first = catalog.page("1", "", null, null, null, null, null, sort);
+      var second = catalog.page("2", "", null, null, null, null, null, sort);
+      assertEquals(21, first.total()); assertEquals(20, first.items().size()); assertEquals(2, first.pages());
+      assertEquals(21, first.items().getFirst().id()); assertEquals(2, first.items().getLast().id());
+      assertEquals(1, second.items().getFirst().id());
+    }
+  }
+
+  @Test void invalidSortingCannotBecomeQuerySyntaxAndDefaultStaysNewest() {
+    for (String sort : List.of("cheapest", "newest desc", "favorites; drop table products", "NEWEST"))
+      assertEquals(400, assertThrows(Problem.class,
+          () -> catalog.page("1", "", null, null, null, null, null, sort)).status);
+    assertEquals("newest", catalog.page("1", "").filters().sort());
+    assertTrue(catalog.shelf("favorites", 5).isEmpty());
+  }
 }

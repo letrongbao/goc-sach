@@ -8,12 +8,16 @@ import vn.edu.utex.bookstore.common.Problem;
 import vn.edu.utex.bookstore.config.App;
 import vn.edu.utex.bookstore.auth.Identity;
 import vn.edu.utex.bookstore.buyer.BuyerService;
+import vn.edu.utex.bookstore.review.ReviewService;
 
 @org.springframework.stereotype.Controller
 public final class ProductController {
   private final App app;
   private final BuyerService buyer;
-  public ProductController(App app, BuyerService buyer) { this.app = app; this.buyer = buyer; }
+  private final ReviewService reviews;
+  public ProductController(App app, BuyerService buyer, ReviewService reviews) {
+    this.app = app; this.buyer = buyer; this.reviews = reviews;
+  }
 
   @org.springframework.web.bind.annotation.RequestMapping(value = {"/product", "/product/detail", "/admin/products", "/admin/product/add", "/admin/product/edit", "/admin/product/save", "/admin/product/delete"}, method = {org.springframework.web.bind.annotation.RequestMethod.GET, org.springframework.web.bind.annotation.RequestMethod.POST})
   public org.springframework.web.servlet.ModelAndView handle(HttpServletRequest req, HttpServletResponse res)
@@ -42,7 +46,7 @@ public final class ProductController {
         else {
           req.setAttribute("catalog", app.catalog.page(req.getParameter("page"), req.getParameter("q"),
               req.getParameter("category"), req.getParameter("minPrice"), req.getParameter("maxPrice"),
-              req.getParameter("condition"), req.getParameter("shop")));
+              req.getParameter("condition"), req.getParameter("shop"), req.getParameter("sort")));
           req.setAttribute("categories", app.categories.list("").stream().filter(c -> c.active).toList());
           req.setAttribute("catalogShops", app.catalog.shops());
         }
@@ -57,6 +61,8 @@ public final class ProductController {
         req.setAttribute("offerPage", detail.number());
         req.setAttribute("offerPages", detail.pages());
         Identity identity = (Identity) req.getAttribute("identity");
+        req.setAttribute("productReviews", reviews.summary(identity == null ? null : identity.id(),
+            detail.product().id(), req.getParameter("reviewPage")));
         if (identity != null) {
           buyer.recordViewed(identity.id(), detail.product().id());
           req.setAttribute("favorite", buyer.isFavorite(identity.id(), detail.product().id()));

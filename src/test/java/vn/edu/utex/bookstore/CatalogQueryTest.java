@@ -7,6 +7,7 @@ import org.hibernate.boot.*;
 import org.hibernate.boot.registry.*;
 import vn.edu.utex.bookstore.persistence.CatalogQueries;
 import vn.edu.utex.bookstore.product.Product;
+import vn.edu.utex.bookstore.product.CatalogRepository;
 
 class CatalogQueryTest {
   @Test void actualCatalogJpqlParsesWithMappingsWithoutDatabaseOrDdl() {
@@ -16,10 +17,19 @@ class CatalogQueryTest {
         .applySetting("hibernate.connection.provider_class", "org.hibernate.engine.jdbc.connections.internal.UserSuppliedConnectionProviderImpl")
         .applySetting("hibernate.hbm2ddl.auto", "none").build();
     try (var factory = new MetadataSources(registry).addResource("META-INF/orm.xml")
-        .addResource("META-INF/shop-orm.xml").addResource("META-INF/inventory-orm.xml").buildMetadata().buildSessionFactory();
+        .addResource("META-INF/shop-orm.xml").addResource("META-INF/inventory-orm.xml")
+        .addResource("META-INF/buyer-orm.xml").buildMetadata().buildSessionFactory();
         var session = factory.openSession()) {
       assertDoesNotThrow(() -> filtered(session.createQuery(CatalogQueries.PRODUCTS, Product.class)));
       assertDoesNotThrow(() -> filtered(session.createQuery(CatalogQueries.COUNT, Long.class)));
+      for (var sort : CatalogRepository.Sort.values()) {
+        for (boolean favoritesOnly : List.of(false, true)) {
+          var filter = new CatalogRepository.Filter("", 0L, java.math.BigDecimal.ZERO,
+              new java.math.BigDecimal("9999999999.99"), "", 0L, sort, favoritesOnly);
+          assertDoesNotThrow(() -> filtered(session.createQuery(CatalogQueries.products(filter), Product.class)));
+          assertDoesNotThrow(() -> filtered(session.createQuery(CatalogQueries.count(filter), Long.class)));
+        }
+      }
       assertDoesNotThrow(() -> offerFiltered(session.createQuery(CatalogQueries.STOCK, Object[].class)
           .setParameter("ids", List.of(1L))));
       assertDoesNotThrow(() -> session.createQuery(CatalogQueries.OFFERS, Object[].class).setParameter("product", 1L));

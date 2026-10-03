@@ -1,0 +1,26 @@
+<th:block xmlns:th="http://www.thymeleaf.org" th:fragment="content">
+<section class="container section guide-page">
+  <nav class="breadcrumbs" aria-label="Đường dẫn"><a th:href="@{/}">Trang chủ</a><span aria-hidden="true">/</span><span aria-current="page">Cẩm nang mua sách cũ</span></nav>
+  <div class="guide-intro"><p class="eyebrow">MỘT NGƯỜI BẠN TRƯỚC KHI CHỌN SÁCH</p><h1>Sách đã cũ.<br>Niềm vui thì <em>vẫn mới.</em></h1><p>Một vài điều nhỏ giúp bạn chọn đúng cuốn sách, hiểu rõ tình trạng và an tâm hơn khi đặt hàng tại Góc Sách.</p><a class="btn btn-forest" th:href="@{/product}">Tìm cuốn sách của bạn ↗</a></div>
+
+  <section id="condition-guide" class="content-section" aria-labelledby="condition-title">
+    <div class="section-heading"><div><p class="eyebrow">01 / HIỂU TÌNH TRẠNG</p><h2 id="condition-title">Cùng một tựa sách, nhiều lựa chọn.</h2><p class="muted">Tình trạng do cửa hàng phân loại. Luôn đọc thêm mô tả khuyết điểm của chính cuốn bạn định mua.</p></div></div>
+    <div class="condition-guide-grid">
+      <article class="condition-guide-card"><span class="condition-badge">Như mới</span><h3>Gần như lần đầu mở trang.</h3><p>Phù hợp nếu bạn ưu tiên hình thức, ít dấu vết sử dụng. Kiểm tra mô tả để biết bìa, gáy và trang sách có dấu nhỏ nào không.</p><a th:href="@{/product(condition='LIKE_NEW')}">Xem sách như mới <span aria-hidden="true">↗</span></a></article>
+      <article class="condition-guide-card"><span class="condition-badge">Tốt</span><h3>Vài dấu thời gian, vẫn trọn câu chuyện.</h3><p>Lựa chọn cân bằng giữa giá và hình thức. Sách có thể ngả màu, sờn nhẹ hoặc có ghi chú được cửa hàng mô tả.</p><a th:href="@{/product(condition='GOOD')}">Xem sách tình trạng tốt <span aria-hidden="true">↗</span></a></article>
+      <article class="condition-guide-card"><span class="condition-badge">Đọc được</span><h3>Ưu tiên nội dung và ngân sách.</h3><p>Có dấu vết sử dụng rõ hơn. Hãy xem kỹ thông tin về trang, bìa, vết ố và ghi chú trước khi chọn.</p><a th:href="@{/product(condition='ACCEPTABLE')}">Xem sách tiết kiệm <span aria-hidden="true">↗</span></a></article>
+    </div>
+  </section>
+
+  <section class="reading-journey content-section" aria-labelledby="journey-title"><div><p class="eyebrow">02 / TỪ TỦ SÁCH ĐẾN TAY BẠN</p><h2 id="journey-title">Bốn bước, một câu chuyện mới.</h2><p class="muted">Mỗi cuốn có mã riêng. Thêm vào giỏ chưa giữ sách; tình trạng và giá sẽ được kiểm tra lại khi đặt hàng.</p></div><ol class="journey-steps"><li><span>01</span><div><h3>Tìm tựa sách yêu thích</h3><p>Tìm theo tên hoặc tác giả; lọc danh mục, giá và cửa hàng.</p></div></li><li><span>02</span><div><h3>Chọn đúng cuốn đang bán</h3><p>So sánh giá, tình trạng và khuyết điểm của từng cuốn trên trang chi tiết.</p></div></li><li><span>03</span><div><h3>Kiểm tra và đặt hàng</h3><p>Chọn địa chỉ, xem tổng tiền và phí giao hàng. Sách từ nhiều cửa hàng được tách thành từng đơn.</p></div></li><li><span>04</span><div><h3>Theo dõi rồi chia sẻ cảm nhận</h3><p>Xem hành trình tại Đơn hàng của tôi. Khi đơn hoàn tất, bạn có thể đánh giá sách đã mua.</p></div></li></ol></section>
+
+  <section class="content-section faq-section" aria-labelledby="faq-title"><div><p class="eyebrow">03 / ĐIỀU BẠN CÓ THỂ ĐANG TÒ MÒ</p><h2 id="faq-title">Hỏi nhỏ, đáp rõ.</h2></div><div class="faq-list">
+    <details><summary>Vì sao một tựa sách có nhiều mức giá?</summary><p>Mỗi cuốn sách vật lý thuộc một cửa hàng và có tình trạng riêng. Giá “Từ” là mức thấp nhất của các cuốn đang sẵn bán; giá cuối cùng là giá cuốn bạn chọn.</p></details>
+    <details><summary>Thêm vào giỏ có giữ sách cho tôi không?</summary><p>Chưa. Một cuốn sách cũ chỉ có một bản vật lý tại mã đó. Ứng dụng kiểm tra lại tồn và giá khi bạn đặt hàng; nếu cuốn đã được mua, bạn cần chọn cuốn khác.</p></details>
+    <details><summary>Mua từ nhiều cửa hàng được xử lý thế nào?</summary><p>Giỏ được nhóm theo cửa hàng. Khi đặt, mỗi cửa hàng có một đơn riêng, phí giao hàng và trạng thái xử lý riêng. Hãy kiểm tra tổng tiền ở bước thanh toán.</p></details>
+    <details><summary>Tôi có thể thanh toán bằng cách nào?</summary><p>Bạn có thể chọn trả khi nhận hàng (COD), hoặc chuyển khoản PayOS khi hệ thống đã bật phương thức này. Đơn chuyển khoản hiển thị thời hạn và trạng thái thanh toán riêng; xem hướng dẫn của từng đơn trước khi trả tiền.</p></details>
+    <details><summary>Khi nào tôi được hủy hoặc đánh giá đơn?</summary><p>Nút hủy xuất hiện khi đơn còn đủ điều kiện. Nếu đã chuyển khoản, việc hủy cần kiểm tra trạng thái nhận tiền. Đánh giá được mở sau khi đơn hoàn tất và chỉ áp dụng cho sách bạn đã mua.</p></details>
+    <details><summary>Tôi muốn gửi sách của mình đến người đọc mới?</summary><p>Đăng nhập rồi chọn Đăng ký cửa hàng trong menu Bán sách. Cửa hàng cần được xét duyệt trước khi đưa các cuốn sách lên bán.</p><a class="text-link" th:href="@{/account/shops}">Đăng ký cửa hàng</a></details>
+  </div></section>
+</section>
+</th:block>

@@ -6,7 +6,7 @@
       <div class="panel p-4"><h2>Sách đã đặt</h2>
         <article class="checkout-line order-item-row" th:each="item : ${orderDetail.items}">
           <a class="order-item-cover" th:href="@{/product/detail(id=${item.productId})}"><img th:if="${!#strings.isEmpty(item.coverUrl)}" th:src="${item.coverUrl}" th:alt="${'Bìa sách ' + item.title}" loading="lazy"><span th:if="${#strings.isEmpty(item.coverUrl)}" aria-hidden="true">SÁCH</span></a>
-          <div class="order-item-info"><strong><a th:href="@{/product/detail(id=${item.productId})}" th:text="${item.title}"></a></strong><small>[[${item.conditionLabel}]] · Mã cuốn: [[${item.copyCode}]]</small></div>
+          <div class="order-item-info"><strong><a th:href="@{/product/detail(id=${item.productId})}" th:text="${item.title}"></a></strong><small>[[${item.conditionLabel}]] · Mã cuốn: [[${item.copyCode}]]</small><a class="text-link order-review-link" th:if="${orderDetail.order.status == 'COMPLETED'}" th:href="@{/account/reviews/{id}(id=${item.productId})}">Chia sẻ cảm nhận về sách ↗</a></div>
           <strong class="order-item-price">[[${#numbers.formatDecimal(item.price,1,'POINT',0,'COMMA')}]] ₫</strong>
         </article>
         <div class="checkout-line"><span>Tiền sách</span><span>[[${#numbers.formatDecimal(orderDetail.order.subtotal,1,'POINT',0,'COMMA')}]] ₫</span></div>
@@ -15,7 +15,15 @@
       </div>
     </div>
     <div class="col-lg-5">
-      <div class="panel p-4 mb-4"><h2>Người nhận</h2><p><strong th:text="${orderDetail.order.recipientName}"></strong><br><span th:text="${orderDetail.order.phone}"></span></p><p class="muted" th:text="${orderDetail.order.address}"></p><p class="form-note">Thanh toán khi nhận hàng</p></div>
+      <div class="panel p-4 mb-4"><h2>Người nhận</h2><p><strong th:text="${orderDetail.order.recipientName}"></strong><br><span th:text="${orderDetail.order.phone}"></span></p><p class="muted" th:text="${orderDetail.order.address}"></p></div>
+      <div class="panel p-4 mb-4">
+        <h2>Thanh toán</h2>
+        <p class="mb-2" th:text="${orderDetail.order.paymentMethodLabel}"></p>
+        <span class="status" th:text="${orderDetail.order.paymentStatusLabel}"></span>
+        <p class="form-note" th:if="${orderDetail.order.paymentCanStart}">Sách được giữ tối đa 15 phút cho đơn chuyển khoản. Hoàn tất thanh toán để cửa hàng chuẩn bị sách cho bạn.</p>
+        <a class="btn btn-forest mt-3" th:if="${orderDetail.order.paymentCanStart}" th:href="@{/orders/{id}/payment(id=${orderDetail.order.id})}">Thanh toán đơn này</a>
+        <a class="text-link d-block mt-3" th:if="${orderDetail.order.paymentMethod == 'PAYOS' and !orderDetail.order.paymentCanStart}" th:href="@{/orders/{id}/payment(id=${orderDetail.order.id})}">Xem thông tin thanh toán</a>
+      </div>
       <div class="panel p-4"><h2>Hành trình đơn hàng</h2><ol class="order-timeline"><li class="order-timeline-item" th:each="event : ${orderDetail.history}"><span class="timeline-dot" aria-hidden="true"></span><div><strong th:text="${event.label}"></strong><small><time th:text="${event.displayTime}"></time></small><small th:if="${!#strings.isEmpty(event.note)}" th:text="${event.note}"></small></div></li></ol></div>
       <form th:if="${orderDetail.order.buyerCanCancel}" method="post" th:action="@{/orders/cancel}" class="mt-3"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${orderDetail.order.id}"><button class="btn btn-outline-danger" type="submit">Hủy đơn hàng</button></form>
     </div>
