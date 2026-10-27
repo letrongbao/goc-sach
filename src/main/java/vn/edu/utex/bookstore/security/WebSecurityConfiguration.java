@@ -22,7 +22,7 @@ public class WebSecurityConfiguration {
     http.formLogin(AbstractHttpConfigurer::disable).httpBasic(AbstractHttpConfigurer::disable)
         .logout(AbstractHttpConfigurer::disable).requestCache(AbstractHttpConfigurer::disable)
         .headers(headers -> headers.contentSecurityPolicy(csp -> csp.policyDirectives(
-            "default-src 'self'; connect-src 'self' ws: wss:; style-src 'self'; img-src 'self' data: https://res.cloudinary.com; "
+            "default-src 'self'; connect-src 'self' ws: wss:; style-src 'self'; img-src 'self' data: https://res.cloudinary.com; media-src 'self' https://res.cloudinary.com; "
             + "script-src 'self'; frame-ancestors 'none'; form-action 'self' https://pay.payos.vn; base-uri 'self'"))
             .frameOptions(frame -> frame.deny())
             .referrerPolicy(referrer -> referrer.policy(org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy.SAME_ORIGIN)));
@@ -64,7 +64,7 @@ public class WebSecurityConfiguration {
             .csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
         .authorizeHttpRequests(auth -> auth.dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
             .requestMatchers("/admin", "/admin/**").hasRole("ADMIN")
-            .requestMatchers("/account/**", "/seller/**", "/manager/**", "/favorites", "/favorites/**", "/recently-viewed", "/cart", "/cart/**", "/checkout", "/orders", "/orders/**").authenticated()
+            .requestMatchers("/ws", "/account/**", "/seller/**", "/manager/**", "/favorites", "/favorites/**", "/recently-viewed", "/cart", "/cart/**", "/checkout", "/orders", "/orders/**").authenticated()
             .anyRequest().permitAll())
         .exceptionHandling(errors -> errors.authenticationEntryPoint((req, res, ex) ->
             res.sendRedirect(req.getContextPath() + "/auth/login")));

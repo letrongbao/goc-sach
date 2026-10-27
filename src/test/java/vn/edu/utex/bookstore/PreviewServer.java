@@ -12,7 +12,7 @@ public final class PreviewServer {
     props.setProperty("cookie.secure", "false");
     props.setProperty("otp.secret", "preview-only-not-production-secret-0123456789");
     Clock clock = Clock.systemUTC();
-    MemoryStore store = ExperiencePreviewFixtures.create(clock);
+    MemoryStore store = FinalDemoFixtures.create(clock);
     App app = new App(new Settings(props), store, clock,
         (to, subject, body) -> { throw new IllegalStateException("Preview does not deliver email"); });
     var context = (ServletWebServerApplicationContext) new SpringApplicationBuilder(GocSachApplication.class)

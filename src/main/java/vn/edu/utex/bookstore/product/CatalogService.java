@@ -100,6 +100,20 @@ public final class CatalogService {
 
   public static String shopSlug(long id, String name) { return slug(name) + "-" + id; }
 
+  public Page ranking(String sort, String rawPage) {
+    if (!Set.of("newest", "popular", "bestselling", "rating", "favorites").contains(sort)) throw Problem.missing();
+    int number = number(rawPage);
+    Criteria criteria = criteria("", null, null, null, null, null, sort);
+    var filter = criteria.repositoryFilter();
+    return store.tx(data -> {
+      long total = Math.min(20, data.catalogCount(filter));
+      int pages = pages(total, 10);
+      if (number > pages) throw Problem.missing();
+      var products = data.catalogProducts(filter, (number - 1) * 10, 10);
+      return new Page(views(data, products, filter), number, pages, total, criteria);
+    });
+  }
+
   private Page page(int number, Criteria criteria) {
     CatalogRepository.Filter filter = criteria.repositoryFilter();
     return store.tx(data -> {
@@ -126,7 +140,7 @@ public final class CatalogService {
     if (!condition.isEmpty() && !CONDITIONS.contains(condition))
       throw Problem.invalid("Tình trạng sách không hợp lệ.");
     String sort = rawSort == null || rawSort.isBlank() ? "newest" : rawSort.strip();
-    if (!Set.of("newest", "price_asc", "price_desc", "favorites").contains(sort))
+    if (!Set.of("newest", "price_asc", "price_desc", "favorites", "popular", "bestselling", "rating").contains(sort))
       throw Problem.invalid("Cách sắp xếp sách không hợp lệ.");
     return new Criteria(query, category, minimum, maximum, condition, shop, sort);
   }

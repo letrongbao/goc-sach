@@ -8,4 +8,5 @@ public class Shop {
   public String name, address, status;
   public Instant createdAt;
   public int version;
+  public java.math.BigDecimal commissionRate = new java.math.BigDecimal("0.05");
 }

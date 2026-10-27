@@ -2,7 +2,7 @@
 <entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm" version="3.1">
   <entity class="vn.edu.utex.bookstore.shop.Shop" access="FIELD"><table name="shops"/><attributes>
     <id name="id"><generated-value strategy="IDENTITY"/></id>
-    <basic name="ownerId"><column name="owner_id" nullable="false"/></basic>
+    <basic name="commissionRate"><column name="commission_rate" precision="5" scale="4" nullable="false"/></basic><basic name="ownerId"><column name="owner_id" nullable="false"/></basic>
     <basic name="name"><column name="name" length="150" nullable="false"/></basic>
     <basic name="address"><column name="address" length="300" nullable="false"/></basic>
     <basic name="status"><column name="status" length="20" nullable="false"/></basic>

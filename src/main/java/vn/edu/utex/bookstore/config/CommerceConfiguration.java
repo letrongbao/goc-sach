@@ -9,6 +9,10 @@ import vn.edu.utex.bookstore.review.ReviewService;
 @Configuration
 public class CommerceConfiguration {
   @Bean
+  vn.edu.utex.bookstore.operations.OperationsService operationsService(App app) {
+    return new vn.edu.utex.bookstore.operations.OperationsService(app.store,Clock.systemUTC());
+  }
+  @Bean
   @ConditionalOnMissingBean
   OrderService orderService(App app) { return new OrderService(app.store, Clock.systemUTC()); }
   @Bean

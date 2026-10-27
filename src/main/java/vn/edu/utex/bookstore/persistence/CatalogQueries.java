@@ -15,6 +15,7 @@ public final class CatalogQueries {
   private static final String PRODUCT_BASE = "select p from Product p join fetch p.category where " + FILTER;
   private static final String FAVORITED = " and exists (select f.id from Favorite f where f.productId=p.id)";
   private static final String MINIMUM_PRICE = "(select min(c.price) from BookCopy c, Shop s where " + MATCHING_COPIES + ")";
+  private static final String SALES = "(select count(i) from OrderItem i, Order o where i.orderId=o.id and i.productId=p.id and o.status='COMPLETED' and not exists (select r.id from ReturnRequest r where r.orderId=o.id and r.status='REFUNDED'))";
   private static final String NEWEST = "p.createdAt desc,p.id desc";
   public static final String PRODUCTS = PRODUCT_BASE + " order by " + NEWEST;
   public static final String COUNT = "select count(p) from Product p where " + FILTER;
@@ -24,13 +25,15 @@ public final class CatalogQueries {
       case NEWEST -> NEWEST;
       case PRICE_ASC -> MINIMUM_PRICE + " asc," + NEWEST;
       case PRICE_DESC -> MINIMUM_PRICE + " desc," + NEWEST;
+      case BESTSELLING, POPULAR -> SALES + " desc," + NEWEST;
+      case RATING -> "coalesce((select avg(r.rating) from Review r where r.productId=p.id and r.status='PUBLISHED'),0) desc,(select count(r) from Review r where r.productId=p.id and r.status='PUBLISHED') desc," + NEWEST;
       case FAVORITES -> "(select count(f) from Favorite f where f.productId=p.id) desc," + NEWEST;
     };
-    return PRODUCT_BASE + (filter.favoritesOnly() ? FAVORITED : "") + " order by " + order;
+    return PRODUCT_BASE + (filter.sort()==CatalogRepository.Sort.POPULAR?" and "+SALES+">10":"") + (filter.favoritesOnly() ? FAVORITED : "") + " order by " + order;
   }
 
   public static String count(CatalogRepository.Filter filter) {
-    return COUNT + (filter.favoritesOnly() ? FAVORITED : "");
+    return COUNT + (filter.sort()==CatalogRepository.Sort.POPULAR?" and "+SALES+">10":"") + (filter.favoritesOnly() ? FAVORITED : "");
   }
   public static final String STOCK = "select c.productId,count(c),min(c.price) from BookCopy c, Shop s, Product p "
       + "where c.shopId=s.id and c.productId=p.id and p.category.active=true and c.productId in :ids and " + SELLABLE

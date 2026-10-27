@@ -10,8 +10,8 @@
           <strong class="order-item-price">[[${#numbers.formatDecimal(item.price,1,'POINT',0,'COMMA')}]] ₫</strong>
         </article>
         <div class="checkout-line"><span>Tiền sách</span><span>[[${#numbers.formatDecimal(orderDetail.order.subtotal,1,'POINT',0,'COMMA')}]] ₫</span></div>
-        <div class="checkout-line"><span>Phí giao hàng</span><span>[[${#numbers.formatDecimal(orderDetail.order.shippingFee,1,'POINT',0,'COMMA')}]] ₫</span></div>
-        <div class="checkout-line total"><span>Tổng thanh toán</span><strong>[[${#numbers.formatDecimal(orderDetail.order.total,1,'POINT',0,'COMMA')}]] ₫</strong></div>
+        <div class="checkout-line"><span>Phí giao hàng · [[${orderDetail.order.carrierName}]]</span><span>[[${#numbers.formatDecimal(orderDetail.order.shippingFee,1,'POINT',0,'COMMA')}]] ₫</span></div>
+        <div class="checkout-line" th:if="${orderDetail.order.discount.signum() > 0}"><span>Giảm giá · [[${orderDetail.order.voucherCode}]]</span><span>−[[${#numbers.formatDecimal(orderDetail.order.discount,1,'POINT',0,'COMMA')}]] ₫</span></div><div class="checkout-line total"><span>Tổng thanh toán</span><strong>[[${#numbers.formatDecimal(orderDetail.order.total,1,'POINT',0,'COMMA')}]] ₫</strong></div>
       </div>
     </div>
     <div class="col-lg-5">
@@ -28,4 +28,5 @@
       <form th:if="${orderDetail.order.buyerCanCancel}" method="post" th:action="@{/orders/cancel}" class="mt-3"><input type="hidden" name="_csrf" th:value="${csrf}"><input type="hidden" name="id" th:value="${orderDetail.order.id}"><button class="btn btn-outline-danger" type="submit">Hủy đơn hàng</button></form>
     </div>
   </div>
+  <p th:if="${orderDetail.order.status=='COMPLETED'}"><a class="btn btn-outline-dark" th:href="@{/orders/{id}/return(id=${orderDetail.order.id})}">Yêu cầu trả hàng / xem hoàn tiền</a></p>
 </section>

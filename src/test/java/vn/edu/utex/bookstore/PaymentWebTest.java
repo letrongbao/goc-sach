@@ -260,12 +260,12 @@ class PaymentWebTest {
     var scripts = Pattern.compile("<script\\b[^>]*>.*?</script>", Pattern.DOTALL).matcher(response.body());
     int scriptCount = 0;
     while (scripts.find()) {
-      String allowedSource = Pattern.quote(URI.create(base).getPath() + "/assets/experience.js");
+      String allowedSource = Pattern.quote(URI.create(base).getPath() + "/assets/") + "(?:experience|notifications)\\.js";
       assertTrue(scripts.group().matches("<script src=\"" + allowedSource
           + "\" defer(?:=\"defer\")?></script>"), scripts.group());
       scriptCount++;
     }
-    assertEquals(1, scriptCount);
+    assertEquals(2, scriptCount);
     assertFalse(response.body().contains("style=\""));
     for (String internal : new String[] {"clientId", "apiKey", "checksumKey", "PostgreSQL", "Exception Report"})
       assertFalse(response.body().contains(internal), internal);

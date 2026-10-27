@@ -17,8 +17,10 @@ import vn.edu.utex.bookstore.web.Web;
 @Controller
 public final class ReviewWebController {
   private final ReviewService reviews;
+  private final vn.edu.utex.bookstore.config.App app;
 
-  public ReviewWebController(ReviewService reviews) {
+  public ReviewWebController(ReviewService reviews,vn.edu.utex.bookstore.config.App app) {
+    this.app=app;
     this.reviews = reviews;
   }
 
@@ -36,14 +38,27 @@ public final class ReviewWebController {
 
   @PostMapping("/account/reviews/{productId}")
   public ModelAndView save(@PathVariable long productId, HttpServletRequest request,
-      HttpServletResponse response) throws java.io.IOException {
+      HttpServletResponse response) throws java.io.IOException, jakarta.servlet.ServletException {
     try {
       long userId = identity(request).id();
       var editor = reviews.editor(userId, productId);
       int rating = rating(request.getParameter("rating"));
       boolean update = "update".equals(request.getParameter("mode"));
-      if (update) reviews.update(userId, productId, rating, request.getParameter("body"));
-      else reviews.add(userId, productId, rating, request.getParameter("body"));
+      ReviewService.validateInput(rating,request.getParameter("body"));
+      String url=update?null:"",type=update?null:"";
+      if("true".equals(request.getParameter("removeMedia"))){url="";type="";}
+      if(request.getContentType()!=null&&request.getContentType().startsWith("multipart/form-data")) {
+        var file=request.getPart("attachment");
+        if(file!=null&&file.getSize()>0) {
+          if(!editor.editable())throw new Problem(409,"Đánh giá hiện không thể chỉnh sửa.");
+          try(var input=file.getInputStream()) {
+            var asset="video".equals(request.getParameter("mediaType"))?app.images.storeVideo(input,file.getSize()):app.images.storeAsset(input,file.getSize());
+            url=asset.secureUrl();type=asset.resourceType();
+          } catch(java.io.IOException e){throw new Problem(502,"Không tải được tệp lên. Vui lòng thử lại.");}
+        }
+      }
+      if (update) reviews.update(userId, productId, rating, request.getParameter("body"),url,type);
+      else reviews.add(userId, productId, rating, request.getParameter("body"),url,type);
       request.getSession().setAttribute("notice", update
           ? "Đã cập nhật đánh giá của bạn. Cảm ơn bạn đã chia sẻ!"
           : "Đánh giá đã được đăng. Cảm ơn bạn đã giúp bạn đọc khác chọn sách!");

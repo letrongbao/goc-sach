@@ -1,5 +1,19 @@
 # Cách chạy
 
+## Demo cuối kỳ 26–27/10/2026
+
+Đọc [FINAL_ACCEPTANCE.md](FINAL_ACCEPTANCE.md). Dùng database mới `goc_sach_final_demo`: chạy schema.sql rồi demo-final.sql đúng một lần trên database trống. Trên máy chuẩn bị database đã nhập xong, không chạy lại. File local `config/final-demo.properties` dùng PostgreSQL port 5434, tắt payOS và SMTP thật. JAR bắt buộc bật Cloudinary với cấu hình hợp lệ; preview bộ nhớ không cần dịch vụ ngoài. Cấu hình thật không nằm trong source zip.
+
+```powershell
+java -Dbookstore.config=C:/BaoLT/goc-sach/config/final-demo.properties -jar target/goc-sach.jar --server.address=127.0.0.1 --server.port=18082
+```
+
+Mở http://127.0.0.1:18082/ . Accounts: buyer, reader, seller, reviewer, manager, admin; mật khẩu demo-password-123. Preview hiện có 24 đầu sách/6 danh mục/3 shop, thay thông tin 13 sách ở ghi chú cũ bên dưới. Chạy scripts/payment-preview.ps1 để test cổng giả port 18081, không dùng tiền thật.
+
+Database goc_sach cũ chưa áp dụng operations-manual.sql. Không chạy JAR mới vào database cũ trước khi sao lưu, kiểm tra và nâng cấp schema đúng các mốc cần thiết. Không chạy lại schema.sql trên database có bảng.
+
+## Hướng dẫn nền và cấu hình dịch vụ
+
 Cần Java 21 và PostgreSQL 17. Không cần cài Maven hoặc Tomcat riêng.
 
 Trên Windows, đặt `JAVA_HOME` trỏ tới thư mục JDK 21 đang cài và kiểm tra `java -version` trước khi build. Nếu shim Java trên PATH không chạy hoặc Maven wrapper thoát mà không có log, kiểm tra lại JDK; mã thoát 0 không thay cho dòng BUILD SUCCESS và report test mới.

@@ -21,10 +21,16 @@
     </div>
     <div class="col-lg-5">
       <div class="panel checkout-form">
-        <h2>Thông tin nhận hàng</h2>
+        <h2>Giao hàng và ưu đãi</h2>
+        <form method="get" th:action="@{/checkout}" class="mb-4">
+          <label for="carrierId">Nhà vận chuyển</label><select class="form-select" id="carrierId" name="carrierId"><option value="">Tiêu chuẩn — 30.000 ₫ / shop</option><option th:each="c:${carriers}" th:value="${c.id}" th:selected="${c.id==carrierId}" th:text="${c.name+' — '+#numbers.formatDecimal(c.fee,1,'POINT',0,'COMMA')+' ₫ / shop'}"></option></select>
+          <label for="voucherCode">Mã giảm giá của shop</label><input class="form-control" id="voucherCode" name="voucherCode" maxlength="30" th:value="${voucherCode}"><button class="btn btn-outline-dark mt-2">Áp dụng và tính lại</button>
+        </form><h2>Thông tin nhận hàng</h2>
         <form method="post" th:action="@{/checkout}">
           <input type="hidden" name="_csrf" th:value="${csrf}">
           <input type="hidden" name="idempotencyKey" th:value="${checkoutKey}">
+          <input type="hidden" name="carrierId" th:value="${carrierId==0?'':carrierId}">
+          <input type="hidden" name="voucherCode" th:value="${voucherCode}">
           <input type="hidden" name="quoteFingerprint" th:value="${checkoutQuote.fingerprint}">
           <label for="addressId">Địa chỉ nhận hàng</label>
           <select id="addressId" name="addressId" class="form-select" required>
@@ -48,6 +54,7 @@
           <p class="field-help" th:if="${payosEnabled}">Sách từ mỗi cửa hàng được tạo thành một đơn riêng. Nếu chọn chuyển khoản, bạn thanh toán lần lượt từng đơn sau khi đặt hàng.</p>
           <div class="checkout-line mt-4"><span>Tiền sách</span><strong>[[${#numbers.formatDecimal(checkoutQuote.subtotal,1,'POINT',0,'COMMA')}]] ₫</strong></div>
           <div class="checkout-line"><span>Phí giao hàng</span><strong>[[${#numbers.formatDecimal(checkoutQuote.shippingFee,1,'POINT',0,'COMMA')}]] ₫</strong></div>
+          <div class="checkout-line" th:if="${checkoutQuote.discount.signum()>0}"><span>Giảm giá</span><strong>−[[${#numbers.formatDecimal(checkoutQuote.discount,1,'POINT',0,'COMMA')}]] ₫</strong></div>
           <div class="checkout-line total"><span>Tổng thanh toán</span><strong>[[${#numbers.formatDecimal(checkoutQuote.total,1,'POINT',0,'COMMA')}]] ₫</strong></div>
           <p class="form-note">Giá và tình trạng sách sẽ được kiểm tra lại khi bạn đặt hàng. Bạn có thể xem phương thức và tình trạng thanh toán trong chi tiết đơn.</p>
           <button class="btn btn-forest w-100 mt-3" type="submit"

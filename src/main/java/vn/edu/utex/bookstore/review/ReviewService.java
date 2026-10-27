@@ -18,7 +18,7 @@ public final class ReviewService {
     this.clock = clock;
   }
 
-  public record ReviewView(int rating, String body, String authorName, Instant createdAt, Instant updatedAt) {
+  public record ReviewView(int rating, String body, String authorName, Instant createdAt, Instant updatedAt, String mediaUrl,String mediaType) {
     public String displayTime() {
       return java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")
           .withZone(java.time.ZoneId.of("Asia/Ho_Chi_Minh")).format(createdAt);
@@ -29,7 +29,9 @@ public final class ReviewService {
   public record Editor(ProductView product, ReviewView existingReview, long orderId, boolean editable,
       boolean accessiblePublicProduct) {}
 
-  public Review add(long userId, long productId, int rating, String body) {
+  public Review add(long userId,long productId,int rating,String body) {return add(userId,productId,rating,body,"","");}
+  public Review add(long userId, long productId, int rating, String body,String mediaUrl,String mediaType) {
+    media(mediaUrl,mediaType);
     String text = validate(rating, body);
     return store.tx(data -> {
       requireBuyer(data, userId);
@@ -42,6 +44,7 @@ public final class ReviewService {
       review.orderId = orderId;
       review.rating = rating;
       review.body = text;
+      if(mediaUrl!=null){review.mediaUrl=mediaUrl;review.mediaType=mediaType;}
       review.status = "PUBLISHED";
       review.createdAt = clock.instant();
       review.updatedAt = review.createdAt;
@@ -49,7 +52,9 @@ public final class ReviewService {
     });
   }
 
-  public Review update(long userId, long productId, int rating, String body) {
+  public Review update(long userId,long productId,int rating,String body){return update(userId,productId,rating,body,null,null);}
+  public Review update(long userId, long productId, int rating, String body,String mediaUrl,String mediaType) {
+    media(mediaUrl,mediaType);
     String text = validate(rating, body);
     return store.tx(data -> {
       requireBuyer(data, userId);
@@ -60,6 +65,7 @@ public final class ReviewService {
         throw new Problem(409, "Đánh giá này hiện không thể chỉnh sửa.");
       review.rating = rating;
       review.body = text;
+      if(mediaUrl!=null){review.mediaUrl=mediaUrl;review.mediaType=mediaType;}
       review.updatedAt = clock.instant();
       return data.saveReview(review);
     });
@@ -112,6 +118,15 @@ public final class ReviewService {
     return orderId;
   }
 
+  public static void validateInput(int rating,String body){validate(rating,body);}
+  private static void media(String url,String type) {
+    if(url==null)return;
+    if(url.isEmpty()&&"".equals(type))return;
+    try {var uri=java.net.URI.create(url);
+      if(url.length()<=1000&&"https".equals(uri.getScheme())&&"res.cloudinary.com".equals(uri.getHost())&&uri.getUserInfo()==null&&java.util.Set.of("image","video").contains(type))return;
+    }catch(RuntimeException ignored){}
+    throw Problem.invalid("Tệp đính kèm phải được tải lên Cloudinary qua biểu mẫu.");
+  }
   private static String validate(int rating, String body) {
     if (rating < 1 || rating > 5) throw new FormProblem("rating", "Hãy chọn điểm đánh giá từ 1 đến 5 sao.");
     String text = body == null ? "" : body.trim();
@@ -124,7 +139,7 @@ public final class ReviewService {
     var profile = data.profile(review.userId);
     String name = profile == null || profile.displayName == null || profile.displayName.isBlank()
         ? "Bạn đọc Góc Sách" : profile.displayName;
-    return new ReviewView(review.rating, review.body, name, review.createdAt, review.updatedAt);
+    return new ReviewView(review.rating, review.body, name, review.createdAt, review.updatedAt, review.mediaUrl,review.mediaType);
   }
 
   private static int pageNumber(String raw) {

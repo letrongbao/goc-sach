@@ -60,6 +60,16 @@ public final class CloudinaryImageStorage implements ImageStorage {
     return ImageValidation.reference(value);
   }
 
+  @Override public StoredImage storeVideo(InputStream input,long size) throws IOException {
+    byte[] data=VideoValidation.read(input,size);
+    Map<?,?> result=client.upload(data,ObjectUtils.asMap("resource_type","video","asset_folder",assetFolder,
+        "use_asset_folder_as_public_id_prefix",true,"unique_filename",true,"overwrite",false,"tags","goc-sach-review"));
+    Object raw=result.get("secure_url");
+    if(!(raw instanceof String url)||!isCloudinaryHttps(url)||!"video".equals(result.get("resource_type")))
+      throw new IOException("Cloudinary không trả về video HTTPS hợp lệ.");
+    return new StoredImage(string(result.get("public_id")),"video",url,integer(result.get("width")),integer(result.get("height")));
+  }
+
   private static String requireFolder(String value) {
     String folder = value == null ? "" : value.trim();
     if (!folder.matches("[A-Za-z0-9 _./-]{1,255}") || folder.contains(".."))

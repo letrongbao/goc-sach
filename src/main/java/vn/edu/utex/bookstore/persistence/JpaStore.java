@@ -93,6 +93,29 @@ public class JpaStore implements Store {
   }
 
   private static final class JpaData implements Data {
+
+    public vn.edu.utex.bookstore.operations.Voucher voucher(String code, boolean lock) {
+      var q=em.createQuery("select v from Voucher v where v.code=:code", vn.edu.utex.bookstore.operations.Voucher.class).setParameter("code",code);
+      if(lock) q.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+      var rows=q.getResultList();
+      if(rows.isEmpty()) return null;
+      var v=rows.getFirst(); if(lock) em.refresh(v,LockModeType.PESSIMISTIC_WRITE); return v;
+    }
+    public List<vn.edu.utex.bookstore.operations.Voucher> vouchers(long shopId) {return em.createQuery("select v from Voucher v where v.shopId=:shop order by v.id desc",vn.edu.utex.bookstore.operations.Voucher.class).setParameter("shop",shopId).getResultList();}
+    public List<vn.edu.utex.bookstore.operations.Carrier> carriers() {return em.createQuery("select c from Carrier c order by c.id",vn.edu.utex.bookstore.operations.Carrier.class).getResultList();}
+    public vn.edu.utex.bookstore.operations.Carrier carrier(long id, boolean lock) {return find(vn.edu.utex.bookstore.operations.Carrier.class,id,lock);}
+    public vn.edu.utex.bookstore.operations.ReturnRequest returnForOrder(long orderId, boolean lock) {
+      var q=em.createQuery("select r from ReturnRequest r where r.orderId=:id",vn.edu.utex.bookstore.operations.ReturnRequest.class).setParameter("id",orderId);
+      if(lock) q.setLockMode(LockModeType.PESSIMISTIC_WRITE);
+      return q.getResultStream().findFirst().orElse(null);
+    }
+    public List<User> userAccounts() {return em.createQuery("select u from User u order by u.id",User.class).setMaxResults(1000).getResultList();}
+    public List<Review> moderationReviews() {return em.createQuery("select r from Review r order by r.id desc",Review.class).setMaxResults(200).getResultList();}
+    public Review reviewById(long id, boolean lock) {return find(Review.class,id,lock);}
+    public vn.edu.utex.bookstore.operations.Voucher saveVoucher(vn.edu.utex.bookstore.operations.Voucher v) {if(v.id==null){em.persist(v);return v;} return em.merge(v);}
+    public vn.edu.utex.bookstore.operations.Carrier saveCarrier(vn.edu.utex.bookstore.operations.Carrier v) {if(v.id==null){em.persist(v);return v;} return em.merge(v);}
+    public vn.edu.utex.bookstore.operations.ReturnRequest saveReturn(vn.edu.utex.bookstore.operations.ReturnRequest v) {if(v.id==null){em.persist(v);return v;} return em.merge(v);}
+
     private final EntityManager em;
 
     JpaData(EntityManager em) {

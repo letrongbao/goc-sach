@@ -18,7 +18,7 @@ class CatalogQueryTest {
         .applySetting("hibernate.hbm2ddl.auto", "none").build();
     try (var factory = new MetadataSources(registry).addResource("META-INF/orm.xml")
         .addResource("META-INF/shop-orm.xml").addResource("META-INF/inventory-orm.xml")
-        .addResource("META-INF/buyer-orm.xml").buildMetadata().buildSessionFactory();
+        .addResource("META-INF/buyer-orm.xml").addResource("META-INF/order-orm.xml").addResource("META-INF/review-orm.xml").addResource("META-INF/operations-orm.xml").buildMetadata().buildSessionFactory();
         var session = factory.openSession()) {
       assertDoesNotThrow(() -> filtered(session.createQuery(CatalogQueries.PRODUCTS, Product.class)));
       assertDoesNotThrow(() -> filtered(session.createQuery(CatalogQueries.COUNT, Long.class)));

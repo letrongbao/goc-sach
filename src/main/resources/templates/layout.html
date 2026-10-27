@@ -20,18 +20,18 @@
   <nav class="primary-nav" aria-label="Điều hướng chính">
     <a th:href="@{/}" th:classappend="${view == 'catalog-home'} ? ' is-current' : ''" th:attr="aria-current=${view == 'catalog-home' ? 'page' : null}">Trang chủ</a>
     <a th:href="@{/product}" th:classappend="${view == 'products' or view == 'product-detail'} ? ' is-current' : ''" th:attr="aria-current=${view == 'products' or view == 'product-detail' ? 'page' : null}">Tủ sách</a>
-    <a th:href="@{/guide}" th:classappend="${view == 'reading-guide'} ? ' is-current' : ''" th:attr="aria-current=${view == 'reading-guide' ? 'page' : null}">Cẩm nang</a>
+    <a th:href="@{/rankings/newest}">Top 20</a><a th:href="@{/guide}" th:classappend="${view == 'reading-guide'} ? ' is-current' : ''" th:attr="aria-current=${view == 'reading-guide' ? 'page' : null}">Cẩm nang</a>
     <a th:if="${identity != null}" th:href="@{/cart}" th:classappend="${view == 'buyer-cart' or view == 'buyer-checkout'} ? ' is-current' : ''" th:attr="aria-current=${view == 'buyer-cart' or view == 'buyer-checkout' ? 'page' : null}">Giỏ hàng</a>
   </nav>
   <div class="header-actions">
     <th:block th:if="${identity != null}">
       <details class="header-menu">
         <summary>Bán sách</summary>
-        <div class="menu-popover"><a th:href="@{/seller/shops}">Cửa hàng của tôi</a><a th:href="@{/seller/orders}">Đơn hàng cửa hàng</a><a th:href="@{/account/shops}">Đăng ký cửa hàng</a></div>
+        <div class="menu-popover"><a th:href="@{/seller/shops}">Cửa hàng của tôi</a><a th:href="@{/seller/operations}">Vận hành cửa hàng</a><a th:href="@{/seller/orders}">Đơn hàng cửa hàng</a><a th:href="@{/account/shops}">Đăng ký cửa hàng</a></div>
       </details>
       <details class="header-menu" th:if="${identity.admin}">
         <summary>Quản trị</summary>
-        <div class="menu-popover"><a th:href="@{/admin/categories}">Danh mục sách</a><a th:href="@{/admin/products}">Danh sách sách</a><a th:href="@{/admin/shops}">Duyệt cửa hàng</a><a th:href="@{/admin/payments}">Kiểm tra thanh toán</a></div>
+        <div class="menu-popover"><a th:href="@{/admin/categories}">Danh mục sách</a><a th:href="@{/admin/products}">Danh sách sách</a><a th:href="@{/admin/shops}">Duyệt cửa hàng</a><a th:href="@{/admin/payments}">Kiểm tra thanh toán</a><a th:href="@{/admin/operations}">Quản trị vận hành</a></div>
       </details>
       <details class="header-menu account-menu">
         <summary><span th:text="${identity.username}">Tài khoản</span></summary>
@@ -44,7 +44,7 @@
     <a class="btn btn-outline-dark btn-sm" th:if="${identity == null}" th:href="@{/auth/login}">Đăng nhập</a>
   </div>
 </header>
-<main id="main">
+<main id="main"><div th:if="${identity != null}" id="order-updates" class="container alert alert-info mt-3" role="status" tabindex="-1" hidden th:attr="data-endpoint=@{/ws}">Có cập nhật đơn hàng. <a th:href="@{/orders}">Xem đơn của tôi</a> · <a th:href="@{/seller/orders}">Xem đơn cửa hàng</a></div><script th:if="${identity != null}" th:src="@{/assets/notifications.js}" defer></script>
   <nav class="container account-navigation" aria-label="Không gian của bạn" th:if="${view == 'buyer-profile' or view == 'buyer-addresses' or view == 'buyer-favorites' or view == 'buyer-recent' or view == 'buyer-orders'}">
     <a th:href="@{/account/profile}" th:attr="aria-current=${view == 'buyer-profile' ? 'page' : null}">Hồ sơ của tôi</a>
     <a th:href="@{/orders}" th:attr="aria-current=${view == 'buyer-orders' ? 'page' : null}">Đơn hàng</a>

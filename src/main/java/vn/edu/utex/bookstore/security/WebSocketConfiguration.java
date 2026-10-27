@@ -1,19 +1,26 @@
 package vn.edu.utex.bookstore.security;
 
 import org.springframework.context.annotation.Configuration;
-import org.springframework.messaging.simp.config.MessageBrokerRegistry;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
-import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.*;
+import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
-/** Same-origin STOMP endpoint reserved for order/user notifications in M7. */
+/** Same-origin authenticated updates, without public topics or client-selected user IDs. */
 @Configuration
-@EnableWebSocketMessageBroker
-public class WebSocketConfiguration implements WebSocketMessageBrokerConfigurer {
-  @Override public void configureMessageBroker(MessageBrokerRegistry registry) {
-    registry.enableSimpleBroker("/topic", "/queue");
-    registry.setApplicationDestinationPrefixes("/app");
-    registry.setUserDestinationPrefix("/user");
+@EnableWebSocket
+public class WebSocketConfiguration implements WebSocketConfigurer {
+  private final OrderNotificationSocket socket;
+  public WebSocketConfiguration(OrderNotificationSocket socket){this.socket=socket;}
+  @Override public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
+    registry.addHandler(socket,"/ws").addInterceptors(new HttpSessionHandshakeInterceptor(){
+      @Override public boolean beforeHandshake(org.springframework.http.server.ServerHttpRequest request,
+          org.springframework.http.server.ServerHttpResponse response,org.springframework.web.socket.WebSocketHandler handler,
+          java.util.Map<String,Object> attributes) throws Exception {
+        if(request instanceof org.springframework.http.server.ServletServerHttpRequest servlet) {
+          var session=servlet.getServletRequest().getSession(false);
+          if(session==null)return false;attributes.put("httpSession",session);
+        }
+        return super.beforeHandshake(request,response,handler,attributes);
+      }
+    });
   }
-  @Override public void registerStompEndpoints(StompEndpointRegistry registry) { registry.addEndpoint("/ws"); }
 }

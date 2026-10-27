@@ -1,0 +1,7 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <h1>Trả hàng · Đơn #[[${orderDetail.order.id}]]</h1><p><a th:href="@{/orders/{id}(id=${orderDetail.order.id})}">← Chi tiết đơn</a></p>
+  <div class="panel p-4"><p>Gửi yêu cầu trong 7 ngày sau khi giao thành công. Cửa hàng sẽ kiểm tra lý do, hướng dẫn gửi lại sách và xác nhận khoản hoàn trả. Tổng giá trị đơn: <strong>[[${#numbers.formatDecimal(orderDetail.order.total,1,'POINT',0,'COMMA')}]] ₫</strong>.</p>
+    <form th:if="${returnRequest == null}" method="post" th:action="@{/orders/{id}/return(id=${orderDetail.order.id})}"><input type="hidden" name="_csrf" th:value="${csrf}"><label for="reason">Lý do trả hàng</label><textarea class="form-control" id="reason" name="reason" minlength="10" maxlength="500" required></textarea><button class="btn btn-forest mt-3">Gửi yêu cầu</button></form>
+    <div th:if="${returnRequest != null}"><h2>Yêu cầu đã gửi</h2><p th:text="${returnRequest.reason}"></p><p>Trạng thái: <strong th:text="${returnRequest.status == 'REQUESTED' ? 'Chờ xử lý' : returnRequest.status == 'APPROVED' ? 'Đã duyệt, chờ nhận sách và hoàn tiền' : returnRequest.status == 'REFUNDED' ? 'Đã ghi nhận hoàn tiền' : 'Từ chối'}"></strong></p><p th:text="${returnRequest.resolution}"></p><p th:if="${!#strings.isEmpty(returnRequest.refundReference)}">Tham chiếu hoàn tiền: [[${returnRequest.refundReference}]]</p></div>
+  </div>
+</section>

@@ -12,4 +12,7 @@ public interface ImageStorage {
   }
 
   String validateReference(String value);
+  default StoredImage storeVideo(InputStream input,long size) throws IOException {
+    throw vn.edu.utex.bookstore.common.Problem.invalid("Lưu video cần cấu hình Cloudinary.");
+  }
 }

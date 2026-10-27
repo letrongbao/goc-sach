@@ -99,6 +99,7 @@ public final class FrontController {
       }
       if (path.equals("/") && !post) {
         req.setAttribute("products", app.catalog.shelf("newest", 5));
+        req.setAttribute("bestsellers", app.catalog.shelf("popular", 20));
         req.setAttribute("popularProducts", app.catalog.shelf("favorites", 5));
         req.setAttribute("homeCategories", app.categories.list("").stream().filter(category -> category.active).toList());
         req.setAttribute("homeShops", app.catalog.shops());

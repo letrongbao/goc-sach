@@ -198,7 +198,16 @@ public final class BuyerWebController {
     request.setAttribute("cartLines", lines);
     request.setAttribute("cartSubtotal", lines.stream().map(BuyerService.CartLine::price)
         .reduce(BigDecimal.ZERO, BigDecimal::add));
-    request.setAttribute("checkoutQuote", orders.quote(identity.id()));
+    long carrierId=0; String voucherCode=request.getParameter("voucherCode");
+    try {
+      Long selected=Web.formId(request.getParameter("carrierId"),false);carrierId=selected==null?0:selected;
+      request.setAttribute("checkoutQuote",orders.quote(identity.id(),carrierId,voucherCode));
+    } catch(Problem p) {
+      response.setStatus(p.status);request.setAttribute("error",p.getMessage());
+      carrierId=0;voucherCode="";request.setAttribute("checkoutQuote",orders.quote(identity.id()));
+    }
+    request.setAttribute("carrierId",carrierId);request.setAttribute("voucherCode",voucherCode==null?"":voucherCode);
+    request.setAttribute("carriers",orders.carriers());
     request.setAttribute("checkoutKey", key == null ? "" : key);
     request.setAttribute("addresses", buyer.addresses(identity.id()));
     request.setAttribute("payosEnabled", payments.enabled());
@@ -217,7 +226,8 @@ public final class BuyerWebController {
       String sessionKey = (String) request.getSession().getAttribute(CHECKOUT_KEY);
       if (sessionKey == null || !sessionKey.equals(submittedKey))
         throw Problem.invalid("Phiên đặt hàng đã hết hạn. Vui lòng tải lại trang.");
-      var result = payments.checkout(identity.id(), address, submittedKey, request.getParameter("quoteFingerprint"), request.getParameter("paymentMethod"));
+      Long carrier=Web.formId(request.getParameter("carrierId"),false);
+      var result = payments.checkout(identity.id(), address, submittedKey, request.getParameter("quoteFingerprint"), request.getParameter("paymentMethod"),carrier==null?0:carrier,request.getParameter("voucherCode"));
       request.getSession().removeAttribute(CHECKOUT_KEY);
       request.getSession().setAttribute(
           "notice", "PAYOS".equals(result.orders().getFirst().paymentMethod)
@@ -248,7 +258,9 @@ public final class BuyerWebController {
   public ModelAndView orders(HttpServletRequest request, HttpServletResponse response) {
     Identity identity = identity(request);
     if (identity == null) return redirect(request, response, "/auth/login");
-    request.setAttribute("orders", orders.orders(identity.id()));
+    request.setAttribute("orderStatus", request.getParameter("status") == null ? "" : request.getParameter("status"));
+    try { request.setAttribute("orders", orders.filteredOrders(identity.id(), request.getParameter("status"))); }
+    catch (Problem e) { response.setStatus(e.status); request.setAttribute("error", e.getMessage()); request.setAttribute("orders", java.util.List.of()); }
     request.setAttribute("view", "buyer-orders");
     return Web.result(request, response);
   }

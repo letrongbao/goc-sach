@@ -1,5 +1,6 @@
 <section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
   <div class="section-heading"><div><p class="eyebrow">TÀI KHOẢN</p><h1>Đơn hàng của tôi</h1></div><a class="btn btn-outline-dark" th:href="@{/product}">Tiếp tục tìm sách</a></div>
+  <form method="get" th:action="@{/orders}" class="d-flex gap-2 mb-4"><label for="order-status">Trạng thái</label><select id="order-status" name="status" class="form-select"><option value="">Tất cả</option><option th:each="s : ${ {'PENDING','CONFIRMED','SHIPPING','COMPLETED','CANCELLED'} }" th:value="${s}" th:selected="${orderStatus == s}" th:text="${s == 'PENDING' ? 'Chờ xác nhận' : s == 'CONFIRMED' ? 'Đang chuẩn bị' : s == 'SHIPPING' ? 'Đang giao' : s == 'COMPLETED' ? 'Hoàn tất' : 'Đã hủy'}"></option></select><button class="btn btn-forest">Lọc đơn</button></form>
   <div class="shop-grid" th:if="${!#lists.isEmpty(orders)}">
     <article class="form-card order-card" th:each="order : ${orders}">
       <div class="d-flex justify-content-between gap-3 align-items-start"><div><small>Đơn hàng #[[${order.id}]] · <time th:text="${order.displayTime}"></time></small><h2 class="h4 mt-2" th:text="${order.shopName}"></h2></div><span class="status" th:text="${order.statusLabel}"></span></div>

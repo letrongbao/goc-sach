@@ -13,6 +13,22 @@ import vn.edu.utex.bookstore.order.*;
 import vn.edu.utex.bookstore.review.*;
 
 public class MemoryStore implements Store, Store.Data {
+
+  public vn.edu.utex.bookstore.operations.Voucher voucher(String code,boolean lock){return voucherRows.values().stream().filter(v->v.code.equals(code)).findFirst().orElse(null);}
+  public List<vn.edu.utex.bookstore.operations.Voucher> vouchers(long shopId){return voucherRows.values().stream().filter(v->v.shopId==shopId).toList();}
+  public vn.edu.utex.bookstore.operations.Carrier carrier(long id,boolean lock){return carrierRows.get(id);}
+  public List<vn.edu.utex.bookstore.operations.Carrier> carriers(){return List.copyOf(carrierRows.values());}
+  public vn.edu.utex.bookstore.operations.ReturnRequest returnForOrder(long id,boolean lock){return returnRows.values().stream().filter(r->r.orderId==id).findFirst().orElse(null);}
+  public List<User> userAccounts(){return List.copyOf(users.values());}
+  public List<Review> moderationReviews(){return List.copyOf(reviews.values());}
+  public Review reviewById(long id,boolean lock){return reviews.get(id);}
+  public final Map<Long,vn.edu.utex.bookstore.operations.Voucher> voucherRows=new LinkedHashMap<>();
+  public vn.edu.utex.bookstore.operations.Voucher saveVoucher(vn.edu.utex.bookstore.operations.Voucher v){if(v.id==null)v.id=(long)voucherRows.size()+1;voucherRows.put(v.id,v);return v;}
+  public final Map<Long,vn.edu.utex.bookstore.operations.Carrier> carrierRows=new LinkedHashMap<>();
+  public vn.edu.utex.bookstore.operations.Carrier saveCarrier(vn.edu.utex.bookstore.operations.Carrier v){if(v.id==null)v.id=(long)carrierRows.size()+1;carrierRows.put(v.id,v);return v;}
+  public final Map<Long,vn.edu.utex.bookstore.operations.ReturnRequest> returnRows=new LinkedHashMap<>();
+  public vn.edu.utex.bookstore.operations.ReturnRequest saveReturn(vn.edu.utex.bookstore.operations.ReturnRequest v){if(v.id==null)v.id=(long)returnRows.size()+1;returnRows.put(v.id,v);return v;}
+
   private boolean sellable(BookCopy c) {
     return "AVAILABLE".equals(c.status) && !"UNCLASSIFIED".equals(c.condition)
         && shops.containsKey(c.shopId) && "ACTIVE".equals(shops.get(c.shopId).status)
@@ -28,11 +44,14 @@ public class MemoryStore implements Store, Store.Data {
       case NEWEST -> newest;
       case PRICE_ASC -> Comparator.comparing((vn.edu.utex.bookstore.product.Product p) -> stock.get(p.id).minimumPrice()).thenComparing(newest);
       case PRICE_DESC -> Comparator.comparing((vn.edu.utex.bookstore.product.Product p) -> stock.get(p.id).minimumPrice()).reversed().thenComparing(newest);
+      case BESTSELLING, POPULAR -> Comparator.comparingLong((vn.edu.utex.bookstore.product.Product p) -> orderItemRows.values().stream().filter(i -> i.productId == p.id && "COMPLETED".equals(orders.get(i.orderId).status) && (returnForOrder(i.orderId,false)==null || !"REFUNDED".equals(returnForOrder(i.orderId,false).status))).count()).reversed().thenComparing(newest);
+      case RATING -> Comparator.comparingDouble((vn.edu.utex.bookstore.product.Product p) -> reviews.values().stream().filter(r -> r.productId == p.id && "PUBLISHED".equals(r.status)).mapToInt(r -> r.rating).average().orElse(0)).reversed().thenComparing(Comparator.comparingLong((vn.edu.utex.bookstore.product.Product p) -> reviews.values().stream().filter(r -> r.productId == p.id && "PUBLISHED".equals(r.status)).count()).reversed()).thenComparing(newest);
       case FAVORITES -> Comparator.comparingLong((vn.edu.utex.bookstore.product.Product p) -> favoriteCount(p.id)).reversed().thenComparing(newest);
     };
     return products(0, Integer.MAX_VALUE).stream().filter(p -> p.category.active
         && (filter.categoryId() == 0 || p.category.id == filter.categoryId())
         && (p.title.toLowerCase(Locale.ROOT).contains(q) || p.author.toLowerCase(Locale.ROOT).contains(q))
+        && (filter.sort()!=CatalogRepository.Sort.POPULAR || orderItemRows.values().stream().filter(i->i.productId==p.id && "COMPLETED".equals(orders.get(i.orderId).status) && (returnForOrder(i.orderId,false)==null || !"REFUNDED".equals(returnForOrder(i.orderId,false).status))).count()>10)
         && stock.containsKey(p.id) && (!filter.favoritesOnly() || favoriteCount(p.id) > 0))
         .sorted(ordering).skip(offset).limit(limit).toList();
   }

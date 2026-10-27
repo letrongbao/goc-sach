@@ -28,9 +28,9 @@ public final class OrderService {
   public record QuoteLine(long copyId, long productId, String title, String coverUrl,
       String condition, String conditionLabel, String copyCode, BigDecimal price, boolean sellable) {}
   public record QuoteShop(long shopId, String shopName, List<QuoteLine> lines, BigDecimal subtotal,
-      BigDecimal shippingFee, BigDecimal total) {}
+      BigDecimal shippingFee, BigDecimal total, BigDecimal discount) {}
   public record CheckoutQuote(List<QuoteShop> shops, BigDecimal subtotal, BigDecimal shippingFee,
-      BigDecimal total, String fingerprint, boolean ready, List<String> issues) {}
+      BigDecimal total, String fingerprint, boolean ready, List<String> issues, BigDecimal discount, String carrierName, String voucherCode) {}
   public record OrderItemView(long copyId, long productId, String title, String coverUrl,
       String condition, String conditionLabel, String copyCode, BigDecimal price) {}
   public record StatusView(String status, String label, String note, Instant createdAt) {
@@ -41,7 +41,7 @@ public final class OrderService {
       BigDecimal total, Instant createdAt, Instant updatedAt, boolean buyerCanCancel,
       boolean sellerCanCancel, String nextStatus, String nextStatusLabel,
       String paymentMethod, String paymentMethodLabel, String paymentStatus, String paymentStatusLabel,
-      boolean paymentCanStart, Instant paymentExpiresAt) {
+      boolean paymentCanStart, Instant paymentExpiresAt, BigDecimal discount, String voucherCode, String carrierName) {
     public String displayTime() { return DISPLAY_TIME.format(createdAt); }
   }
   public record OrderDetail(OrderSummary order, List<OrderItemView> items, List<StatusView> history) {}
@@ -59,25 +59,34 @@ public final class OrderService {
     this.clock = clock;
   }
 
+  public List<vn.edu.utex.bookstore.operations.Carrier> carriers() {
+    return store.tx(d -> d.carriers().stream().filter(c -> c.active).toList());
+  }
+  public CheckoutQuote quote(long userId, long carrierId, String voucherCode) {
+    return store.tx(data -> quote(data, userId, false, carrierId, voucherCode));
+  }
+  public CheckoutResult checkout(long userId,long addressId,String key,String fingerprint,String method,long carrierId,String voucherCode) {
+    return checkout(userId,addressId,key,fingerprint,true,method,carrierId,voucherCode);
+  }
   public CheckoutQuote quote(long userId) {
     return store.tx(data -> quote(data, userId, false));
   }
 
   /** Compatibility entry point for older callers. New UI/API callers should submit the quote fingerprint. */
   public CheckoutResult checkout(long userId, long addressId, String rawKey) {
-    return checkout(userId, addressId, rawKey, null, false, "COD");
+    return checkout(userId, addressId, rawKey, null, false, "COD",0,"");
   }
 
   public CheckoutResult checkout(long userId, long addressId, String rawKey, String expectedFingerprint) {
-    return checkout(userId, addressId, rawKey, expectedFingerprint, true, "COD");
+    return checkout(userId, addressId, rawKey, expectedFingerprint, true, "COD",0,"");
   }
 
   public CheckoutResult checkout(long userId, long addressId, String rawKey, String expectedFingerprint, String method) {
-    return checkout(userId, addressId, rawKey, expectedFingerprint, true, method);
+    return checkout(userId, addressId, rawKey, expectedFingerprint, true, method,0,"");
   }
 
   private CheckoutResult checkout(long userId, long addressId, String rawKey,
-      String expectedFingerprint, boolean requireFingerprint, String method) {
+      String expectedFingerprint, boolean requireFingerprint, String method, long carrierId, String voucherCode) {
     if (!Set.of("COD", "PAYOS").contains(method)) throw Problem.invalid("Phương thức thanh toán không hợp lệ.");
     String key = rawKey == null ? "" : rawKey.trim();
     if (!key.matches("[A-Za-z0-9._-]{16,80}"))
@@ -94,7 +103,7 @@ public final class OrderService {
 
       Address address = data.address(addressId);
       if (address == null || address.userId != userId) throw Problem.missing();
-      CheckoutQuote current = quote(data, userId, true);
+      CheckoutQuote current = quote(data, userId, true, carrierId, voucherCode);
       if (!current.ready()) throw new Problem(409, current.issues().getFirst());
       if ("PAYOS".equals(method)) {
         for (QuoteShop shop : current.shops()) {
@@ -108,6 +117,10 @@ public final class OrderService {
       if (!submitted.isEmpty() && !MessageDigest.isEqual(
           current.fingerprint().getBytes(StandardCharsets.US_ASCII), submitted.getBytes(StandardCharsets.US_ASCII)))
         throw new Problem(409, "Giá hoặc tình trạng sách vừa thay đổi. Vui lòng kiểm tra lại đơn hàng.");
+      if (!current.voucherCode().isEmpty()) {
+        var voucher=data.voucher(current.voucherCode(),false);
+        voucher.used++; data.saveVoucher(voucher);
+      }
       Set<Long> checkedOutCopies = current.shops().stream().flatMap(shop -> shop.lines().stream())
           .map(QuoteLine::copyId).collect(Collectors.toSet());
 
@@ -143,6 +156,10 @@ public final class OrderService {
         order.subtotal = quotedShop.subtotal();
         order.shippingFee = quotedShop.shippingFee();
         order.total = quotedShop.total();
+        order.discount = quotedShop.discount();
+        order.voucherCode = order.discount.signum()>0 ? current.voucherCode() : "";
+        order.carrierName = current.carrierName();
+        order.commissionRate = shop.commissionRate;
         order.createdAt = now;
         order.updatedAt = now;
         data.saveOrder(order);
@@ -192,6 +209,13 @@ public final class OrderService {
 
   public List<OrderSummary> orders(long userId) {
     return store.tx(data -> data.ordersFor(userId).stream().map(order -> summary(data, order)).toList());
+  }
+
+  public List<OrderSummary> filteredOrders(long userId, String rawStatus) {
+    String status = rawStatus == null ? "" : rawStatus.strip();
+    if (!Set.of("", "PENDING", "CONFIRMED", "SHIPPING", "COMPLETED", "CANCELLED").contains(status))
+      throw Problem.invalid("Trạng thái đơn hàng không hợp lệ.");
+    return orders(userId).stream().filter(o -> status.isEmpty() || status.equals(o.status())).toList();
   }
 
   public List<OrderSummary> ordersByKey(long userId, String key) {
@@ -314,7 +338,18 @@ public final class OrderService {
     };
   }
 
-  private CheckoutQuote quote(Store.Data data, long userId, boolean lockCopies) {
+  private CheckoutQuote quote(Store.Data data,long userId,boolean lockCopies) {return quote(data,userId,lockCopies,0,"");}
+  private CheckoutQuote quote(Store.Data data, long userId, boolean lockCopies,long carrierId,String rawVoucher) {
+    if(carrierId<0)throw Problem.invalid("Nhà vận chuyển không hợp lệ.");
+    String code=rawVoucher==null?"":rawVoucher.strip().toUpperCase(Locale.ROOT);
+    if(!code.isEmpty()&&!code.matches("[A-Z0-9_-]{4,30}"))throw Problem.invalid("Mã giảm giá không hợp lệ.");
+    var voucher=code.isEmpty()?null:data.voucher(code,lockCopies);
+    if(!code.isEmpty()&&(voucher==null||!voucher.active||!voucher.expiresAt.isAfter(clock.instant())||voucher.used>=voucher.maximumUses))
+      throw Problem.invalid("Mã giảm giá không tồn tại, đã hết hạn hoặc hết lượt.");
+    var carrier=carrierId==0?null:data.carrier(carrierId,lockCopies);
+    if(carrierId!=0&&(carrier==null||!carrier.active))throw Problem.invalid("Nhà vận chuyển không còn hoạt động.");
+    BigDecimal fee=carrier==null?SHIPPING_FEE_PER_SHOP:carrier.fee;
+    String carrierName=carrier==null?"Giao hàng tiêu chuẩn":carrier.name;
     var cart = data.cart(userId);
     if (cart == null) return emptyQuote();
     List<CartItem> cartItems = new ArrayList<>(data.cartItems(cart.id));
@@ -355,25 +390,34 @@ public final class OrderService {
       group.lines.add(line);
       group.subtotal = group.subtotal.add(price);
       signature.append(cartItem.copyId).append(':').append(line.productId()).append(':').append(shopId)
-          .append(':').append(price.toPlainString()).append(':').append(copy == null ? "missing" : copy.status)
+          .append(':').append(price.stripTrailingZeros().toPlainString()).append(':').append(copy == null ? "missing" : copy.status)
           .append(':').append(copy == null ? -1 : copy.version).append(';');
     }
     if (issues.size() > 1)
       issues = new ArrayList<>(List.of("Một số cuốn sách trong giỏ không còn sẵn bán. Hãy kiểm tra lại giỏ hàng."));
     BigDecimal subtotal = grouped.values().stream().map(group -> group.subtotal)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
-    BigDecimal shipping = SHIPPING_FEE_PER_SHOP.multiply(BigDecimal.valueOf(grouped.size()));
+    BigDecimal shipping = fee.multiply(BigDecimal.valueOf(grouped.size()));
+    BigDecimal discount=BigDecimal.ZERO;
+    if(voucher!=null) {
+      var eligible=grouped.get(voucher.shopId);
+      if(eligible==null||eligible.subtotal.compareTo(voucher.minimumSubtotal)<0)
+        throw Problem.invalid("Mã không áp dụng cho cửa hàng hoặc giá trị đơn hiện tại.");
+      discount=voucher.amount.min(eligible.subtotal);
+    }
+    final BigDecimal appliedDiscount=discount;
     List<QuoteShop> shops = grouped.values().stream().map(group -> new QuoteShop(group.shopId,
-        group.shopName, List.copyOf(group.lines), group.subtotal, SHIPPING_FEE_PER_SHOP,
-        group.subtotal.add(SHIPPING_FEE_PER_SHOP))).toList();
-    signature.append("shipping:").append(shipping.toPlainString());
-    return new CheckoutQuote(shops, subtotal, shipping, subtotal.add(shipping), digest(signature.toString()),
-        issues.isEmpty(), List.copyOf(issues));
+        group.shopName, List.copyOf(group.lines), group.subtotal, fee,
+        group.subtotal.add(fee).subtract(voucher!=null&&voucher.shopId==group.shopId?appliedDiscount:BigDecimal.ZERO),
+        voucher!=null&&voucher.shopId==group.shopId?appliedDiscount:BigDecimal.ZERO)).toList();
+    signature.append("shipping:").append(shipping.stripTrailingZeros().toPlainString()).append(":carrier:").append(carrierId).append(":voucher:").append(code).append(":discount:").append(discount.stripTrailingZeros().toPlainString());
+    return new CheckoutQuote(shops, subtotal, shipping, subtotal.add(shipping).subtract(discount), digest(signature.toString()),
+        issues.isEmpty(), List.copyOf(issues), discount, carrierName, code);
   }
 
   private CheckoutQuote emptyQuote() {
     return new CheckoutQuote(List.of(), BigDecimal.ZERO, BigDecimal.ZERO, BigDecimal.ZERO,
-        digest("empty"), false, List.of("Giỏ hàng đang trống."));
+        digest("empty"), false, List.of("Giỏ hàng đang trống."),BigDecimal.ZERO,"Giao hàng tiêu chuẩn","");
   }
 
   private OrderDetail detail(Store.Data data, Order order) {
@@ -398,7 +442,8 @@ public final class OrderService {
         next.isEmpty() ? "" : statusLabel(next), order.paymentMethod,
         online ? "Chuyển khoản qua PayOS" : "Thanh toán khi nhận hàng", order.paymentStatus,
         vn.edu.utex.bookstore.payment.PaymentService.statusLabel(order.paymentStatus),
-        online && "PENDING".equals(order.status) && Set.of("UNPAID", "PENDING").contains(order.paymentStatus), order.paymentExpiresAt);
+        online && "PENDING".equals(order.status) && Set.of("UNPAID", "PENDING").contains(order.paymentStatus), order.paymentExpiresAt,
+        order.discount, order.voucherCode, order.carrierName);
   }
 
   private OrderItemView itemView(Store.Data data, OrderItem item) {

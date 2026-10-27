@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm" version="3.1">
+<entity class="vn.edu.utex.bookstore.operations.Voucher" access="FIELD"><table name="vouchers"/><attributes>
+<id name="id"><generated-value strategy="IDENTITY"/></id>
+<basic name="shopId"><column name="shop_id" nullable="false"/></basic>
+<basic name="code"><column name="code" nullable="false" length="200"/></basic>
+<basic name="amount"><column name="amount" nullable="false" precision="12" scale="2"/></basic>
+<basic name="minimumSubtotal"><column name="minimum_subtotal" nullable="false" precision="12" scale="2"/></basic>
+<basic name="maximumUses"><column name="maximum_uses" nullable="false"/></basic>
+<basic name="used"><column name="used" nullable="false"/></basic>
+<basic name="active"><column name="active" nullable="false"/></basic>
+<basic name="expiresAt"><column name="expires_at" nullable="false"/></basic>
+</attributes></entity>
+<entity class="vn.edu.utex.bookstore.operations.Carrier" access="FIELD"><table name="carriers"/><attributes>
+<id name="id"><generated-value strategy="IDENTITY"/></id>
+<basic name="name"><column name="name" nullable="false" length="200"/></basic>
+<basic name="fee"><column name="fee" nullable="false" precision="12" scale="2"/></basic>
+<basic name="active"><column name="active" nullable="false"/></basic>
+</attributes></entity>
+<entity class="vn.edu.utex.bookstore.operations.ReturnRequest" access="FIELD"><table name="return_requests"/><attributes>
+<id name="id"><generated-value strategy="IDENTITY"/></id>
+<basic name="orderId"><column name="order_id" nullable="false"/></basic>
+<basic name="status"><column name="status" nullable="false" length="200"/></basic>
+<basic name="reason"><column name="reason" nullable="false" length="500"/></basic>
+<basic name="resolution"><column name="resolution" nullable="false" length="500"/></basic>
+<basic name="refundReference"><column name="refund_reference" nullable="false" length="200"/></basic>
+<basic name="createdAt"><column name="created_at" nullable="false"/></basic>
+<basic name="updatedAt"><column name="updated_at" nullable="false"/></basic>
+</attributes></entity>
+</entity-mappings>

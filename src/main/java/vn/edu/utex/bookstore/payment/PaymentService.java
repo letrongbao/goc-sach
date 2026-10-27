@@ -53,6 +53,11 @@ public final class PaymentService {
     return orders.checkout(userId, addressId, key, fingerprint, method);
   }
 
+  public OrderService.CheckoutResult checkout(long userId,long addressId,String key,String fingerprint,String rawMethod,long carrierId,String voucherCode) {
+    String method=rawMethod==null||rawMethod.isBlank()?"COD":rawMethod.strip();
+    if("PAYOS".equals(method))requireEnabled();
+    return orders.checkout(userId,addressId,key,fingerprint,method,carrierId,voucherCode);
+  }
   public PaymentView view(long userId, long orderId) {
     return store.tx(data -> {
       Order order = owned(data, userId, orderId, false);

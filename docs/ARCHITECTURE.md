@@ -1,5 +1,7 @@
 # Cấu trúc chương trình
 
+> Cập nhật cuối kỳ: [FINAL_ACCEPTANCE.md](FINAL_ACCEPTANCE.md). Các đoạn bên dưới giữ mô tả mốc trước; top 20, media/moderation, carrier/voucher, trả hàng và native WebSocket đã bổ sung. STOMP cũ không còn là cơ chế đang dùng.
+
 - `web/`: Spring MVC controller, kiểm tra phiên/quyền và xử lý form.
 - `auth/`, `category/`, `product/`: nghiệp vụ tài khoản, danh mục, sách.
 - `shop/`: yêu cầu mở cửa hàng, xét duyệt, thành viên và nhật ký thay đổi.

@@ -2,6 +2,8 @@
 
 Website chuỗi cửa hàng sách cũ, phát triển theo đề tài 14.
 
+Bản cuối kỳ ngày 26–27/10/2026: xem [nghiệm thu và hồ sơ](docs/FINAL_ACCEPTANCE.md). Đã bổ sung top 20, vận hành, review media và WebSocket; bộ verify cuối đạt 220 test. Các giới hạn dịch vụ thật được ghi riêng.
+
 ## Chức năng hiện có
 
 - Đăng ký, mã xác nhận email, đăng nhập và khôi phục mật khẩu.

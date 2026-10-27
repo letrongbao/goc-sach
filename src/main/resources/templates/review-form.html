@@ -2,7 +2,7 @@
   <nav class="breadcrumb-links" aria-label="Đường dẫn"><a th:href="@{/orders}">Đơn hàng của tôi</a><span aria-hidden="true">/</span><span>Đánh giá sách</span></nav>
   <div class="section-heading"><div><p class="eyebrow">CẢM NHẬN SAU KHI ĐỌC</p><h1 th:text="${reviewEditor.existingReview == null ? 'Mỗi chia sẻ, thêm một người yêu sách.' : 'Cập nhật cảm nhận của bạn.'}">Chia sẻ cảm nhận</h1><p class="muted">Một trải nghiệm chân thành giúp cuốn sách tìm được bạn đọc tiếp theo.</p></div></div>
   <div class="review-editor-grid">
-    <form th:if="${reviewEditor.editable}" class="form-card review-editor-form" method="post" th:action="@{/account/reviews/{id}(id=${reviewEditor.product.id})}">
+    <form th:if="${reviewEditor.editable}" class="form-card review-editor-form" method="post" enctype="multipart/form-data" th:action="@{/account/reviews/{id}(id=${reviewEditor.product.id})}">
       <input type="hidden" name="_csrf" th:value="${csrf}">
       <input type="hidden" name="mode" th:value="${reviewEditor.existingReview == null ? 'create' : 'update'}">
       <fieldset class="review-rating-fieldset" aria-describedby="rating-hint rating-error">
@@ -21,6 +21,7 @@
       <output id="review-count" for="review-body" class="field-hint muted" th:text="${#strings.length(reviewBody) + ' / 5.000 ký tự'}"></output>
       <p id="review-body-hint" class="field-hint muted">Từ 50 đến 5.000 ký tự. Tên hiển thị trong hồ sơ của bạn sẽ xuất hiện cùng đánh giá; nếu chưa đặt tên, chúng tôi dùng “Bạn đọc Góc Sách”.</p>
       <p id="review-body-error" class="field-error" th:if="${fieldErrors != null and fieldErrors['body'] != null}" th:text="${fieldErrors['body']}"></p>
+      <label for="mediaType">Tệp minh họa (tùy chọn)</label><select class="form-select" id="mediaType" name="mediaType"><option value="image">Ảnh JPEG, PNG, WebP (tối đa 5 MB)</option><option value="video">Video MP4 (tối đa 5 MB)</option></select><input class="form-control mt-2" type="file" name="attachment" accept="image/jpeg,image/png,image/webp,video/mp4" aria-label="Tải ảnh hoặc video"><p class="field-hint">Một tệp cho mỗi đánh giá; tệp mới thay thế tệp cũ.</p><label class="d-block mb-3" th:if="${reviewEditor.existingReview!=null and !#strings.isEmpty(reviewEditor.existingReview.mediaUrl)}"><input type="checkbox" name="removeMedia" value="true"> Gỡ tệp đang đính kèm</label>
       <div class="form-actions"><button class="btn btn-forest" type="submit" th:text="${reviewEditor.existingReview == null ? 'Đăng đánh giá' : 'Lưu thay đổi'}"></button><a class="btn btn-link" th:if="${reviewEditor.accessiblePublicProduct}" th:href="@{/product/detail(id=${reviewEditor.product.id})}">Quay lại cuốn sách</a><a class="btn btn-link" th:unless="${reviewEditor.accessiblePublicProduct}" th:href="@{/orders/{id}(id=${reviewEditor.orderId})}">Quay lại đơn hàng</a></div>
     </form>
     <div class="form-card" th:unless="${reviewEditor.editable}"><h2>Đánh giá đang được xem xét</h2><p>Bạn chưa thể chỉnh sửa đánh giá này. Cảm ơn bạn đã chia sẻ trải nghiệm.</p><a class="btn btn-outline-dark" th:href="@{/orders/{id}(id=${reviewEditor.orderId})}">Quay lại đơn hàng</a></div>

@@ -1,0 +1,8 @@
+<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <p class="eyebrow">KHÁM PHÁ</p><h1>20 tựa sách nổi bật</h1>
+  <nav class="account-navigation" aria-label="Bảng xếp hạng"><a th:href="@{/rankings/newest}">Mới nhất</a><a th:href="@{/rankings/bestselling}">Bán chạy</a><a th:href="@{/rankings/rating}">Đánh giá cao</a><a th:href="@{/rankings/favorites}">Yêu thích</a></nav>
+  <p th:text="${sort == 'newest' ? 'Sắp theo ngày giới thiệu mới nhất.' : sort == 'bestselling' ? 'Sắp theo số cuốn thuộc các đơn đã hoàn tất.' : sort == 'rating' ? 'Sắp theo điểm trung bình công khai, sau đó theo số đánh giá.' : 'Sắp theo số người lưu sách vào danh sách yêu thích.'}"></p>
+  <p>Tối đa 20 đầu sách đang có bản sẵn bán. Danh sách chỉ hiển thị số sách hiện có khi dữ liệu chưa đủ.</p>
+  <th:block th:replace="~{book-cards :: content(products=${ranking.items})}"></th:block>
+  <nav class="page-nav" aria-label="Phân trang" th:if="${ranking.pages > 1}"><a th:each="n : ${#numbers.sequence(1,ranking.pages)}" th:href="@{/rankings/{sort}(sort=${sort},page=${n})}" th:attr="aria-current=${n == ranking.number ? 'page' : null}" th:text="${n}"></a></nav>
+</section>

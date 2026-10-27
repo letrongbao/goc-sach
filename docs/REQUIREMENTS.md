@@ -1,5 +1,7 @@
 # Đối chiếu yêu cầu đồ án
 
+> Bảng dưới giữ lịch sử mốc cũ. Hiện trạng cuối kỳ ở [FINAL_ACCEPTANCE.md](FINAL_ACCEPTANCE.md); nhiều mục từng ghi chờ đã triển khai và kiểm thử.
+
 Đọc trực tiếp [quy định cuối khóa UTEx](https://utexlms.hcmute.edu.vn/mod/page/view.php?id=1452010) ngày 04/09/2026. Trang ghi sửa lần cuối 19/08/2026. Bảng này tách yêu cầu của thầy khỏi hiện trạng và quyết định triển khai.
 
 “Có nền tảng” không có nghĩa đã nghiệm thu DB/email thật. Test tự động hiện tại không thay cho kiểm thử các chức năng cuối kỳ chưa viết. Kết quả mới nhất ở [VERIFICATION.md](VERIFICATION.md).
