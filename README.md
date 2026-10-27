@@ -20,6 +20,14 @@ API và phân công ba người: [URL, body, quyền và cách lấy token](docs
 
 ## Chạy dự án
 
+**Chạy cho nhóm bằng Docker:** nhận riêng `team.properties` từ Bảo, đặt vào `config/`, mở Docker Desktop rồi chạy:
+
+```sh
+docker compose up -d --build --wait
+```
+
+Mở http://localhost:8080, hộp thư OTP local http://localhost:8025. Database, dữ liệu mẫu và khóa JWT tự tạo; không cần cài Java/PostgreSQL riêng. Xem [hướng dẫn Docker ngắn](docs/DOCKER_QUICKSTART.md). Key không nằm trên Git; payOS mặc định tắt.
+
 Xem [hướng dẫn chạy](docs/SETUP.md). Dùng `scripts/preview.ps1` nếu chỉ muốn xem giao diện với dữ liệu minh họa, không cần database và không gửi email.
 
 Lệnh kiểm tra toàn bộ:

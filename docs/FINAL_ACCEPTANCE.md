@@ -4,6 +4,7 @@ Chuẩn bị ngày 26/10/2026; cập nhật API, phân công và hồ sơ ngày 
 
 ## API và phân công cập nhật 28/10
 
+- Đã có [Docker Compose một lệnh](DOCKER_QUICKSTART.md) cho nhóm: nhận riêng `config/team.properties`, chạy app/PostgreSQL/Mailpit, tự tạo JWT và seed volume mới. Nghiệm thu bản clone sạch và giữ dữ liệu sau recreate đạt; full verify chạy lại 03:07:07 vẫn 230/230. Xem [kết quả Docker](VERIFICATION.md).
 - TV1 Bảo: checkout, đơn buyer/seller, payOS/webhook, trả hàng, ghi nhận hoàn tiền, thông báo.
 - TV2: tài khoản, hồ sơ/địa chỉ, catalog/tìm kiếm/top20, giỏ, yêu thích/đã xem, review/media.
 - TV3: shop/thành viên/kho, catalog admin, voucher/hãng giao/chiết khấu/doanh thu, khóa user và kiểm duyệt.

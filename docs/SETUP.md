@@ -1,5 +1,9 @@
 # Cách chạy
 
+## Cách đơn giản cho thành viên nhóm
+
+Dùng [Docker Compose](DOCKER_QUICKSTART.md): đặt file riêng `config/team.properties` vào repo rồi chạy `docker compose up -d --build --wait`. App, PostgreSQL, dữ liệu demo, JWT và hộp thư OTP local được chuẩn bị tự động. Không cần các bước cài Java/PostgreSQL thủ công bên dưới. Mỗi máy có volume riêng; bộ Compose không dùng database `goc_sach` hiện có.
+
 ## Demo cuối kỳ cập nhật 28/10/2026
 
 Đọc [FINAL_ACCEPTANCE.md](FINAL_ACCEPTANCE.md). Dùng database mới `goc_sach_final_demo`: chạy schema.sql rồi demo-final.sql đúng một lần trên database trống. Trên máy chuẩn bị database đã nhập xong, không chạy lại. File local `config/final-demo.properties` dùng PostgreSQL port 5434, tắt payOS và SMTP thật. JAR bắt buộc bật Cloudinary với cấu hình hợp lệ; preview bộ nhớ không cần dịch vụ ngoài. Cấu hình thật không nằm trong source zip.

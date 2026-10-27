@@ -1,0 +1,50 @@
+name: goc-sach-team
+services:
+  db:
+    image: postgres:17.11-alpine
+    environment:
+      POSTGRES_DB: goc_sach_final_demo
+      POSTGRES_USER: bookstore
+      POSTGRES_PASSWORD: goc-sach-local-demo-only
+    volumes:
+      - database:/var/lib/postgresql/data
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./sql/demo-final.sql:/docker-entrypoint-initdb.d/02-demo.sql:ro
+      - ./docker/03-ready.sql:/docker-entrypoint-initdb.d/03-ready.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, "PGPASSWORD=$$POSTGRES_PASSWORD psql -h 127.0.0.1 -U $$POSTGRES_USER -d $$POSTGRES_DB -tAc 'SELECT ready FROM compose_bootstrap WHERE id=1' | grep -qx t"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    restart: unless-stopped
+  mail:
+    image: axllent/mailpit:v1.27.4
+    ports:
+      - "127.0.0.1:${MAIL_PORT:-8025}:8025"
+    restart: unless-stopped
+  app:
+    build: .
+    ports:
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    secrets:
+      - team_config
+    volumes:
+      - runtime:/app/runtime
+    depends_on:
+      db:
+        condition: service_healthy
+      mail:
+        condition: service_started
+    healthcheck:
+      test: [CMD, curl, --fail, --silent, --max-time, "5", "http://127.0.0.1:8080/api/categories"]
+      interval: 10s
+      timeout: 6s
+      start_period: 60s
+      retries: 12
+    restart: unless-stopped
+secrets:
+  team_config:
+    file: ./config/team.properties
+volumes:
+  database:
+  runtime:
