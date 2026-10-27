@@ -2,7 +2,9 @@
 
 Website chuỗi cửa hàng sách cũ, phát triển theo đề tài 14.
 
-Bản cuối kỳ ngày 26–27/10/2026: xem [nghiệm thu và hồ sơ](docs/FINAL_ACCEPTANCE.md). Đã bổ sung top 20, vận hành, review media và WebSocket; bộ verify cuối đạt 220 test. Các giới hạn dịch vụ thật được ghi riêng.
+Bản cuối kỳ cập nhật 28/10/2026: xem [nghiệm thu và hồ sơ](docs/FINAL_ACCEPTANCE.md). Đã bổ sung top 20, vận hành, review media và WebSocket; bộ verify cuối đạt 230 test. Các giới hạn dịch vụ thật được ghi riêng.
+
+API và phân công ba người: [URL, body, quyền và cách lấy token](docs/API_REFERENCE.md). Báo cáo Word/PDF và rubric local: [hồ sơ](docs/reports/README.md).
 
 ## Chức năng hiện có
 
@@ -28,6 +30,6 @@ Lệnh kiểm tra toàn bộ:
 
 Kết quả kiểm thử được cập nhật ở [VERIFICATION.md](docs/VERIFICATION.md). SQL chỉ được chuẩn bị để xem xét, dự án không tự tạo hoặc cập nhật bảng.
 
-Các phần tiếp theo gồm khuyến mãi, đánh giá có ảnh/video, thông báo đơn hàng và báo cáo vận hành. PayOS là lựa chọn hiện tại; cần xác nhận với thầy vì yêu cầu ghi VNPAY/MOMO. Xem [tiến độ](docs/MILESTONES.md) và [kế hoạch](docs/ROADMAP.md).
+Đã có khuyến mãi, đánh giá có ảnh/video, thông báo đơn hàng và báo cáo vận hành. PayOS là lựa chọn hiện tại; cần xác nhận với thầy vì yêu cầu ghi VNPAY/MOMO. Xem [tiến độ](docs/MILESTONES.md) và [kế hoạch](docs/ROADMAP.md).
 
 Thiết kế, hành vi mới và tài khoản demo được ghi tại [UI/UX](docs/UI_UX.md).

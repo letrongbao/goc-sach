@@ -36,7 +36,7 @@ public class WebSecurityConfiguration {
         java.util.List.of(new SimpleGrantedAuthority("ROLE_" + jwt.getClaimAsString("role"))));
     http.securityMatcher("/api", "/api/**").csrf(AbstractHttpConfigurer::disable)
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-        .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/api/products/*/reviews").permitAll()
+        .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/api/products/*/reviews", "/api/products", "/api/products/*", "/api/categories", "/api/rankings/*", "/api/shops", "/api/shops/*").permitAll()
             .requestMatchers("/api/admin/**").hasRole("ADMIN").anyRequest().authenticated())
         .exceptionHandling(errors -> errors.authenticationEntryPoint((req, res, ex) -> json(res, 401, "not_authenticated"))
             .accessDeniedHandler((req, res, ex) -> json(res, 403, "forbidden")))

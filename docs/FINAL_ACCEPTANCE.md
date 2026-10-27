@@ -1,6 +1,16 @@
 # Nghiệm thu đồ án cuối kỳ Góc Sách
 
-Chuẩn bị ngày 26/10/2026; kiểm tra JAR và xuất tài liệu hoàn tất ngày 27/10/2026. Chỉ phạm vi nhóm 27, đề tài 14. Tài liệu này cập nhật hiện trạng mới hơn các ghi chú mốc trước trong REQUIREMENTS, ARCHITECTURE và VERIFICATION.
+Chuẩn bị ngày 26/10/2026; cập nhật API, phân công và hồ sơ ngày 28/10/2026. Chỉ phạm vi nhóm 27, đề tài 14. Tài liệu này cập nhật hiện trạng mới hơn các ghi chú mốc trước trong REQUIREMENTS, ARCHITECTURE và VERIFICATION.
+
+## API và phân công cập nhật 28/10
+
+- TV1 Bảo: checkout, đơn buyer/seller, payOS/webhook, trả hàng, ghi nhận hoàn tiền, thông báo.
+- TV2: tài khoản, hồ sơ/địa chỉ, catalog/tìm kiếm/top20, giỏ, yêu thích/đã xem, review/media.
+- TV3: shop/thành viên/kho, catalog admin, voucher/hãng giao/chiết khấu/doanh thu, khóa user và kiểm duyệt.
+- [API_REFERENCE.md](API_REFERENCE.md) ghi URL đầy đủ, body, query và quyền; [API_ROUTES.json](API_ROUTES.json) lưu danh mục máy đọc. Xác thực/OTP giữ form session + CSRF; REST riêng dùng Bearer.
+- Bổ sung controller gọi service hiện có; checkout JSON nhận carrierId/voucherCode, review nhận JSON/multipart. Hoàn tiền yêu cầu settled=true; xử lý status null trả 400.
+- ExpandedApiWebTest: 10 test mới trên HTTP server/RSA tạm, kiểm tra IDOR, shop/admin, version kho, thu hồi token, checkout gửi lặp và hoàn tiền, CRUD và quyền upload. Không có migration hoặc sửa dữ liệu thật trong lượt này.
+- Bốn DOCX/PDF và rubric local được cập nhật; bản trong Git ở [reports](reports/README.md). Không chỉnh sheet công khai của thầy.
 
 ## Chức năng bổ sung
 
@@ -14,7 +24,7 @@ Chuẩn bị ngày 26/10/2026; kiểm tra JAR và xuất tài liệu hoàn tất
 
 ## Bằng chứng
 
-`mvnw.cmd -B -ntp verify` hoàn tất 26/10/2026 17:56:26: **220 tests, 0 failures, 0 errors, 0 skipped; BUILD SUCCESS**. Log local `target/final-verified.log`; XML `target/surefire-reports/`. Lần sandbox chặn socket không được dùng làm kết luận; lần hoàn chỉnh ngoài sandbox đạt.
+`mvnw.cmd -B -ntp verify` hoàn tất 28/10/2026 02:39:35: **230 tests, 0 failures, 0 errors, 0 skipped; BUILD SUCCESS**. Log local `target/api-final-verified.log`; XML `target/surefire-reports/`. Lần sandbox chặn socket không được dùng làm kết luận; lần hoàn chỉnh ngoài sandbox đạt.
 
 `FinalDatabaseAcceptance` trên PostgreSQL demo: validate mapping, top, voucher/phí checkout, trả hàng, fake payOS PAID/callback lặp/hủy. Toàn bộ thao tác nghiệm thu rollback, dữ liệu seed giữ nguyên. Log `target/final-db-acceptance.log`.
 
@@ -23,6 +33,8 @@ Chrome preview đã kiểm tra trang chủ, đăng nhập, top bán chạy, lọ
 Ngày 27/10: JAR production khởi động với JPA validate trên `goc_sach_final_demo`, port 18082; GET `/rankings/bestselling` trả HTTP 200. Cấu hình demo tắt payOS, SMTP trỏ localhost; Cloudinary dùng cấu hình sẵn có vì JAR bắt buộc bật adapter, không upload trong phép thử. `config/final-demo.properties` bị Git ignore và không nằm trong gói source.
 
 Lỗi PostgreSQL scale BigDecimal 10000/10000.00 gây fingerprint khác nhau đã sửa bằng `stripTrailingZeros().toPlainString()` và thêm test hồi quy. Chi tiết đơn bổ sung breakdown giảm giá/hãng giao để đối chiếu tổng.
+
+JAR mới ngày 28/10 khởi động với JPA validate trên database demo riêng, port18083. Đọc API `/api/categories`, `/api/products`, `/api/products/1`, `/api/rankings/bestselling`, `/api/shops` đều HTTP200; `/api/account/profile` không Bearer trả401. Chỉ kiểm tra đọc, không thay dữ liệu demo; không coi đây là kiểm tra ghi API trên PostgreSQL. Chi tiết local `target/api-jar-http.json`.
 
 ## Dữ liệu và migration
 
@@ -40,8 +52,8 @@ Hoàn tiền là ghi nhận thủ công bên ngoài, không có refund/payout t�
 
 ## Hồ sơ và việc nhóm xác nhận
 
-File ở `outputs/final-2026-10-26/`: báo cáo chung, ba báo cáo thành viên, rubric local, source zip và SQL. Hai bạn để trống tên/MSSV; phân công là đề xuất, prompt biên soạn lại có ghi rõ. Không giả lập lịch sử đóng góp.
+File ở `outputs/final-2026-10-26/`: báo cáo chung, ba báo cáo thành viên, rubric local, source zip và SQL. Hai bạn để trống tên/MSSV; phân công API đã thống nhất ngày 28/10, prompt biên soạn lại có ghi rõ. Không giả lập lịch sử đóng góp.
 
-Nhóm cần điền thông tin, xác nhận phân công/điểm, quay video có mặt từng người và bổ sung GitHub thật (mốc kiểm tra có 17 commit cùng tác giả). Xác nhận payOS thay VNPAY/MOMO với giảng viên. Không sửa hoặc nộp lên sheet/Drive công khai.
+Nhóm cần điền thông tin và tự chấm điểm, quay video có mặt từng người và bổ sung GitHub thật (mốc rà soát 26/10 có 17 commit cùng tác giả). Xác nhận payOS thay VNPAY/MOMO với giảng viên. Không sửa hoặc nộp lên sheet/Drive công khai.
 
 Lịch UTEx: **29/10/2026, 07:00–18:00, A5-203; nhóm 27 lượt 28**. Nộp trước lượt 30 phút; chưa có giờ riêng. Nguồn https://utexlms.hcmute.edu.vn/mod/page/view.php?id=1452010 . Rubric tải về cập nhật 24/10/2026.

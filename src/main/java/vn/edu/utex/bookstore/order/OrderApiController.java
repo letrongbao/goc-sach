@@ -12,20 +12,20 @@ public final class OrderApiController {
   public OrderApiController(OrderService orders, vn.edu.utex.bookstore.payment.PaymentService payments) { this.orders = orders; this.payments = payments; }
 
   @GetMapping("/checkout/quote")
-  public ResponseEntity<?> quote(JwtAuthenticationToken auth) {
-    return ResponseEntity.ok(orders.quote(userId(auth)));
+  public ResponseEntity<?> quote(JwtAuthenticationToken auth,@RequestParam(defaultValue="0") long carrierId,@RequestParam(required=false) String voucherCode) {
+    return ResponseEntity.ok(orders.quote(userId(auth),carrierId,voucherCode));
   }
 
   @PostMapping("/checkout")
   public ResponseEntity<?> checkout(JwtAuthenticationToken auth, @RequestBody CheckoutRequest request) {
     long userId = userId(auth);
     String key = request.idempotencyKey() == null ? "" : request.idempotencyKey().trim();
-    payments.checkout(userId, request.addressId(), key, request.quoteFingerprint(), request.paymentMethod());
+    payments.checkout(userId, request.addressId(), key, request.quoteFingerprint(), request.paymentMethod(),request.carrierId(),request.voucherCode());
     return ResponseEntity.ok(orders.ordersByKey(userId, key));
   }
 
   @GetMapping("/orders")
-  public ResponseEntity<?> list(JwtAuthenticationToken auth) { return ResponseEntity.ok(orders.orders(userId(auth))); }
+  public ResponseEntity<?> list(JwtAuthenticationToken auth,@RequestParam(required=false) String status) { return ResponseEntity.ok(orders.filteredOrders(userId(auth),status)); }
 
   @GetMapping("/orders/{id}")
   public ResponseEntity<?> detail(JwtAuthenticationToken auth, @PathVariable long id) {
@@ -38,7 +38,7 @@ public final class OrderApiController {
     return ResponseEntity.noContent().build();
   }
 
-  public record CheckoutRequest(long addressId, String idempotencyKey, String quoteFingerprint, String paymentMethod) {}
+  public record CheckoutRequest(long addressId, String idempotencyKey, String quoteFingerprint, String paymentMethod,long carrierId,String voucherCode) {}
   private static long userId(JwtAuthenticationToken auth) {
     Object value=auth.getToken().getClaim("user_id");
     if (!(value instanceof Number n)||n.longValue()<=0)

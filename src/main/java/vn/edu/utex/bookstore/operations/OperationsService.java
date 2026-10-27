@@ -83,7 +83,7 @@ public final class OperationsService {
   public List<ReturnRequest> shopReturns(Identity actor,long shopId) {return store.tx(d->{ShopAccess.require(d,actor,shopId,false);return d.ordersForShop(shopId).stream()
     .map(o->d.returnForOrder(o.id,false)).filter(java.util.Objects::nonNull).toList();});}
   public void resolveReturn(Identity actor,long orderId,String action,String note,String reference) {
-    if(!Set.of("APPROVED","REJECTED","REFUNDED").contains(action))throw Problem.invalid("Thao tác trả hàng không hợp lệ.");
+    if(action==null||!Set.of("APPROVED","REJECTED","REFUNDED").contains(action))throw Problem.invalid("Thao tác trả hàng không hợp lệ.");
     String detail=text(note,5,300);String ref="REFUNDED".equals(action)?text(reference,5,200):"";
     store.tx(d->{var o=OrderService.lockedOrder(d,orderId);if(o==null)throw Problem.missing();ShopAccess.require(d,actor,o.shopId,false);
       var r=d.returnForOrder(orderId,true);if(r==null)throw Problem.missing();

@@ -1,6 +1,6 @@
 # Cách chạy
 
-## Demo cuối kỳ 26–27/10/2026
+## Demo cuối kỳ cập nhật 28/10/2026
 
 Đọc [FINAL_ACCEPTANCE.md](FINAL_ACCEPTANCE.md). Dùng database mới `goc_sach_final_demo`: chạy schema.sql rồi demo-final.sql đúng một lần trên database trống. Trên máy chuẩn bị database đã nhập xong, không chạy lại. File local `config/final-demo.properties` dùng PostgreSQL port 5434, tắt payOS và SMTP thật. JAR bắt buộc bật Cloudinary với cấu hình hợp lệ; preview bộ nhớ không cần dịch vụ ngoài. Cấu hình thật không nằm trong source zip.
 
@@ -11,6 +11,8 @@ java -Dbookstore.config=C:/BaoLT/goc-sach/config/final-demo.properties -jar targ
 Mở http://127.0.0.1:18082/ . Accounts: buyer, reader, seller, reviewer, manager, admin; mật khẩu demo-password-123. Preview hiện có 24 đầu sách/6 danh mục/3 shop, thay thông tin 13 sách ở ghi chú cũ bên dưới. Chạy scripts/payment-preview.ps1 để test cổng giả port 18081, không dùng tiền thật.
 
 Database goc_sach cũ chưa áp dụng operations-manual.sql. Không chạy JAR mới vào database cũ trước khi sao lưu, kiểm tra và nâng cấp schema đúng các mốc cần thiết. Không chạy lại schema.sql trên database có bảng.
+
+API: xem [URL và cách cấp Bearer token](API_REFERENCE.md). Các API mới không cần schema mới so với bản 26–27/10. Khởi động lại JAR sau khi build để có controller mới.
 
 ## Hướng dẫn nền và cấu hình dịch vụ
 

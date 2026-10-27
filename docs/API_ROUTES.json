@@ -1,0 +1,776 @@
+[
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/api/checkout",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "OrderApiController.CheckoutRequest",
+    "media": "application/json",
+    "controller": "OrderApiController"
+  },
+  {
+    "owner": 1,
+    "method": "GET",
+    "path": "/api/checkout/quote",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "OrderApiController"
+  },
+  {
+    "owner": 1,
+    "method": "GET",
+    "path": "/api/orders",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "OrderApiController"
+  },
+  {
+    "owner": 1,
+    "method": "GET",
+    "path": "/api/orders/{id}",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "OrderApiController"
+  },
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/api/orders/{id}/cancel",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "OrderApiController"
+  },
+  {
+    "owner": 1,
+    "method": "GET",
+    "path": "/api/orders/{id}/payment",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "PaymentApiController"
+  },
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/api/orders/{id}/payment/cancel",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "PaymentApiController"
+  },
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/api/orders/{id}/payment/refresh",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "PaymentApiController"
+  },
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/api/orders/{id}/payment/start",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "PaymentApiController"
+  },
+  {
+    "owner": 1,
+    "method": "GET",
+    "path": "/api/orders/{id}/return",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "OrderOperationsApiController"
+  },
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/api/orders/{id}/return",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "OrderOperationsApiController.ReasonRequest",
+    "media": "application/json",
+    "controller": "OrderOperationsApiController"
+  },
+  {
+    "owner": 1,
+    "method": "GET",
+    "path": "/api/seller/orders",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "OrderOperationsApiController"
+  },
+  {
+    "owner": 1,
+    "method": "GET",
+    "path": "/api/seller/orders/{id}",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "OrderOperationsApiController"
+  },
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/api/seller/orders/{id}/cancel",
+    "permission": "Quyền theo shop",
+    "schema": "OrderOperationsApiController.ReasonRequest",
+    "media": "application/json",
+    "controller": "OrderOperationsApiController"
+  },
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/api/seller/orders/{id}/return/resolve",
+    "permission": "Quyền theo shop",
+    "schema": "OrderOperationsApiController.ResolutionRequest",
+    "media": "application/json",
+    "controller": "OrderOperationsApiController"
+  },
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/api/seller/orders/{id}/status",
+    "permission": "Quyền theo shop",
+    "schema": "OrderOperationsApiController.StatusRequest",
+    "media": "application/json",
+    "controller": "OrderOperationsApiController"
+  },
+  {
+    "owner": 1,
+    "method": "GET",
+    "path": "/api/seller/shops/{id}/returns",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "OrderOperationsApiController"
+  },
+  {
+    "owner": 1,
+    "method": "POST",
+    "path": "/payments/payos/webhook",
+    "permission": "Chữ ký payOS",
+    "schema": "",
+    "media": "application/json",
+    "controller": "PaymentWebController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/account/addresses",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "ProfileApiController"
+  },
+  {
+    "owner": 2,
+    "method": "POST",
+    "path": "/api/account/addresses",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "ProfileApiController.AddressRequest",
+    "media": "application/json",
+    "controller": "ProfileApiController"
+  },
+  {
+    "owner": 2,
+    "method": "DELETE",
+    "path": "/api/account/addresses/{id}",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "ProfileApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/account/addresses/{id}",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "ProfileApiController"
+  },
+  {
+    "owner": 2,
+    "method": "PUT",
+    "path": "/api/account/addresses/{id}",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "ProfileApiController.AddressRequest",
+    "media": "application/json",
+    "controller": "ProfileApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/account/profile",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "ProfileApiController"
+  },
+  {
+    "owner": 2,
+    "method": "PUT",
+    "path": "/api/account/profile",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "ProfileApiController.ProfileRequest",
+    "media": "application/json",
+    "controller": "ProfileApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/cart",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "BuyerApiController"
+  },
+  {
+    "owner": 2,
+    "method": "POST",
+    "path": "/api/cart/items",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "BuyerApiController.CartRequest",
+    "media": "application/json",
+    "controller": "BuyerApiController"
+  },
+  {
+    "owner": 2,
+    "method": "DELETE",
+    "path": "/api/cart/items/{copyId}",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "BuyerApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/categories",
+    "permission": "Công khai",
+    "schema": "",
+    "media": "—",
+    "controller": "CatalogApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/favorites",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "BuyerApiController"
+  },
+  {
+    "owner": 2,
+    "method": "DELETE",
+    "path": "/api/favorites/{productId}",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "BuyerApiController"
+  },
+  {
+    "owner": 2,
+    "method": "PUT",
+    "path": "/api/favorites/{productId}",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "BuyerApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/me",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "ApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/products",
+    "permission": "Công khai",
+    "schema": "",
+    "media": "—",
+    "controller": "CatalogApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/products/{id}",
+    "permission": "Công khai",
+    "schema": "",
+    "media": "—",
+    "controller": "CatalogApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/products/{productId}/reviews",
+    "permission": "Công khai",
+    "schema": "",
+    "media": "—",
+    "controller": "ReviewApiController"
+  },
+  {
+    "owner": 2,
+    "method": "POST",
+    "path": "/api/products/{productId}/reviews",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "ReviewApiController.ReviewRequest",
+    "media": "application/json",
+    "controller": "ReviewApiController"
+  },
+  {
+    "owner": 2,
+    "method": "POST",
+    "path": "/api/products/{productId}/reviews",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "multipart/form-data",
+    "controller": "ReviewApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/products/{productId}/reviews/mine",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "ReviewApiController"
+  },
+  {
+    "owner": 2,
+    "method": "PUT",
+    "path": "/api/products/{productId}/reviews/mine",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "ReviewApiController.ReviewRequest",
+    "media": "application/json",
+    "controller": "ReviewApiController"
+  },
+  {
+    "owner": 2,
+    "method": "PUT",
+    "path": "/api/products/{productId}/reviews/mine",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "multipart/form-data",
+    "controller": "ReviewApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/rankings/{sort}",
+    "permission": "Công khai",
+    "schema": "",
+    "media": "—",
+    "controller": "CatalogApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/recent-views",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "BuyerApiController"
+  },
+  {
+    "owner": 2,
+    "method": "POST",
+    "path": "/api/recent-views/{productId}",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "BuyerApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/shops",
+    "permission": "Công khai",
+    "schema": "",
+    "media": "—",
+    "controller": "CatalogApiController"
+  },
+  {
+    "owner": 2,
+    "method": "GET",
+    "path": "/api/shops/{slug}",
+    "permission": "Công khai",
+    "schema": "",
+    "media": "—",
+    "controller": "CatalogApiController"
+  },
+  {
+    "owner": 2,
+    "method": "POST",
+    "path": "/auth/api-token",
+    "permission": "Phiên + CSRF",
+    "schema": "",
+    "media": "—",
+    "controller": "ApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/account/shop-applications",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/account/shop-applications",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "ShopApiController.ApplicationRequest",
+    "media": "application/json",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/admin/carriers",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/admin/carriers",
+    "permission": "Admin",
+    "schema": "OperationsApiController.CarrierRequest",
+    "media": "application/json",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "PUT",
+    "path": "/api/admin/carriers/{id}",
+    "permission": "Admin",
+    "schema": "OperationsApiController.CarrierRequest",
+    "media": "application/json",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/admin/categories",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/admin/categories",
+    "permission": "Admin",
+    "schema": "AdminCatalogApiController.CategoryRequest",
+    "media": "application/json",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "DELETE",
+    "path": "/api/admin/categories/{id}",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/admin/categories/{id}",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "PUT",
+    "path": "/api/admin/categories/{id}",
+    "permission": "Admin",
+    "schema": "AdminCatalogApiController.CategoryRequest",
+    "media": "application/json",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/admin/media/images",
+    "permission": "Admin",
+    "schema": "",
+    "media": "multipart/form-data",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/admin/products",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/admin/products",
+    "permission": "Admin",
+    "schema": "AdminCatalogApiController.ProductRequest",
+    "media": "application/json",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "DELETE",
+    "path": "/api/admin/products/{id}",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/admin/products/{id}",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "PUT",
+    "path": "/api/admin/products/{id}",
+    "permission": "Admin",
+    "schema": "AdminCatalogApiController.ProductRequest",
+    "media": "application/json",
+    "controller": "AdminCatalogApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/admin/reviews",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "PUT",
+    "path": "/api/admin/reviews/{id}/visibility",
+    "permission": "Admin",
+    "schema": "OperationsApiController.VisibilityRequest",
+    "media": "application/json",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/admin/shop-applications",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/admin/shop-applications/{id}/approve",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/admin/shop-applications/{id}/reject",
+    "permission": "Admin",
+    "schema": "ShopApiController.ReasonRequest",
+    "media": "application/json",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "PUT",
+    "path": "/api/admin/shops/{id}/commission",
+    "permission": "Admin",
+    "schema": "OperationsApiController.CommissionRequest",
+    "media": "application/json",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "PUT",
+    "path": "/api/admin/shops/{id}/suspension",
+    "permission": "Admin",
+    "schema": "ShopApiController.SuspensionRequest",
+    "media": "application/json",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/admin/users",
+    "permission": "Admin",
+    "schema": "",
+    "media": "—",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "PUT",
+    "path": "/api/admin/users/{id}/block",
+    "permission": "Admin",
+    "schema": "OperationsApiController.BlockRequest",
+    "media": "application/json",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/carriers",
+    "permission": "Bearer, dữ liệu của mình",
+    "schema": "",
+    "media": "—",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/seller/shops",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/seller/shops/{id}",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/seller/shops/{id}/members",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "PUT",
+    "path": "/api/seller/shops/{id}/members",
+    "permission": "Quyền theo shop",
+    "schema": "ShopApiController.MemberRequest",
+    "media": "application/json",
+    "controller": "ShopApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/seller/shops/{id}/revenue",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/seller/shops/{id}/vouchers",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/seller/shops/{id}/vouchers",
+    "permission": "Quyền theo shop",
+    "schema": "OperationsApiController.VoucherRequest",
+    "media": "application/json",
+    "controller": "OperationsApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/seller/shops/{shopId}/copies",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "InventoryApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/seller/shops/{shopId}/copies",
+    "permission": "Quyền theo shop",
+    "schema": "InventoryApiController.CopyRequest",
+    "media": "application/json",
+    "controller": "InventoryApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/seller/shops/{shopId}/copies/{id}",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "InventoryApiController"
+  },
+  {
+    "owner": 3,
+    "method": "PUT",
+    "path": "/api/seller/shops/{shopId}/copies/{id}",
+    "permission": "Quyền theo shop",
+    "schema": "InventoryApiController.CopyRequest",
+    "media": "application/json",
+    "controller": "InventoryApiController"
+  },
+  {
+    "owner": 3,
+    "method": "GET",
+    "path": "/api/seller/shops/{shopId}/copies/{id}/history",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "InventoryApiController"
+  },
+  {
+    "owner": 3,
+    "method": "POST",
+    "path": "/api/seller/vouchers/{code}/disable",
+    "permission": "Quyền theo shop",
+    "schema": "",
+    "media": "—",
+    "controller": "OperationsApiController"
+  }
+]

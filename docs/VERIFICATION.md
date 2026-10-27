@@ -1,6 +1,12 @@
 # Kết quả kiểm tra
 
-Cập nhật: 03/10/2026. Full `verify` bản UI/UX mở rộng đạt; chưa nghiệm thu giao dịch thật.
+Cập nhật: 28/10/2026. Full `verify` đạt **230 test**, không failure/error/skipped, hoàn tất 02:39:35 UTC+7. Log local `target/api-final-verified.log`.
+
+## API và phân công ngày 28/10/2026
+
+Bổ sung 10 test HTTP trong ExpandedApiWebTest: public catalog, Bearer/CSRF separation, JSON sai, địa chỉ khác chủ, kho khác shop/version cũ, admin/khóa tài khoản thu hồi JWT, checkout voucher/phí/gửi lặp, trả hàng và xác nhận hoàn tiền ngoài, quyền shop, review và upload, duyệt shop/CRUD catalog. Toàn bộ payment/JWT/WebSocket và test cũ cũng đạt. Đóng gói JAR thành công. Không chạy migration hoặc thanh toán thật. Xem [nghiệm thu](FINAL_ACCEPTANCE.md) và [API](API_REFERENCE.md).
+
+Các đợt bên dưới là bằng chứng lịch sử, không thay thế kết quả mới.
 
 ## Đợt UI/UX ngày 03/10/2026
 
