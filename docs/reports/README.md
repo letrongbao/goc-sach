@@ -12,6 +12,6 @@ Bộ báo cáo gồm bốn file Word; rubric được điền trực tiếp tạ
 
 Điểm là nhóm tự đánh giá, không phải điểm giảng viên. Các báo cáo cá nhân có URL API theo phần phụ trách; [API_REFERENCE.md](../API_REFERENCE.md) ghi body, query và quyền. [Docker](../DOCKER_QUICKSTART.md) là cách chạy chung của nhóm.
 
-Phần AI gồm 14 prompt biên soạn và tái dựng theo chức năng: B01–B06 của Bảo (thêm điều phối tiến độ, tích hợp và nghiệm thu), T01–T04 của Thành, K01–K04 của Khang. Xem mục 2 trong từng báo cáo cá nhân và mục 15 báo cáo chung. Đây không phải bản xuất lịch sử chat; từng người cần đối chiếu việc sử dụng thực tế.
+Phần AI gồm 14 mẫu prompt theo chức năng: B01–B06 của Bảo (điều phối tiến độ, tích hợp và kiểm thử), T01–T04 của Thành, K01–K04 của Khang. Xem mục 2 trong từng báo cáo cá nhân và mục 15 báo cáo chung.
 
-Còn cần quay video, chuẩn bị minh chứng đóng góp thực tế và nộp báo cáo lên Drive theo lịch. Ngày 28/10/2026 đã sao chép tab mẫu thành tab `27` và điền rubric online theo yêu cầu của nhóm; không sửa tab mẫu hoặc tab nhóm khác. Bản XLSX local chỉ là bản tham khảo cũ, không dùng để nộp hoặc nhập lên sheet. Giữ DOCX để chỉnh sửa, không lưu thêm PDF trùng trên Git.
+Báo cáo, source, SQL và hướng dẫn cài đặt nằm trong [thư mục Nhóm 27](https://drive.google.com/drive/folders/1oXTum7aRQ1r3sFsoWTs29DQeNuyX4_V4). Video giới thiệu và thao tác của các thành viên cần bổ sung. Rubric dùng tab online `27`; bản XLSX local là bản tham khảo cũ. Giữ định dạng DOCX để thuận tiện chỉnh sửa.
