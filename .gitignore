@@ -12,3 +12,6 @@
 *.key
 *.p12
 /outputs/
+
+# Temporary Microsoft Office lock files
+~$*

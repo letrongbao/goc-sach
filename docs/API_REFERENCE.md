@@ -1,12 +1,12 @@
 # API và phân công Góc Sách
 
-Cập nhật 28/10/2026. Phân công đã thống nhất cho ba người; đây là trách nhiệm tiếp nhận, kiểm thử và trình bày, không phải xác nhận tác giả lịch sử Git. Hai thành viên còn lại để trống họ tên/MSSV. Khối lượng cân bằng theo độ khó nghiệp vụ: thanh toán ít URL hơn nhưng có đối soát, khóa và chống lặp.
+Cập nhật 28/10/2026. Phân công đã thống nhất cho ba người; đây là trách nhiệm tiếp nhận, kiểm thử và trình bày, không phải xác nhận tác giả lịch sử Git. Khối lượng cân bằng theo độ khó nghiệp vụ: thanh toán ít URL hơn nhưng có đối soát, khóa và chống lặp.
 
 | Người phụ trách | Phạm vi |
 |---|---|
 | TV1 — Lê Trọng Bảo — 22110106 | Checkout, đơn buyer/seller, payOS, webhook, trả hàng, ghi nhận hoàn tiền, thông báo đơn |
-| TV2 — Họ tên: ______ — MSSV: ______ | Xác thực, hồ sơ, địa chỉ, catalog/tìm kiếm/top20, giỏ, yêu thích, đã xem, review và media review |
-| TV3 — Họ tên: ______ — MSSV: ______ | Shop, thành viên, duyệt shop, kho, quản trị catalog, voucher, hãng giao, chiết khấu, doanh thu, khóa user, kiểm duyệt |
+| TV2 — Nguyễn Kiều Thành — 22110231 | Xác thực, hồ sơ, địa chỉ, catalog/tìm kiếm/top20, giỏ, yêu thích, đã xem, review và media review |
+| TV3 — Nguyễn An Khang — 22110160 | Shop, thành viên, duyệt shop, kho, quản trị catalog, voucher, hãng giao, chiết khấu, doanh thu, khóa user, kiểm duyệt |
 
 TV2 bàn giao danh tính/token và giỏ cho TV1; TV3 bàn giao bản sách, voucher/phí cho TV1. TV1 xử lý thay đổi kho do đặt/hủy/trả; TV3 không sửa trực tiếp bản RESERVED/SOLD. Mỗi người chịu trách nhiệm controller, service, dữ liệu, kiểm thử và demo phần mình. Cùng review chỗ giao nhau; không chia tác giả commit giả.
 
@@ -26,7 +26,7 @@ GET JSON thường trả 200; POST tạo địa chỉ/bản sách/đăng ký sho
 
 ## Danh sách URL theo thành viên
 
-### Thành viên 1
+### Lê Trọng Bảo — 22110106
 
 | HTTP | URL đầy đủ | Quyền | Body |
 |---|---|---|---|
@@ -49,7 +49,7 @@ GET JSON thường trả 200; POST tạo địa chỉ/bản sách/đăng ký sho
 | GET | `http://localhost:8080/api/seller/shops/{id}/returns` | Quyền theo shop | — |
 | POST | `http://localhost:8080/payments/payos/webhook` | Chữ ký payOS | application/json |
 
-### Thành viên 2
+### Nguyễn Kiều Thành — 22110231
 
 | HTTP | URL đầy đủ | Quyền | Body |
 |---|---|---|---|
@@ -83,7 +83,7 @@ GET JSON thường trả 200; POST tạo địa chỉ/bản sách/đăng ký sho
 | GET | `http://localhost:8080/api/shops/{slug}` | Công khai | — |
 | POST | `http://localhost:8080/auth/api-token` | Phiên + CSRF | — |
 
-### Thành viên 3
+### Nguyễn An Khang — 22110160
 
 | HTTP | URL đầy đủ | Quyền | Body |
 |---|---|---|---|

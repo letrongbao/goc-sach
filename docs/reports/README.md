@@ -1,11 +1,15 @@
-# Báo cáo nhóm 27 cập nhật 28/10/2026
+# Hồ sơ nhóm 27
 
-- [Báo cáo chung](27_Bao_cao_GocSach.docx), [PDF](27_Bao_cao_GocSach.pdf).
-- [TV1 Lê Trọng Bảo](27_TV1_LeTrongBao.docx): đơn hàng, checkout, payOS, trả/hoàn tiền, thông báo.
-- [TV2](27_TV2.docx): tài khoản, catalog và trải nghiệm người mua.
-- [TV3](27_TV3.docx): shop/kho và quản trị vận hành.
-- [Rubric local](27_Rubric_GocSach.xlsx): tên/MSSV hai bạn và điểm tự chấm để trống.
+Bộ nộp gồm bốn báo cáo Word và một rubric Excel:
 
-Mỗi báo cáo cá nhân có URL API theo phân công. [Tài liệu API](../API_REFERENCE.md) ghi body, query, quyền và cách cấp token. Bản PDF đã được xuất và kiểm tra 34 trang. Phân công đã thống nhất; lịch sử đóng góp và tự chấm phải dựa trên công việc thực tế. Video vẫn do nhóm quay.
+| Tài liệu | Thành viên |
+|---|---|
+| [Báo cáo chung](27_Bao_cao_GocSach.docx) | Cả nhóm |
+| [Báo cáo TV1](27_TV1_LeTrongBao.docx) | Lê Trọng Bảo — 22110106 |
+| [Báo cáo TV2](27_TV2_NguyenKieuThanh.docx) | Nguyễn Kiều Thành — 22110231 |
+| [Báo cáo TV3](27_TV3_NguyenAnKhang.docx) | Nguyễn An Khang — 22110160 |
+| [Rubric](27_Rubric_GocSach.xlsx) | Đủ ba tên/MSSV; tự chấm 78/100 = 7,8/10 mỗi người |
 
-Bộ test mới đạt 230/230; xem [nghiệm thu](../FINAL_ACCEPTANCE.md). Không sửa sheet công khai của giảng viên. Các ảnh giao diện và nghiệm thu PostgreSQL trong báo cáo là mốc 26–27/10; đợt 28/10 bổ sung API/test HTTP, không migrate dữ liệu.
+Điểm là nhóm tự đánh giá, không phải điểm giảng viên. Các báo cáo cá nhân có URL API theo phần phụ trách; [API_REFERENCE.md](../API_REFERENCE.md) ghi body, query và quyền. [Docker](../DOCKER_QUICKSTART.md) là cách chạy chung của nhóm.
+
+Còn cần quay video, chuẩn bị minh chứng đóng góp thực tế và nộp theo lịch. Không sửa sheet công khai của giảng viên. Giữ DOCX để chỉnh sửa, không lưu thêm PDF trùng trên Git.

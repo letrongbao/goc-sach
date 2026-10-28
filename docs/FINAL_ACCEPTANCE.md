@@ -1,17 +1,17 @@
 # Nghiệm thu đồ án cuối kỳ Góc Sách
 
-Chuẩn bị ngày 26/10/2026; cập nhật API, phân công và hồ sơ ngày 28/10/2026. Chỉ phạm vi nhóm 27, đề tài 14. Tài liệu này cập nhật hiện trạng mới hơn các ghi chú mốc trước trong REQUIREMENTS, ARCHITECTURE và VERIFICATION.
+Chuẩn bị ngày 26/10/2026; cập nhật API, phân công và hồ sơ ngày 28/10/2026. Chỉ phạm vi nhóm 27, đề tài 14. Các tài liệu kỹ thuật và báo cáo đã được đồng bộ với bản bàn giao.
 
 ## API và phân công cập nhật 28/10
 
 - Đã có [Docker Compose một lệnh](DOCKER_QUICKSTART.md) cho nhóm: nhận riêng `config/team.properties`, chạy app/PostgreSQL/Mailpit, tự tạo JWT và seed volume mới. Nghiệm thu bản clone sạch và giữ dữ liệu sau recreate đạt; full verify chạy lại 03:07:07 vẫn 230/230. Xem [kết quả Docker](VERIFICATION.md).
-- TV1 Bảo: checkout, đơn buyer/seller, payOS/webhook, trả hàng, ghi nhận hoàn tiền, thông báo.
-- TV2: tài khoản, hồ sơ/địa chỉ, catalog/tìm kiếm/top20, giỏ, yêu thích/đã xem, review/media.
-- TV3: shop/thành viên/kho, catalog admin, voucher/hãng giao/chiết khấu/doanh thu, khóa user và kiểm duyệt.
+- Lê Trọng Bảo — 22110106: checkout, đơn buyer/seller, payOS/webhook, trả hàng, ghi nhận hoàn tiền, thông báo.
+- Nguyễn Kiều Thành — 22110231: tài khoản, hồ sơ/địa chỉ, catalog/tìm kiếm/top20, giỏ, yêu thích/đã xem, review/media.
+- Nguyễn An Khang — 22110160: shop/thành viên/kho, catalog admin, voucher/hãng giao/chiết khấu/doanh thu, khóa user và kiểm duyệt.
 - [API_REFERENCE.md](API_REFERENCE.md) ghi URL đầy đủ, body, query và quyền; [API_ROUTES.json](API_ROUTES.json) lưu danh mục máy đọc. Xác thực/OTP giữ form session + CSRF; REST riêng dùng Bearer.
 - Bổ sung controller gọi service hiện có; checkout JSON nhận carrierId/voucherCode, review nhận JSON/multipart. Hoàn tiền yêu cầu settled=true; xử lý status null trả 400.
 - ExpandedApiWebTest: 10 test mới trên HTTP server/RSA tạm, kiểm tra IDOR, shop/admin, version kho, thu hồi token, checkout gửi lặp và hoàn tiền, CRUD và quyền upload. Không có migration hoặc sửa dữ liệu thật trong lượt này.
-- Bốn DOCX/PDF và rubric local được cập nhật; bản trong Git ở [reports](reports/README.md). Không chỉnh sheet công khai của thầy.
+- Bốn DOCX và rubric local được cập nhật; bản trong Git ở [reports](reports/README.md). Không chỉnh sheet công khai của thầy.
 
 ## Chức năng bổ sung
 
@@ -53,8 +53,8 @@ Hoàn tiền là ghi nhận thủ công bên ngoài, không có refund/payout t�
 
 ## Hồ sơ và việc nhóm xác nhận
 
-File ở `outputs/final-2026-10-26/`: báo cáo chung, ba báo cáo thành viên, rubric local, source zip và SQL. Hai bạn để trống tên/MSSV; phân công API đã thống nhất ngày 28/10, prompt biên soạn lại có ghi rõ. Không giả lập lịch sử đóng góp.
+File ở `outputs/final-2026-10-26/`: báo cáo chung, ba báo cáo thành viên, rubric local, source zip và SQL. Đã điền đủ họ tên/MSSV ba người theo phân công. Rubric tự chấm 78/100 (7,8/10) mỗi người; prompt biên soạn lại có ghi rõ. Không giả lập lịch sử đóng góp.
 
-Nhóm cần điền thông tin và tự chấm điểm, quay video có mặt từng người và bổ sung GitHub thật (mốc rà soát 26/10 có 17 commit cùng tác giả). Xác nhận payOS thay VNPAY/MOMO với giảng viên. Không sửa hoặc nộp lên sheet/Drive công khai.
+Nhóm cần quay video có mặt từng người và bổ sung minh chứng GitHub thực tế. Xác nhận payOS thay VNPAY/MOMO với giảng viên. Không sửa hoặc nộp lên sheet/Drive công khai.
 
 Lịch UTEx: **29/10/2026, 07:00–18:00, A5-203; nhóm 27 lượt 28**. Nộp trước lượt 30 phút; chưa có giờ riêng. Nguồn https://utexlms.hcmute.edu.vn/mod/page/view.php?id=1452010 . Rubric tải về cập nhật 24/10/2026.
