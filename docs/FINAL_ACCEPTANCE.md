@@ -11,7 +11,7 @@ Chuẩn bị ngày 26/10/2026; cập nhật API, phân công và hồ sơ ngày 
 - [API_REFERENCE.md](API_REFERENCE.md) ghi URL đầy đủ, body, query và quyền; [API_ROUTES.json](API_ROUTES.json) lưu danh mục máy đọc. Xác thực/OTP giữ form session + CSRF; REST riêng dùng Bearer.
 - Bổ sung controller gọi service hiện có; checkout JSON nhận carrierId/voucherCode, review nhận JSON/multipart. Hoàn tiền yêu cầu settled=true; xử lý status null trả 400.
 - ExpandedApiWebTest: 10 test mới trên HTTP server/RSA tạm, kiểm tra IDOR, shop/admin, version kho, thu hồi token, checkout gửi lặp và hoàn tiền, CRUD và quyền upload. Không có migration hoặc sửa dữ liệu thật trong lượt này.
-- Bốn DOCX và rubric local được cập nhật; bản trong Git ở [reports](reports/README.md). Không chỉnh sheet công khai của thầy.
+- Bốn DOCX được cập nhật tại [reports](reports/README.md). Ngày 28/10, theo yêu cầu của nhóm, đã sao chép tab mẫu và điền tab `27` trong rubric online của thầy: đề tài 14, ba tên/MSSV, GitHub và điểm tự chấm. Bản XLSX local không dùng để nộp.
 
 ## Chức năng bổ sung
 
@@ -55,6 +55,6 @@ Hoàn tiền là ghi nhận thủ công bên ngoài, không có refund/payout t�
 
 File ở `outputs/final-2026-10-26/`: báo cáo chung, ba báo cáo thành viên, rubric local, source zip và SQL. Đã điền đủ họ tên/MSSV ba người theo phân công. Rubric tự chấm 78/100 (7,8/10) mỗi người; prompt biên soạn lại có ghi rõ. Không giả lập lịch sử đóng góp.
 
-Nhóm cần quay video có mặt từng người và bổ sung minh chứng GitHub thực tế. Xác nhận payOS thay VNPAY/MOMO với giảng viên. Không sửa hoặc nộp lên sheet/Drive công khai.
+Nhóm cần quay video có mặt từng người và bổ sung minh chứng GitHub thực tế. Xác nhận payOS thay VNPAY/MOMO với giảng viên. Đã điền rubric tại [tab 27](https://docs.google.com/spreadsheets/d/13f45c1BgWIiv1SToJRQCnXyHbGX1lDLK/edit?gid=347682576#gid=347682576), tổng bằng công thức là 78/100 mỗi người. Chưa tải bộ báo cáo/video lên Drive của thầy.
 
 Lịch UTEx: **29/10/2026, 07:00–18:00, A5-203; nhóm 27 lượt 28**. Nộp trước lượt 30 phút; chưa có giờ riêng. Nguồn https://utexlms.hcmute.edu.vn/mod/page/view.php?id=1452010 . Rubric tải về cập nhật 24/10/2026.
