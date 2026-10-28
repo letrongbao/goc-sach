@@ -1,4 +1,5 @@
-<section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+<section id="checkout" class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <script th:src="@{/assets/checkout.js}" defer></script>
   <div class="section-heading"><div><p class="eyebrow">MUA SÁCH</p><h1>Xác nhận đặt hàng</h1></div><a th:href="@{/cart}">← Trở lại giỏ hàng</a></div>
   <div class="row g-4 align-items-start">
     <div class="col-lg-7">
@@ -22,9 +23,10 @@
     <div class="col-lg-5">
       <div class="panel checkout-form">
         <h2>Giao hàng và ưu đãi</h2>
-        <form method="get" th:action="@{/checkout}" class="mb-4">
+        <form id="checkout-quote" method="get" th:action="@{/checkout}" class="mb-4">
           <label for="carrierId">Nhà vận chuyển</label><select class="form-select" id="carrierId" name="carrierId"><option value="">Tiêu chuẩn — 30.000 ₫ / shop</option><option th:each="c:${carriers}" th:value="${c.id}" th:selected="${c.id==carrierId}" th:text="${c.name+' — '+#numbers.formatDecimal(c.fee,1,'POINT',0,'COMMA')+' ₫ / shop'}"></option></select>
-          <label for="voucherCode">Mã giảm giá của shop</label><input class="form-control" id="voucherCode" name="voucherCode" maxlength="30" th:value="${voucherCode}"><button class="btn btn-outline-dark mt-2">Áp dụng và tính lại</button>
+          <label for="voucherCode">Mã giảm giá của shop</label><input class="form-control" id="voucherCode" name="voucherCode" maxlength="30" th:value="${voucherCode}"><button class="btn btn-outline-dark mt-2">Áp dụng mã</button>
+          <p id="quote-feedback" class="field-help" role="status" aria-live="polite"></p>
         </form><h2>Thông tin nhận hàng</h2>
         <form method="post" th:action="@{/checkout}">
           <input type="hidden" name="_csrf" th:value="${csrf}">

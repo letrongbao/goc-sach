@@ -1,5 +1,5 @@
 <section class="container section" th:fragment="content" xmlns:th="http://www.thymeleaf.org">
-  <h1>Vận hành cửa hàng</h1><form method="get" class="d-flex gap-2 mb-4"><label for="shop">Cửa hàng</label><select class="form-select" id="shop" name="shopId"><option th:each="s:${shops}" th:value="${s.id}" th:text="${s.name}" th:selected="${s.id==shopId}"></option></select><button class="btn btn-forest">Xem</button></form>
+  <h1>Vận hành cửa hàng</h1><form method="get" class="inline-filter"><label for="shop">Cửa hàng</label><select class="form-select" id="shop" name="shopId"><option th:each="s:${shops}" th:value="${s.id}" th:text="${s.name}" th:selected="${s.id==shopId}"></option></select><button class="btn btn-forest">Xem</button></form>
   <p th:if="${shopId == null}">Bạn chưa được phân công cửa hàng.</p>
   <th:block th:if="${shopId != null}">
   <div class="panel p-4 mb-4"><h2>Doanh thu đã hoàn tất</h2><p>Chỉ tính đơn đã giao và đã thanh toán; loại đơn đang trả hàng hoặc đã hoàn tiền. Phí vận chuyển được theo dõi riêng; đây là số đối soát, không phải lệnh chuyển tiền.</p>
