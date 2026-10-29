@@ -20,7 +20,7 @@
 
 Mẫu local có năm tiêu chí: độ khó/phân công10%, AI/GitHub20%, hình thức/cấu trúc/vai trò20%, ứng dụng/code/cài đặt35%, sáng tạo15%. Nhóm tự chấm lần lượt8,15,15,28,12: tổng78/100 (7,8/10) mỗi thành viên. Giảng viên quyết định điểm chính thức.
 
-[Hồ sơ](reports/README.md) gồm một báo cáo chung, ba báo cáo cá nhân và rubric. Cần video có mặt từng người, tự giải thích phần phụ trách và bằng chứng đóng góp thật. Lịch đã đối chiếu: 29/10/2026,07:00–18:00,A5-203; nhóm27 lượt28, nộp trước lượt30 phút; chưa có giờ riêng được xác nhận.
+[Hồ sơ](reports/README.md) gồm một báo cáo đồ án cuối kỳ tổng hợp và rubric. Phân công, phần việc và prompt của ba thành viên nằm trong cùng báo cáo. Cần video có mặt từng người, tự giải thích phần phụ trách và bằng chứng đóng góp thật. Lịch đã đối chiếu: 29/10/2026,07:00–18:00,A5-203; nhóm27 lượt28, nộp trước lượt30 phút; chưa có giờ riêng được xác nhận.
 
 Giới hạn còn lại: chưa nghiệm thu tiền thật/webhook Internet, upload video Cloudinary thật, tải lớn/nhiều instance, vận đơn và refund/payout tự động. Chi tiết [nghiệm thu](FINAL_ACCEPTANCE.md) và [kiểm thử](VERIFICATION.md).
 

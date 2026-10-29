@@ -20,7 +20,7 @@ Website: http://localhost:8080. Hộp thư OTP: http://localhost:8025. Tài kho�
 
 ## Tài liệu cần dùng
 
-- [Bốn báo cáo Word và rubric](docs/reports/README.md).
+- [Báo cáo đồ án cuối kỳ và rubric](docs/reports/README.md).
 - [Phân công và URL API](docs/API_REFERENCE.md).
 - [Yêu cầu](docs/REQUIREMENTS.md) và [kiến trúc](docs/ARCHITECTURE.md).
 - [Nghiệm thu và việc cần hoàn tất](docs/FINAL_ACCEPTANCE.md).
